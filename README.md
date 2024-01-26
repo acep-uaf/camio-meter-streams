@@ -3,7 +3,7 @@
 ![](data-ducks-stream.png)
 
 
-# TIG Stack Deployment Guide
+# TIG Stack Deployment Guide for dockerized tig for local machine metrics 
 
 
 This guide provides instructions for deploying the TIG (Telegraf, InfluxDB, Grafana) stack using Docker.
