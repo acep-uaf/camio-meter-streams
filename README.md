@@ -1,41 +1,41 @@
 # SEL Meter FTP Download Script
 
-This repository contains a Bash script, `ftp-meter-download.sh`, designed to automate the process of downloading files from an SEL meter via FTP. The script ensures efficient and secure transfer of files from the SEL meter to your local system.
+This repository contains a Bash script, `sel-meter-ftp-download.sh`, designed to automate the process of downloading files from an SEL meter via FTP. The script ensures efficient and secure transfer of files from the SEL-735 meter to your local system.
 
 ## Prerequisites
 
 Before running this script, ensure you have the following:
 
 - A Unix-like environment (Linux, macOS, or a Unix-like terminal in Windows)
-- FTP access credentials (username and password) for the SEL meter
-- FTP client, `lftp`, installed on your system
+- FTP access credentials (username and password) for the SEL-735 meter
+- The following must be installed on your system:
+    - `lftp` — [Download lftp](https://lftp.yar.ru/get.html)
+    - `jq` — [Download jq](https://jqlang.github.io/jq/download/)
 
 ## Installation
 
 1. Clone the repository or download the script directly to your local machine.
 
     ```bash
-    git clone https://github.com/acep-uaf/data-ducks-STREAM/tree/ftp-meter-script.git
+    git clone https://github.com/acep-uaf/data-ducks-STREAM/tree/sel-meter-ftp-download
     
-    cd ftp-meter-script
+    cd sel-meter-ftp-download
     ```
 
 2. Make the script executable:
 
     ```bash
-    chmod +x sel_meter_ftp_download.sh
+    chmod +x sel-meter-ftp-download.sh
     ```
 
 ## Configuration
+1. Copy the contents of `secrets.json.example` into a new file named `secrets.json` in the same directory.
+2. Fill in the Blanks: Replace the placeholder values with your FTP server details and configs.
+3. Make sure that `secrets.json` is read only by owner.
+    ```bash
+    chmod 400 secrets.json
+    ```
 
-Edit the script, `ftp-meter-download.sh`, to configure the FTP server details, including server address, remote path, and local download path.
-
-```bash
-# FTP server details
-FTP_SERVER="ftp.example.com"
-FTP_REMOTE_PATH="/path/to/ftp/files"
-LOCAL_PATH="/local/download/path"
-```
 ## Usage
 To run the script, simply execute it from the command line:
 
