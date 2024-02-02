@@ -30,7 +30,7 @@ echo "Local Path: $LOCAL_PATH"
 mkdir -p "$LOCAL_PATH"
 
 # Attempt to login and perform operations
-lftp -e "bye" -u "$FTP_USER,$FTP_PASSWORD" "$FTP_SERVER"
+lftp "$FTP_SERVER" -e "bye" -u "$FTP_USER,$FTP_PASSWORD"
 login_status=$?
 
 if [ $login_status -ne 0 ]; then
@@ -40,11 +40,8 @@ else
     echo "Successfully logged in to the FTP server. Proceeding with file operations."
 fi
 
-lftp -u "$FTP_USER,$FTP_PASSWORD" "$FTP_SERVER" <<EOF
-cd $FTP_REMOTE_PATH
-ls -lt | head -10 | while read file; do
-    pget -n 4 "\$file" -o "$LOCAL_PATH/\$file"
-done
+lftp "$FTP_SERVER" -u "$FTP_USER,$FTP_PASSWORD" <<EOF
+mirror -v "$FTP_REMOTE_PATH" "$LOCAL_PATH"
 quit
 EOF
 
