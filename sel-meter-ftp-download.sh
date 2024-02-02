@@ -9,7 +9,7 @@ if [ ! -f secrets.json ]; then
 	read -p "Enter FTP server IP address: " FTP_SERVER
 	# Set default remote and local paths
 	FTP_REMOTE_PATH ="/"
-	LOCAL_PATH="/sel-735-downloads/"
+	LOCAL_PATH="/EVENTS/"
 else
 	# FTP server details from secrets.json
 	FTP_SERVER=$(jq -r '.ftp_server' secrets.json)
@@ -30,7 +30,7 @@ echo "Local Path: $LOCAL_PATH"
 
 ## Create local directory if it doesn't exist
 ## TODO: Test for proper path
-#mkdir -p "$LOCAL_PATH"
+# mkdir -p "$LOCAL_PATH"
 
 
 ## Using lftp to mirror the directory
