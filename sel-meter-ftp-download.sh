@@ -8,7 +8,7 @@ if [ ! -f secrets.json ]; then
 	echo
 	read -p "Enter FTP server IP address: " FTP_SERVER
 	# Set default remote and local paths
-	FTP_REMOTE_PATH ="/"
+	FTP_REMOTE_PATH ="/EVENTS/"
 	LOCAL_PATH="/EVENTS/"
 else
 	# FTP server details from secrets.json
@@ -18,22 +18,24 @@ else
 	FTP_REMOTE_PATH=$(jq -r '.ftp_remote_path' secrets.json)
 	LOCAL_PATH=$(jq -r '.local_path' secrets.json)
 fi
+
 echo "FTP Details:"
 echo "Server: $FTP_SERVER"
 echo "User: $FTP_USER"
 echo "Remote Path: $FTP_REMOTE_PATH"
 echo "Local Path: $LOCAL_PATH"
 
-#TODO: Try catch to connect to meter
-#Return: Result
-# lftp -u $FTP_USER,$FTP_PASSWORD $FTP_SERVER
-
 ## Create local directory if it doesn't exist
 ## TODO: Test for proper path
-# mkdir -p "$LOCAL_PATH"
+mkdir -p "$LOCAL_PATH"
 
+# Attempt to login and perform operations
+lftp -e "bye" -u "$FTP_USER,$FTP_PASSWORD" "$FTP_SERVER"
+login_status=$?
 
-## Using lftp to mirror the directory
-## TODO: Return Login success or failure
-#lftp -u "$FTP_USER,$FTP_PASS" -e "mirror --verbose --only-newer $FTP_REMOTE_PATH $LOCAL_PATH; quit" $FTP_SERVER
-
+if [ $login_status -ne 0 ]; then
+    echo "Failed to log in to the FTP server: $FTP_SERVER. Please check your credentials and server address."
+    exit 1
+else
+    echo "Successfully logged in to the FTP server. Proceeding with file operations."
+fi
