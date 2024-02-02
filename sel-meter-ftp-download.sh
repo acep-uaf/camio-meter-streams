@@ -41,7 +41,7 @@ else
 fi
 
 lftp "$FTP_SERVER" -u "$FTP_USER,$FTP_PASSWORD" <<EOF
-mirror -v "$FTP_REMOTE_PATH" "$LOCAL_PATH"
+pget CHISTORY.TXT
 quit
 EOF
 
