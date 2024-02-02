@@ -12,7 +12,7 @@ Before running this script, ensure you have the following:
     - `lftp` — [Download lftp](https://lftp.yar.ru/get.html)
     - `jq` — [Download jq](https://jqlang.github.io/jq/download/)
 
-## Installation
+## Installation [TODO - Finish this section]
 
 1. Clone the repository or download the script directly to your local machine.
 
@@ -40,7 +40,7 @@ Before running this script, ensure you have the following:
 To run the script, simply execute it from the command line:
 
 ```bash
-./sel_meter_ftp_download.sh
+./sel-meter-ftp-download.sh
 ```
 The script will prompt you to enter the FTP username and password. After authentication, it will begin downloading files from the SEL meter to the specified local directory.
 
