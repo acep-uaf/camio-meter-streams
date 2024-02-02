@@ -8,8 +8,8 @@ if [ ! -f secrets.json ]; then
 	echo
 	read -p "Enter FTP server IP address: " FTP_SERVER
 	# Set default remote and local paths
-	FTP_REMOTE_PATH ="/EVENTS/"
-	LOCAL_PATH="/EVENTS/"
+	FTP_REMOTE_PATH ="EVENTS"
+	LOCAL_PATH="EVENTS"
 else
 	# FTP server details from secrets.json
 	FTP_SERVER=$(jq -r '.ftp_server' secrets.json)
@@ -38,4 +38,20 @@ if [ $login_status -ne 0 ]; then
     exit 1
 else
     echo "Successfully logged in to the FTP server. Proceeding with file operations."
+fi
+
+lftp -u "$FTP_USER,$FTP_PASSWORD" "$FTP_SERVER" <<EOF
+cd $FTP_REMOTE_PATH
+ls -lt | head -10 | while read file; do
+    pget -n 4 "\$file" -o "$LOCAL_PATH/\$file"
+done
+quit
+EOF
+
+# Check the status of the lftp operations
+if [ $? -ne 0 ]; then
+    echo "Failed to complete the FTP operations."
+    exit 1
+else
+    echo "FTP operations completed successfully."
 fi
