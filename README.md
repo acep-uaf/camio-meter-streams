@@ -34,7 +34,8 @@ Before running this script, ensure you have the following:
     "ftp_server": "",
     "ftp_username": "",
     "ftp_password": "",
-    "local_path": "EVENTS",
+    "ftp_remote_path": "EVENTS",
+    "local_path": "EVENTS"
     }
     ```
 

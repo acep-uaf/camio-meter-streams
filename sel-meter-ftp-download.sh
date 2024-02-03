@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # Check if secrets.json exists in current directory
 if [ ! -f secrets.json ]; then
 	echo "Please enter the following details:"
@@ -8,9 +9,8 @@ if [ ! -f secrets.json ]; then
 	echo
 	read -p "Enter FTP server IP address: " FTP_SERVER
 	# Set default remote and local paths
-	FTP_REMOTE_PATH ="EVENTS"
-	LOCAL_PATH="EVENTS"
 else
+	echo "secrets.json found"
 	# FTP server details from secrets.json
 	FTP_SERVER=$(jq -r '.ftp_server' secrets.json)
 	FTP_USER=$(jq -r '.ftp_username' secrets.json)
