@@ -19,9 +19,6 @@ else
 	LOCAL_PATH=$(jq -r '.local_path' secrets.json)
 fi
 
-echo "FTP Details:"
-echo "Server: $FTP_SERVER"
-echo "User: $FTP_USER"
 echo "Remote Path: $FTP_REMOTE_PATH"
 echo "Local Path: $LOCAL_PATH"
 
@@ -41,7 +38,7 @@ else
 fi
 
 lftp "$FTP_SERVER" -u "$FTP_USER,$FTP_PASSWORD" <<EOF
-pget CHISTORY.TXT
+mirror $FTP_REMOTE_PATH $LOCAL_PATH
 quit
 EOF
 
