@@ -15,7 +15,7 @@ Before running this script, ensure you have the following:
 1. Clone the repository or download the script directly to your local machine.
 
     ```bash
-    git clone -b ot-dev-ftp-meter-download https://github.com/acep-uaf/data-ducks-STREAM.git
+    git clone -b ot-dev-ftp-meter-download git@github.com:acep-uaf/data-ducks-STREAM.git
 
     cd data-ducks-STREAM
     ```
@@ -29,6 +29,13 @@ Before running this script, ensure you have the following:
 ## Configuration
 1. Copy the contents of `secrets.json.example` into a new file named `secrets.json` in the same directory.
 2. Replace the default/empty values with your FTP server details.
+    ```bash
+    "ftp_server": "",
+    "ftp_username": "",
+    "ftp_password": "",
+    "local_path": "EVENTS",
+    ```
+
 3. Make sure that onlt the owner can read and write to `secrets.json`.
     ```bash
     chmod 600 secrets.json
