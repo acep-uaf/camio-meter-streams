@@ -1,27 +1,29 @@
 #!/bin/bash
 
+# Path to event files
+FTP_REMOTE_PATH ="EVENTS"
+
 # Check if secrets.json exists in current directory
 if [ ! -f secrets.json ]; then
-	echo "Please enter the following details:"
-	read -p "Enter FTP username" FTP_USER
-	read -sp "Enter FTP password" FTP_PASSWORD
+	echo "Please enter the following FTP server details:"
 	echo
-	read -p "Enter FTP server IP address: " FTP_SERVER
-	# Set default remote and local paths
-	FTP_REMOTE_PATH ="EVENTS"
-	LOCAL_PATH="EVENTS"
+	read -p "IP address: " FTP_SERVER
+	read -p "Download path: " LOCAL_PATH
+	echo
+	read -p "username: " FTP_USER
+	read -sp "password: " FTP_PASSWORD
+
 else
 	# FTP server details from secrets.json
 	FTP_SERVER=$(jq -r '.ftp_server' secrets.json)
 	FTP_USER=$(jq -r '.ftp_username' secrets.json)
 	FTP_PASSWORD=$(jq -r '.ftp_password' secrets.json)
-	FTP_REMOTE_PATH=$(jq -r '.ftp_remote_path' secrets.json)
 	LOCAL_PATH=$(jq -r '.local_path' secrets.json)
 fi
 
 echo "Remote Path: Attempting to download from $FTP_REMOTE_PATH"
 
-## Create local directory if it doesn't exist
+# Create local directory if it doesn't exist
 mkdir -p "$LOCAL_PATH"
 
 # Attempt to login and perform operations
@@ -38,7 +40,7 @@ fi
 ## FIXME: mirror not copying contents/correct permissions to local directory
 lftp "$FTP_SERVER" -u "$FTP_USER,$FTP_PASSWORD" <<EOF
 mirror $FTP_REMOTE_PATH $LOCAL_PATH
-bye
+quit
 EOF
 
 # Check the status of the lftp operations
