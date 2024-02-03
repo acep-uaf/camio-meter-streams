@@ -19,11 +19,9 @@ else
 	LOCAL_PATH=$(jq -r '.local_path' secrets.json)
 fi
 
-echo "Remote Path: $FTP_REMOTE_PATH"
-echo "Local Path: $LOCAL_PATH"
+echo "Remote Path: Attempting to download from $FTP_REMOTE_PATH"
 
 ## Create local directory if it doesn't exist
-## TODO: Test for proper path
 mkdir -p "$LOCAL_PATH"
 
 # Attempt to login and perform operations
@@ -37,9 +35,10 @@ else
     echo "Successfully logged in to the FTP server. Proceeding with file operations."
 fi
 
+## FIXME: mirror not copying contents/correct permissions to local directory
 lftp "$FTP_SERVER" -u "$FTP_USER,$FTP_PASSWORD" <<EOF
 mirror $FTP_REMOTE_PATH $LOCAL_PATH
-quit
+bye
 EOF
 
 # Check the status of the lftp operations
@@ -48,4 +47,5 @@ if [ $? -ne 0 ]; then
     exit 1
 else
     echo "FTP operations completed successfully."
+	echo "Files downloaded to ./$LOCAL_PATH."
 fi
