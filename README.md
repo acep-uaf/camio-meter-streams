@@ -30,10 +30,10 @@ Before running this script, ensure you have the following:
 1. Copy the contents of `secrets.json.example` into a new file named `secrets.json` in the same directory.
 2. Replace the default/empty values with your FTP server details.
     ```bash
-    "ftp_server": "",
-    "ftp_username": "",
-    "ftp_password": "",
-    "local_path": "EVENTS",
+    "ftp_server": ""
+    "ftp_username": ""
+    "ftp_password": ""
+    "local_path": "EVENTS"
     ```
 
 3. Make sure that onlt the owner can read and write to `secrets.json`.

@@ -2,14 +2,12 @@
 
 # Path to event files
 FTP_REMOTE_PATH ="EVENTS"
+LOCAL_PATH ="EVENTS"
 
 # Check if secrets.json exists in current directory
 if [ ! -f secrets.json ]; then
 	echo "Please enter the following FTP server details:"
-	echo
 	read -p "IP address: " FTP_SERVER
-	read -p "Download path: " LOCAL_PATH
-	echo
 	read -p "username: " FTP_USER
 	read -sp "password: " FTP_PASSWORD
 
