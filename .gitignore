@@ -1,1 +1,15 @@
+
+=======
+secrets.json
+*.cev
+*.CEV
+*.cfg
+*.CFG
+*.dat
+*.DAT
+*.hdr
+*.HDR
+*.zdat
+*.ZDAT
 .env
+>>>>>>> ot-dev-ftp-meter-download

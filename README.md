@@ -1,129 +1,54 @@
-# STREAM
 
-![](data-ducks-stream.png)
-
-
-# TIG Stack Deployment Guide for dockerized tig for local machine metrics 
-
-
-This guide provides instructions for deploying the TIG (Telegraf, InfluxDB, Grafana) stack using Docker.
-
+# IN PROGRESS: SEL-735 Meter FTP Download Script
+This repository contains a Bash script, `sel-meter-ftp-download.sh`, designed to automate the process of downloading files from an SEL meter via FTP. The script ensures efficient and secure transfer of files from the SEL-735 meter to your local system.
 
 ## Prerequisites
+Before running this script, ensure you have the following:
 
+- A Unix-like environment (Linux, macOS, or a Unix-like terminal in Windows)
+- FTP access credentials (username and password) for the SEL-735 meter
+- The following must be installed on your system:
+    - `lftp` — [Download lftp](https://lftp.yar.ru/get.html)
+    - `jq` — [Download jq](https://jqlang.github.io/jq/download/)
 
-- Docker and Docker Compose installed on your machine.
+## Installation
+1. Clone the repository or download the script directly to your local machine.
 
-- Basic understanding of Docker and containerization.
+    ```bash
+    git clone -b ot-dev-ftp-meter-download git@github.com:acep-uaf/data-ducks-STREAM.git
 
+    cd data-ducks-STREAM
+    ```
 
+2. Make the script executable:
 
-## Quickstart
+    ```bash
+    chmod +x sel-meter-ftp-download.sh
+    ```
 
+## Configuration
+1. Copy the contents of `secrets.json.example` into a new file named `secrets.json` in the same directory.
+2. Replace the default/empty values with your FTP server details.
+    ```bash
+    {
+    "ftp_server": "",
+    "ftp_username": "",
+    "ftp_password": "",
+    "ftp_remote_path": "EVENTS",
+    "local_path": "EVENTS"
+    }
+    ```
 
-1. **Start the Stack**
+3. Make sure that onlt the owner can read and write to `secrets.json`.
+    ```bash
+    chmod 600 secrets.json
+    ```
 
-
-   Run the following command to start all services in the background:
-
+## Usage
+To run the script, simply execute it from the command line:
 
 ```bash
-docker-compose up -d
-``` 
-  
-
-2. **InfluxDB Setup**
-
-  
-
-   - Navigate to `http://localhost:8086` in your web browser to access the InfluxDB UI.
-
-   - Follow the on-screen instructions to set up your initial user, organization, and bucket.
-
-   - Take note of your generated token, as it will be required for Telegraf to write data to InfluxDB.
-
-  
-
-3. **Environment Configuration**
-
-  
-
-   Create a `.env` file in the root directory of the project and populate it with your InfluxDB credentials:
-
-  
-
-```plaintext
-   INFLUX_TOKEN=your-influxdb-token
-   INFLUX_ORG=your-organization-name
-   INFLUX_BUCKET=your-bucket-name
+./sel-meter-ftp-download.sh
 ```
+The script will prompt you to enter the FTP username and password. After authentication, it will begin downloading files from the SEL meter to the specified local directory.
 
-  
-
-   Replace `your-influxdb-token`, `your-organization-name`, and `your-bucket-name` with the appropriate values from the InfluxDB setup.
-
-  
-
-4. **Telegraf Configuration**
-
-  
-
-   Open the `telegraf.conf` file to review and update the InfluxDB v2 settings. Ensure that the `[outputs.influxdb_v2]` section matches your `.env` configurations.
-
-  
-
-5. **Grafana Access and Configuration**
-
-  
-
-   - Access Grafana by visiting `http://localhost:3000` in your web browser.
-
-   - Log in with the default credentials (username: `admin`, password: `admin`), and you will be prompted to change the password.
-
-   - To add InfluxDB v2 as a data source:
-
-     - Navigate to **Configuration** > **Data Sources**.
-
-     - Click **Add data source**, select **InfluxDB**, and set the query language to **Flux**.
-
-     - Enter the InfluxDB details including the URL, organization, and token.
-
-  
-
-## Post-Setup
-
-  
-
-Once you've successfully set up InfluxDB and added it as a data source in Grafana, you're ready to create dashboards and visualize your data. Use the query language to explore your metrics and set up informative and interactive dashboards.
-
-  
-
-## Troubleshooting
-
-  
-
-If you encounter any issues during the setup, please ensure that:
-
-  
-
-- Docker daemon is running before executing `docker-compose` commands.
-
-- You've correctly copied the token and other details from InfluxDB to your `.env` file.
-
-- The `telegraf.conf` file is correctly pointing to the InfluxDB instance and using the correct token.
-
-  
-
-For further assistance, refer to the official documentation of [InfluxDB](https://docs.influxdata.com/influxdb/), [Telegraf](https://docs.influxdata.com/telegraf/), and [Grafana](https://grafana.com/docs/).
-
-  
-
-or ask chatGPT4
-
-  
-
-## Contributions
-
-  
-
-If you have any improvements or suggestions, please submit an issue or pull request on GitHub.
