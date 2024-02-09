@@ -1,48 +1,49 @@
+# IN PROGRESS: SEL-735 Meter Data Pipeline
 
-# IN PROGRESS: SEL-735 Meter FTP Download Script
-This repository contains a Bash script, `sel-meter-ftp-download.sh`, designed to automate the process of downloading files from an SEL meter via FTP. The script ensures efficient and secure transfer of files from the SEL-735 meter to your local system.
+This repository contains a set of Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline handles tasks such as connecting to the meter via FTP, downloading files, organizing and renaming data, and archiving the files for further use.
 
 ## Prerequisites
-Before running this script, ensure you have the following:
+Ensure you have the following before running the pipeline:
 
 - A Unix-like environment (Linux, macOS, or a Unix-like terminal in Windows)
 - FTP access credentials (username and password) for the SEL-735 meter
 - The following must be installed on your system:
-    - `lftp` — [Download lftp](https://lftp.yar.ru/get.html)
-    - `jq` — [Download jq](https://jqlang.github.io/jq/download/)
+    - `ftp` or `lftp` — for FTP operations
+    - `jq` — if working with JSON data
 
 ## Installation
-1. Clone the repository or download the script directly to your local machine.
+1. Clone the repository to your local machine and navigate to the CLI_METER directory:
 
     ```bash
-    git clone -b ot-dev-ftp-meter-download git@github.com:acep-uaf/data-ducks-STREAM.git
-
-    cd data-ducks-STREAM
-
-    cd CLI_METER 
+    git clone [repo url]
+    cd data-ducks-STREAM/CLI_METER
     ```
 
-2. Make the script executable:
+2. Make all scripts executable:
 
     ```bash
-    chmod +x sel-meter-ftp-download.sh
+    chmod +x *.sh
     ```
+
+    This will ensure that all `.sh` files in the directory are executable.
 
 ## Configuration
-1. Copy the contents of `.env.example` into a new `.env` file in the same directory as the script.
+1. Copy the template environment variables file to a new `.env` file:
 
-2. Replace the default/empty values with your FTP server details.
+    ```bash
+    cp .env.example .env
+    ```
 
-3. Make sure that only the owner can read and write to `.env`.
+2. Update the `.env` file with your FTP server details.
+
+3. Secure the `.env` file so that only the owner can read and write:
+
     ```bash
     chmod 600 .env
     ```
 
 ## Usage
-To run the script, simply execute it from the command line:
+To start the data pipeline, execute the `data-pipeline.sh` script:
 
 ```bash
-./sel-meter-ftp-download.sh
-```
-The script will prompt you to enter the FTP username and password. After authentication, it will begin downloading files from the SEL meter to the specified local directory.
-
+./data-pipeline.sh
