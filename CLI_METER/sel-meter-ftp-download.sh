@@ -7,18 +7,17 @@ log() {
     echo "$(date +"%Y-%m-%d %H:%M:%S") - $1" | tee -a "$LOG_FILE"
 }
 
-# Check if secrets.json exists and read FTP details from it
-if [ ! -f secrets.json ]; then
-    echo "secrets.json file not found. Exiting."
-    exit 1
+# Load the .env file
+if [ -f .env ]; then
+    export $(cat .env | xargs)
 fi
 
-# FTP server details from secrets.json
-FTP_SERVER=$(jq -r '.ftp_server' secrets.json)
-FTP_USER=$(jq -r '.ftp_username' secrets.json)
-FTP_PASSWORD=$(jq -r '.ftp_password' secrets.json)
-FTP_REMOTE_PATH=$(jq -r '.ftp_remote_path' secrets.json)
-LOCAL_PATH=$(jq -r '.local_path' secrets.json)
+# Evnironment Variables 
+FTP_SERVER=$FTP_SERVER
+FTP_USER=$FTP_USER
+FTP_PASSWORD=$FTP_PASSWORD
+FTP_REMOTE_PATH=$FTP_REMOTE_PATH
+LOCAL_PATH=$LOCAL_PATH
 
 #log "Remote Path: $FTP_REMOTE_PATH"
 log "Local Path: $LOCAL_PATH"
