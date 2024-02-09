@@ -7,30 +7,38 @@ log() {
     echo "$(date +"%Y-%m-%d %H:%M:%S") - $1" | tee -a "$LOG_FILE"
 }
 
-# Check if secrets.json exists and read FTP details from it
-if [ ! -f secrets.json ]; then
-    echo "secrets.json file not found. Exiting."
+# Load the .env file
+if [ -f .env ]; then
+    export $(cat .env | xargs)
+else
+    log "Error: .env file not found. Exiting script."
+    echo "Error: .env file not found. Exiting script."
     exit 1
 fi
 
-# FTP server details from secrets.json
-FTP_SERVER=$(jq -r '.ftp_server' secrets.json)
-FTP_USER=$(jq -r '.ftp_username' secrets.json)
-FTP_PASSWORD=$(jq -r '.ftp_password' secrets.json)
-FTP_REMOTE_PATH=$(jq -r '.ftp_remote_path' secrets.json)
-LOCAL_PATH=$(jq -r '.local_path' secrets.json)
+# Evnironment Variables 
+FTP_METER_SERVER_IP=$FTP_METER_SERVER_IP
+FTP_METER_NAME=$FTP_METER_NAME
+FTP_METER_ID=$FTP_METER_ID
+FTP_METER_USER=$FTP_METER_USER
+FTP_METER_USER_PASSWORD=$FTP_METER_USER_PASSWORD
+FTP_REMOTE_METER_PATH=$FTP_REMOTE_METER_PATH
+LOCAL_PATH=$LOCAL_PATH
 
 #log "Remote Path: $FTP_REMOTE_PATH"
 log "Local Path: $LOCAL_PATH"
-log "Remote Path: $FTP_REMOTE_PATH"
+log "Remote Path: $FTP_REMOTE_METER_PATH"
+
+DIR_PATH="$LOCAL_PATH/$FTP_METER_ID/level0"
+
 ## Create local directory if it doesn't exist
-mkdir -p "$LOCAL_PATH"
+mkdir -p "$DIR_PATH"
 
 # Start lftp session
-lftp -u "$FTP_USER,$FTP_PASSWORD" "$FTP_SERVER" <<EOF
-cd EVENTS
-lcd EVENTS
-mget *
+lftp -u "$FTP_METER_USER,$FTP_METER_USER_PASSWORD" "$FTP_METER_SERVER_IP" <<EOF
+cd EVENTS  
+lcd "$DIR_PATH"             
+mget *                       
 bye
 EOF
 

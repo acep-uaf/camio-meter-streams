@@ -18,6 +18,8 @@ Before running this script, ensure you have the following:
     git clone -b ot-dev-ftp-meter-download git@github.com:acep-uaf/data-ducks-STREAM.git
 
     cd data-ducks-STREAM
+
+    cd CLI_METER 
     ```
 
 2. Make the script executable:
@@ -27,21 +29,13 @@ Before running this script, ensure you have the following:
     ```
 
 ## Configuration
-1. Copy the contents of `secrets.json.example` into a new file named `secrets.json` in the same directory.
-2. Replace the default/empty values with your FTP server details.
-    ```bash
-    {
-    "ftp_server": "",
-    "ftp_username": "",
-    "ftp_password": "",
-    "ftp_remote_path": "EVENTS",
-    "local_path": "EVENTS"
-    }
-    ```
+1. Copy the contents of `.env.example` into a new `.env` file in the same directory as the script.
 
-3. Make sure that onlt the owner can read and write to `secrets.json`.
+2. Replace the default/empty values with your FTP server details.
+
+3. Make sure that only the owner can read and write to `.env`.
     ```bash
-    chmod 600 secrets.json
+    chmod 600 .env
     ```
 
 ## Usage

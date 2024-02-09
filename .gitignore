@@ -11,5 +11,6 @@ secrets.json
 *.HDR
 *.zdat
 *.ZDAT
-.env
+*.env
+*.log
 >>>>>>> ot-dev-ftp-meter-download
