@@ -25,28 +25,31 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Fetch the NEW data (downloading data in local dir)
-./sel-meter-ftp-download.sh
+# Call the update-event-files script to see if there are new files available,
+# if so, the script will call the download_by_id script.
+./update-event-files.sh
 if [ $? -ne 0 ]; then
-  echo "Fetching data failed."
+  echo "Updating event files failed."
   exit 1
 fi
+
+##### WE ARE HERE 02/09/24
 
 # ONCE ALL DATA IS DOWNLOADED UP TO DATE
 
 # Organize the files (renaming files and creating metadata.txt)
 # rename data/ metadata
-./organize-files.sh
-if [ $? -ne 0 ]; then
-  echo "Organizing files failed."
-  exit 1
-fi
+#./organize-files.sh
+#if [ $? -ne 0 ]; then
+#  echo "Organizing files failed."
+#  exit 1
+#fi
 
-# Archive the data (copy files to archive server)
-./archive-data.sh
-if [ $? -ne 0 ]; then
-  echo "Archiving data failed."
-  exit 1
-fi
+## Archive the data (copy files to archive server)
+#./archive-data.sh
+#if [ $? -ne 0 ]; then
+#  echo "Archiving data failed."
+#  exit 1
+#fi
 
 echo "Data processing completed successfully."

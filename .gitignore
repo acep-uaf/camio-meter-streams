@@ -13,4 +13,5 @@ secrets.json
 *.ZDAT
 *.env
 *.log
+*.TXT
 >>>>>>> ot-dev-ftp-meter-download
