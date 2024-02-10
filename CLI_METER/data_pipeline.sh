@@ -19,7 +19,7 @@ fi
 # $LOCAL_PATH
 
 # Call the connection script (to see if we can connect to the meter)
-./connect-to-meter.sh 
+./connect_to_meter.sh 
 if [ $? -ne 0 ]; then
   echo "Connection to meter failed."
   exit 1
@@ -27,7 +27,7 @@ fi
 
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.
-./update-event-files.sh
+./update_event_files.sh
 if [ $? -ne 0 ]; then
   echo "Updating event files failed."
   exit 1
@@ -39,17 +39,17 @@ fi
 
 # Organize the files (renaming files and creating metadata.txt)
 # rename data/ metadata
-#./organize-files.sh
-#if [ $? -ne 0 ]; then
-#  echo "Organizing files failed."
-#  exit 1
-#fi
+./organize_files.sh
+if [ $? -ne 0 ]; then
+ echo "Organizing files failed."
+ exit 1
+fi
 
-## Archive the data (copy files to archive server)
-#./archive-data.sh
-#if [ $? -ne 0 ]; then
-#  echo "Archiving data failed."
-#  exit 1
-#fi
+# Archive the data (copy files to archive server)
+./archive_data.sh
+if [ $? -ne 0 ]; then
+ echo "Archiving data failed."
+ exit 1
+fi
 
 echo "Data processing completed successfully."

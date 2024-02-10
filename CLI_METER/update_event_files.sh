@@ -59,4 +59,4 @@ else
     log "Failed to download $REMOTE_TARGET_FILE from FTP server."
 fi
 
-log "update-event-files.sh completed"
+log "update_event_files.sh completed"

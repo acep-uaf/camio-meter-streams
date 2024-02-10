@@ -46,4 +46,4 @@ Ensure you have the following before running the pipeline:
 To start the data pipeline, execute the `data-pipeline.sh` script:
 
 ```bash
-./data-pipeline.sh
+./data_pipeline.sh
