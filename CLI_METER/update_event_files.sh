@@ -44,7 +44,7 @@ if [ -f "$LOCAL_PATH/$REMOTE_TARGET_FILE" ]; then
         if [ -d "$LOCAL_PATH/$FTP_METER_ID/level0/$number" ]; then
             log "Directory exits for most recent event #: $number. Nothing to download, you're all up to date."
             echo "Nothing to download, you're all up to date."
-            exit 1
+            exit 0
         else
             log "Directory does not exist: $LOCAL_PATH/$FTP_METER_ID/level0/$number"
             log "Download event files $number here"
