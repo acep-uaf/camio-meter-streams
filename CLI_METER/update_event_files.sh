@@ -49,7 +49,7 @@ if [ -f "$LOCAL_PATH/$REMOTE_TARGET_FILE" ]; then
             log "Directory does not exist: $LOCAL_PATH/$FTP_METER_ID/level0/$number"
             log "Download event files $number here"
             chmod +x download_by_id.sh
-            #./download_by_id.sh "$FTP_METER_SERVER_IP" "$number"
+            ./download_by_id.sh "$FTP_METER_SERVER_IP" "$number"
         fi
     fi
     done < <(awk -F, 'NR > 3 { gsub(/"/, "", $2); print $2 }' "$LOCAL_PATH/$REMOTE_TARGET_FILE")
