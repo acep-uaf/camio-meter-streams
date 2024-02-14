@@ -6,37 +6,37 @@
 ######################################################
 #!/bin/bash
 
+# Function to extract the download date from logs (to ot-dev from meter)
+get_download_date_from_logs() {
+    # Replace 'logfile.log' with the path to your actual log file
+    local log_file='/home/agreer5/repos/data-ducks-STREAM/logs/ftp_download_chistory.log'
+    # This command assumes that the download date is in a line containing 'Download completed' and is the first date in the line
+    local download_date=$(grep 'Download completed' "$log_file" | head -1 | awk '{print $1, $2}')
+    echo "$download_date"
+}
+
+# Function to extract event meter download date from CHISTORY.TXT (meter event creation)
+get_event_date_from_chistory() {
+    local chistory_file='CHISTORY.TXT'
+    local event_id="$1"
+    # This awk command extracts the date components and prints them in 'YYYY-MM-DD HH:MM:SS.mmm' format
+    local event_date=$(awk -F, -v id="$event_id" '$2 == id { printf "%04d-%02d-%02d %02d:%02d:%02d.%03d\n", $5, $3, $4, $6, $7, $8, $9 }' "$chistory_file" | head -1)
+    echo "$event_date"
+}
+
 # Base directory where the event directories are located
 BASE_DIR="./EVENTS"
 
+DOWNLOAD_DATE=$(get_download_date_from_logs)
+EVENT_DATE=$(get_event_date_from_chistory "10001")
 
-# Ensure that the FTP_METER_ID environment variable is set
-if [ -z "$FTP_METER_ID" ]; then
-    echo "FTP_METER_ID is not set. Exiting."
-    exit 1
-fi
-
-
-# Directory where the files are downloaded
-DOWNLOAD_DIR="$BASE_DIR/$FTP_METER_ID/level0"
-# New directory for symlinks, metadata, and checksums
-SYMLINKS_DIR="$BASE_DIR/$FTP_METER_ID/level0a"
+echo "Download Date: $DOWNLOAD_DATE"
+echo "Event Date: $EVENT_DATE"
 
 echo "download dir" $DOWNLOAD_DIR
 # Loop through each Event ID directory in the download directory
 for event_dir in "$DOWNLOAD_DIR"/*/; do
     EVENT_ID=$(basename "$event_dir")
-    NEW_EVENT_DIR="$SYMLINKS_DIR/$EVENT_ID"
-    METADATA_DIR="$NEW_EVENT_DIR/metadata"
-    CHECKSUM_DIR="$NEW_EVENT_DIR/checksums"
-
-    # Ensure the directories exist
-    mkdir -p "$NEW_EVENT_DIR" "$METADATA_DIR" "$CHECKSUM_DIR"
-
-    # TODO GET this date from CHISTORY.TXT for event date
-    # TODO get date of download from logs
-    # Metadata values
-    DOWNLOAD_DATE=$(date +"%Y-%m-%d %H:%M:%S")  # Current date and time
 
     echo "Processing files in event directory: $event_dir"
 
@@ -44,32 +44,24 @@ for event_dir in "$DOWNLOAD_DIR"/*/; do
     for file in "$event_dir"/*; do
         if [ -f "$file" ]; then
             filename=$(basename "$file")
-            symlink_name="${FTP_METER_ID}_${EVENT_ID}_$filename"
-            
-            # Attempt to create the symlink in the new event directory
-            ln -s "$file" "$NEW_EVENT_DIR/$symlink_name"
-            if [ $? -ne 0 ]; then
-                echo "Failed to create symlink for $file"
-                continue  # Skip this file if the symlink creation failed
-            fi
 
             echo "Creating/Writing to metadata.txt for $file"
             # Create or append metadata for the file
             {
-                echo "File: $symlink_name"
+                echo "File: $filename"
                 echo "DownloadedAt: $DOWNLOAD_DATE"
                 echo "MeterID: $FTP_METER_ID"
                 echo "EventID: $EVENT_ID"
                 echo "DataLevel: Level0a"
                 echo "----"
-            } >> "$METADATA_DIR/metadata.txt"
+            } >> "$event_dir/metadata.txt"
 
             # Compute and store checksum
-            md5sum "$file" > "$CHECKSUM_DIR/${symlink_name}.md5"
+            md5sum "$file" > "$event_dir/${filename}.md5"
         else
             echo "No file found for $file"
         fi
     done
 done
 
-echo "Metadata, symlinks and checksums created for files in $SYMLINKS_DIR."
+echo "Metadata and checksums created for files in $event_dir."
