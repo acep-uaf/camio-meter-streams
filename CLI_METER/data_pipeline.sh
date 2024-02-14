@@ -29,23 +29,17 @@ fi
 
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.
-# ./update_event_files.sh
-# if [ $? -ne 0 ]; then
-#   echo "Updating event files failed."
-#   exit 1
-# fi
+# after download create metadata and checksums
+./update_event_files.sh
+if [ $? -ne 0 ]; then
+  echo "Updating event files failed."
+  exit 1
+fi
 
 ##### WE ARE HERE 02/09/24
 
 # ONCE ALL DATA IS DOWNLOADED UP TO DATE
 
-# Organize the files (renaming files and creating metadata.txt)
-# rename data/ metadata
-./organize_data.sh
-if [ $? -ne 0 ]; then
- echo "Organizing files failed."
- exit 1
-fi
 
 # Archive the data (copy files to archive server)
 # ./archive_data.sh

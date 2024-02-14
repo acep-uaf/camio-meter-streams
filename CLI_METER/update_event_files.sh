@@ -39,25 +39,38 @@ fi
 if [ -f "$LOCAL_PATH/$REMOTE_TARGET_FILE" ]; then
     log "$REMOTE_TARGET_FILE downloaded successfully, starting to parse data..."
 
-    # Parse and check for matching directory based on the second column
-    while IFS= read -r event_id; do
-    # Check if $event_id is entirely numeric
-    if [[ $event_id =~ ^[0-9]+$ ]]; then  
-        if [ -d "$LOCAL_PATH/$FTP_METER_ID/level0/$event_id" ]; then
-            log "Directory exits for most recent event: $event_id. Event files up to date. update_event_files.sh exit 0"
-            echo "Nothing to download, you're all up to date."
-            exit 0
-        else
-            chmod +x download_by_id.sh
-            log "Calling download for event: $event_id"
-            source download_by_id.sh "$FTP_METER_SERVER_IP" "$event_id"
+    # Parse each line to get event ID and then extract timestamp components from the line
+    while IFS= read -r line; do
+        # Extract event ID using awk, assuming it's the second field in the line
+        event_id=$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2}')
+
+        log "Event ID $event_id"
+        # Check if $event_id is entirely numeric
+        if [[ $event_id =~ ^[0-9]+$ ]]; then
+            # Extract timestamp components from the line
+            read month day year hour min sec msec <<<$(echo "$line" | awk -F, '{print $3, $4, $5, $6, $7, $8, $9}')
+
+            # Format timestamp into ISO 8601 format: YYYY-MM-DDTHH:MM:SS.sss
+            METER_TIMESTAMP=$(printf '%04d-%02d-%02dT%02d:%02d:%02d.%03d' $year $month $day $hour $min $sec $msec)
+
+            if [ -d "$LOCAL_PATH/$FTP_METER_ID/level0/$event_id" ]; then
+                log "Directory exists for most recent event: $event_id. Event files up to date. update_event_files.sh exit 0"
+                echo "Nothing to download, you're all up to date."
+                exit 0
+            else
+                chmod +x download_by_id.sh
+                log "Calling download for event: $event_id"
+                source download_by_id.sh "$FTP_METER_SERVER_IP" "$event_id"
+                OTDEV_TIMESTAMP=$(date --iso-8601=seconds)
+                log "Download date from meter to ot-dev: $OTDEV_TIMESTAMP"
+                # Create metadata and checksums, passing both event_id and timestamp
+                source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
+            fi
         fi
-    fi
-    done < <(awk -F, 'NR > 3 { gsub(/"/, "", $2); print $2 }' "$LOCAL_PATH/$REMOTE_TARGET_FILE")
-
-
+    done < <(awk 'NR > 3' "$LOCAL_PATH/$REMOTE_TARGET_FILE")
 else
     log "Failed to download $REMOTE_TARGET_FILE from FTP server."
 fi
+
 
 log "update_event_files.sh completed"

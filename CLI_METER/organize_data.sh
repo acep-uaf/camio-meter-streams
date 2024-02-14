@@ -1,67 +1,82 @@
 # After downloading is complete and up to data 
 # this file does the following: 
-# 1. renames (symlinks) the files 
-# 2. creates metadata 
-# 3. checksum/md5sum
+# 1. creates metadata 
+# 2. checksum/md5sum
 ######################################################
 #!/bin/bash
 
-# Function to extract the download date from logs (to ot-dev from meter)
-get_download_date_from_logs() {
-    # Replace 'logfile.log' with the path to your actual log file
-    local log_file='/home/agreer5/repos/data-ducks-STREAM/logs/ftp_download_chistory.log'
-    # This command assumes that the download date is in a line containing 'Download completed' and is the first date in the line
-    local download_date=$(grep 'Download completed' "$log_file" | head -1 | awk '{print $1, $2}')
-    echo "$download_date"
+EVENT_ID=$1
+METER_TIMESTAMP=$2
+OTDEV_TIMESTAMP=$3 
+
+log "event id $EVENT_ID" 
+log "meter timestamp $METER_TIMESTAMP"
+log "downloand from meter to ot dev $OTDEV_TIMESTAMP"
+
+
+# Base directory where the event files are located
+EVENT_DIR="$LOCAL_PATH/$FTP_METER_ID/level0/$EVENT_ID"
+log "current event dir: $EVENT_DIR"
+
+create_metadata_txt() {
+    local file=$1
+    local filename=$(basename "$file")
+    local metadata_file="$EVENT_DIR/${EVENT_ID}_metadata.txt"
+
+    echo "Creating/Writing to $metadata_file for $file"
+    {
+        echo "File: $filename"
+        echo "DownloadedAt: $OTDEV_TIMESTAMP"
+        echo "MeterEventDate: $METER_TIMESTAMP"
+        echo "MeterID: $FTP_METER_ID"
+        echo "EventID: $EVENT_ID"
+        echo "DataLevel: Level0"
+        echo "----"
+    } >> "$metadata_file"
 }
 
-# Function to extract event meter download date from CHISTORY.TXT (meter event creation)
-get_event_date_from_chistory() {
-    local chistory_file='CHISTORY.TXT'
-    local event_id="$1"
-    # This awk command extracts the date components and prints them in 'YYYY-MM-DD HH:MM:SS.mmm' format
-    local event_date=$(awk -F, -v id="$event_id" '$2 == id { printf "%04d-%02d-%02d %02d:%02d:%02d.%03d\n", $5, $3, $4, $6, $7, $8, $9 }' "$chistory_file" | head -1)
-    echo "$event_date"
+create_metadata_json() {
+    local file=$1
+    local filename=$(basename "$file")
+    local metadata_file="$EVENT_DIR/${EVENT_ID}_metadata.json"
+
+    # Check if the metadata JSON file already exists, if not create an empty array
+    if [ ! -f "$metadata_file" ]; then
+        echo '[]' > "$metadata_file"
+    fi
+
+    # Read the existing JSON data, add the new entry, and write back to the file
+    jq --arg file "$filename" \
+       --arg downloadedAt "$OTDEV_TIMESTAMP" \
+       --arg meterEventDate "$METER_TIMESTAMP" \
+       --arg meterID "$FTP_METER_ID" \
+       --arg eventID "$EVENT_ID" \
+       --arg dataLevel "Level0" \
+       '. += [{
+         File: $file,
+         DownloadedAt: $downloadedAt,
+         MeterEventDate: $meterEventDate,
+         MeterID: $meterID,
+         EventID: $eventID,
+         DataLevel: $dataLevel
+       }]' "$metadata_file" > "tmp.$$.json" && mv "tmp.$$.json" "$metadata_file"
 }
 
-# Base directory where the event directories are located
-BASE_DIR="./EVENTS"
 
-DOWNLOAD_DATE=$(get_download_date_from_logs)
-EVENT_DATE=$(get_event_date_from_chistory "10001")
+# Loop through each file in the event directory
+for file in "$EVENT_DIR"/*; do
+    if [ -f "$file" ]; then
+        create_metadata_txt "$file"
+        create_metadata_json "$file"
 
-echo "Download Date: $DOWNLOAD_DATE"
-echo "Event Date: $EVENT_DATE"
 
-echo "download dir" $DOWNLOAD_DIR
-# Loop through each Event ID directory in the download directory
-for event_dir in "$DOWNLOAD_DIR"/*/; do
-    EVENT_ID=$(basename "$event_dir")
-
-    echo "Processing files in event directory: $event_dir"
-
-    # Loop through each file in the event directory
-    for file in "$event_dir"/*; do
-        if [ -f "$file" ]; then
-            filename=$(basename "$file")
-
-            echo "Creating/Writing to metadata.txt for $file"
-            # Create or append metadata for the file
-            {
-                echo "File: $filename"
-                echo "DownloadedAt: $DOWNLOAD_DATE"
-                echo "MeterID: $FTP_METER_ID"
-                echo "EventID: $EVENT_ID"
-                echo "DataLevel: Level0a"
-                echo "----"
-            } >> "$event_dir/metadata.txt"
-
-            # Compute and store checksum
-            md5sum "$file" > "$event_dir/${filename}.md5"
-        else
-            echo "No file found for $file"
-        fi
-    done
+        # Compute checksum and store in a separate file with the same name plus .md5 extension
+        filename=$(basename "$file")
+        md5sum "$file" > "$EVENT_DIR/${filename}.md5"
+    else
+        echo "No file found for $file"
+    fi
 done
 
-echo "Metadata and checksums created for files in $event_dir."
+
+echo "Metadata and checksums created for files in $EVENT_DIR."
