@@ -1,3 +1,5 @@
+# This file is here to test connection to meter
+
 #!/bin/bash
 
 # Logging in to the FTP server and checking the connection

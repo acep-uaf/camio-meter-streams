@@ -1,3 +1,4 @@
+# this file is a wrapper script for the data pipeline
 #!/bin/bash
 
 # Load the .env file
@@ -25,8 +26,10 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.
+# after download create metadata and checksums
 ./update_event_files.sh
 if [ $? -ne 0 ]; then
   echo "Updating event files failed."
@@ -37,19 +40,12 @@ fi
 
 # ONCE ALL DATA IS DOWNLOADED UP TO DATE
 
-# Organize the files (renaming files and creating metadata.txt)
-# rename data/ metadata
-./organize_files.sh
-if [ $? -ne 0 ]; then
- echo "Organizing files failed."
- exit 1
-fi
 
 # Archive the data (copy files to archive server)
-./archive_data.sh
-if [ $? -ne 0 ]; then
- echo "Archiving data failed."
- exit 1
-fi
+# ./archive_data.sh
+# if [ $? -ne 0 ]; then
+#  echo "Archiving data failed."
+#  exit 1
+# fi
 
 echo "Data processing completed successfully."
