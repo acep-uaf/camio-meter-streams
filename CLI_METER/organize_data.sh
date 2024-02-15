@@ -20,6 +20,7 @@ log "current event dir: $EVENT_DIR"
 
 create_metadata_txt() {
     local file=$1
+    local checksum=$2  # Accept checksum as an argument
     local filename=$(basename "$file")
     local metadata_file="$EVENT_DIR/${EVENT_ID}_metadata.txt"
 
@@ -31,12 +32,14 @@ create_metadata_txt() {
         echo "MeterID: $FTP_METER_ID"
         echo "EventID: $EVENT_ID"
         echo "DataLevel: Level0"
+        echo "Checksum: $checksum"  # Include the checksum in the metadata
         echo "----"
     } >> "$metadata_file"
 }
 
 create_metadata_json() {
     local file=$1
+    local checksum=$2  # Accept checksum as an argument
     local filename=$(basename "$file")
     local metadata_file="$EVENT_DIR/${EVENT_ID}_metadata.json"
 
@@ -45,38 +48,42 @@ create_metadata_json() {
         echo '[]' > "$metadata_file"
     fi
 
-    # Read the existing JSON data, add the new entry, and write back to the file
+    # Read the existing JSON data, add the new entry with the checksum, and write back to the file
     jq --arg file "$filename" \
        --arg downloadedAt "$OTDEV_TIMESTAMP" \
        --arg meterEventDate "$METER_TIMESTAMP" \
        --arg meterID "$FTP_METER_ID" \
        --arg eventID "$EVENT_ID" \
        --arg dataLevel "Level0" \
+       --arg checksum "$checksum" \
        '. += [{
          File: $file,
          DownloadedAt: $downloadedAt,
          MeterEventDate: $meterEventDate,
          MeterID: $meterID,
          EventID: $eventID,
-         DataLevel: $dataLevel
+         DataLevel: $dataLevel,
+         Checksum: $checksum
        }]' "$metadata_file" > "tmp.$$.json" && mv "tmp.$$.json" "$metadata_file"
 }
-
 
 # Loop through each file in the event directory
 for file in "$EVENT_DIR"/*; do
     if [ -f "$file" ]; then
-        create_metadata_txt "$file"
-        create_metadata_json "$file"
+        # Compute checksum once here
+        checksum=$(md5sum "$file" | awk '{ print $1 }')
 
+        # Pass the file and checksum to both metadata creation functions
+        create_metadata_txt "$file" "$checksum"
+        create_metadata_json "$file" "$checksum"
 
-        # Compute checksum and store in a separate file with the same name plus .md5 extension
+        # Store the checksum in a separate file with the same name plus .md5 extension
         filename=$(basename "$file")
-        md5sum "$file" > "$EVENT_DIR/${filename}.md5"
+        echo "$checksum" > "$EVENT_DIR/${filename}.md5"
     else
         echo "No file found for $file"
     fi
 done
 
-
 echo "Metadata and checksums created for files in $EVENT_DIR."
+
