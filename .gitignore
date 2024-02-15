@@ -13,5 +13,6 @@ secrets.json
 *.ZDAT
 *.env
 *.log
+*.md5
 *CHISTORY.TXT
 >>>>>>> ot-dev-ftp-meter-download
