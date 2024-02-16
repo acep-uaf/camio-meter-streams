@@ -19,6 +19,9 @@ fi
 # $FTP_REMOTE_METER_PATH
 # $LOCAL_PATH
 
+# make all scripts executable 
+chmod +x *.sh
+
 # Call the connection script (to see if we can connect to the meter)
 ./connect_to_meter.sh 
 if [ $? -ne 0 ]; then
