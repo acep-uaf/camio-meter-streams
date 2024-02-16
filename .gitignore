@@ -14,5 +14,11 @@ secrets.json
 *.env
 *.log
 *.md5
+*.txt
+*.TXT
+*.json
+*.JSON
+
 *CHISTORY.TXT
+EVENTS
 >>>>>>> ot-dev-ftp-meter-download
