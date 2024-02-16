@@ -51,9 +51,6 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
         # Check if $event_id is entirely numeric
         if [[ $event_id =~ ^[0-9]+$ ]]; then
             FULL_PATH_EVENT_DIR="$LOCAL_PATH/$FTP_METER_ID/level0/$event_id"
-            
-            # Count the number of non-empty files in the directory
-            non_empty_files_count=$(find "$FULL_PATH_EVENT_DIR" -type f ! -empty -print | wc -l)
 
             # Extract timestamp components from the line
             read month day year hour min sec msec <<<$(echo "$line" | awk -F, '{print $3, $4, $5, $6, $7, $8, $9}')
@@ -61,9 +58,29 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
             # Format timestamp into ISO 8601 format: YYYY-MM-DDTHH:MM:SS.sss
             METER_TIMESTAMP=$(printf '%04d-%02d-%02dT%02d:%02d:%02d.%03d' $year $month $day $hour $min $sec $msec)
 
-            if [ -d "$FULL_PATH_EVENT_DIR" ] && [ "$non_empty_files_count" -eq 12 ]; then
-                log "Directory exists for most recent event: $event_id. Event files up to date. update_event_files.sh exit 0"
-                echo "Nothing to download, you're all up to date."
+            if [ -d "$FULL_PATH_EVENT_DIR" ]; then
+                log "Directory exists for most recent event: $event_id."
+                
+                # Count the number of non-empty files in the directory
+                non_empty_files_count=$(find "$FULL_PATH_EVENT_DIR" -type f ! -empty -print | wc -l)
+
+                if [ "$non_empty_files_count" -eq 12 ]; then
+                    log "All files are present for event: $event_id."
+                elif [ "$non_empty_files_count" -eq 0 ]; then
+                    log "An empty directory exists for event: $event_id."
+                    chmod +x download_by_id.sh
+                    log "Calling download for event: $event_id"
+                    source download_by_id.sh "$FTP_METER_SERVER_IP" "$event_id"
+                    OTDEV_TIMESTAMP=$(date --iso-8601=seconds)
+                    log "Download date from meter to ot-dev: $OTDEV_TIMESTAMP"
+                    # Create metadata and checksums, passing both event_id and timestamp
+                    source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
+                else
+                    log "Some files are missing for event: $event_id"
+                    echo "Some files are missing for event: $event_id"
+                    log "Handle logic here"
+                fi
+                
             else
                 chmod +x download_by_id.sh
                 log "Calling download for event: $event_id"
