@@ -18,6 +18,8 @@ if mkdir -p "$LOCAL_PATH"; then
 else
     log "Error: Failed to create local directory $LOCAL_PATH."
 fi
+# Full path for CHISTORY.txt
+FULL_PATH=$LOCAL_PATH/$REMOTE_TARGET_FILE
 
 # Start lftp session to download the file
 lftp -u "$FTP_METER_USER,$FTP_METER_USER_PASSWORD" "$FTP_METER_SERVER_IP" <<EOF
@@ -36,8 +38,8 @@ else
 fi
 
 # Check if the CHISTORY.TXT file was successfully downloaded
-if [ -f "$LOCAL_PATH/$REMOTE_TARGET_FILE" ]; then
-    log "$REMOTE_TARGET_FILE downloaded successfully, starting to parse data..."
+if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH"]; then
+    log "$FULL_PATH downloaded successfully, starting to parse data..."
 
     # Parse each line to get event ID and then extract timestamp components from the line
     while IFS= read -r line; do
