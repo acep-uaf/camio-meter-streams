@@ -47,3 +47,38 @@ To start the data pipeline, execute the `data-pipeline.sh` script:
 
 ```bash
 ./data_pipeline.sh
+```
+
+## rsync 
+
+created a service to run for moving files (see stream.sh script)
+service name is rsync_stream.service
+
+
+With this unit file, `systemd` will manage your script as a service, meaning you can start, stop, restart, and check the status of the service using `systemctl` commands.
+
+To start the service:
+```bash
+sudo systemctl start your-service-name.service
+```
+
+To stop the service:
+```bash
+sudo systemctl stop your-service-name.service
+```
+
+To enable the service to start on boot:
+```bash
+sudo systemctl enable your-service-name.service
+```
+
+To disable the service from starting on boot:
+```bash
+sudo systemctl disable your-service-name.service
+```
+
+To check the status of the service:
+```bash
+sudo systemctl status your-service-name.service
+```
+
