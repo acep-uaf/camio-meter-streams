@@ -1,6 +1,17 @@
 #!/bin/bash
 
-# update_event_files.sh
+download_event() {
+    event_id=$1
+    METER_TIMESTAMP=$2
+    log "Calling download for event: $event_id"
+    source download_by_id.sh "$FTP_METER_SERVER_IP" "$event_id"
+    ## write to JSON event id and OTDEV_TIMESTAMP to create file to show all downloads 
+    ## save in $LOCAL_PATH
+    OTDEV_TIMESTAMP=$(date --iso-8601=seconds)
+    log "Download date from meter to ot-dev: $OTDEV_TIMESTAMP"
+    # Create metadata and checksums, passing both event_id and timestamp
+    source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
+}
 
 # Function to log messages with a timestamp
 log() {
@@ -60,35 +71,21 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
 
             if [ -d "$FULL_PATH_EVENT_DIR" ]; then
                 log "Directory exists for most recent event: $event_id."
-                
                 # Count the number of non-empty files in the directory
                 non_empty_files_count=$(find "$FULL_PATH_EVENT_DIR" -type f ! -empty -print | wc -l)
 
                 if [ "$non_empty_files_count" -eq 12 ]; then
                     log "All files are present for event: $event_id."
-                elif [ "$non_empty_files_count" -eq 0 ]; then
-                    log "An empty directory exists for event: $event_id."
-                    chmod +x download_by_id.sh
-                    log "Calling download for event: $event_id"
-                    source download_by_id.sh "$FTP_METER_SERVER_IP" "$event_id"
-                    OTDEV_TIMESTAMP=$(date --iso-8601=seconds)
-                    log "Download date from meter to ot-dev: $OTDEV_TIMESTAMP"
-                    # Create metadata and checksums, passing both event_id and timestamp
-                    source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
-                else
+
+                elif [ "$non_empty_files_count" -ne 0 ]; then
                     log "Some files are missing for event: $event_id"
                     echo "Some files are missing for event: $event_id"
-                    log "Handle logic here"
+                    log "call download_missing_file.sh"
+                    source download_missing_file.sh "$FULL_PATH_EVENT_DIR" "$event_id"
                 fi
                 
-            else
-                chmod +x download_by_id.sh
-                log "Calling download for event: $event_id"
-                source download_by_id.sh "$FTP_METER_SERVER_IP" "$event_id"
-                OTDEV_TIMESTAMP=$(date --iso-8601=seconds)
-                log "Download date from meter to ot-dev: $OTDEV_TIMESTAMP"
-                # Create metadata and checksums, passing both event_id and timestamp
-                source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
+            else #dir doesn't exists for most recent event download all events for event_id 
+                download_event "$event_id" "$METER_TIMESTAMP"
             fi
         fi
     done < <(awk 'NR > 3' "$LOCAL_PATH/$REMOTE_TARGET_FILE")
