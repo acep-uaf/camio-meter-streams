@@ -1,16 +1,21 @@
 package main
 
 import (
+	"io/ioutil"
+	"path/filepath"
+	"time"
+
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/inputs"
-	// Import any other required packages
+	"github.com/jlaffaye/ftp"
 )
 
 type MyFTPInput struct {
+	// Plugin configuration variables
 	Server   string `toml:"server"`
 	Username string `toml:"username"`
 	Password string `toml:"password"`
-	// Add other configuration parameters as needed
+	// ... other config variables
 }
 
 func (m *MyFTPInput) Description() string {
@@ -22,23 +27,59 @@ func (m *MyFTPInput) SampleConfig() string {
   server = "ftp.example.com"
   username = "your_username"
   password = "your_password"
-  # Add other configuration parameters as needed
+  # ... other config parameters
 `
 }
 
 func (m *MyFTPInput) Gather(acc telegraf.Accumulator) error {
-	// Implement your FTP fetching logic here
-	// For example, connect to the FTP server, authenticate, download the file, and parse it
+	// Connect to FTP server
+	client, err := ftp.Dial(m.Server, ftp.DialWithTimeout(5*time.Second))
+	if err != nil {
+		return err
+	}
 
-	// Convert the fetched data into a structure that Telegraf can understand and accumulate
-	// For example:
-	// fields := map[string]interface{}{
-	//     "value": parsedDataValue,
-	// }
-	// tags := map[string]string{
-	//     "meter": "your_meter_name",
-	// }
-	// acc.AddFields("meter_measurement", fields, tags)
+	defer client.Quit()
+
+	// Login
+	err = client.Login(m.Username, m.Password)
+	if err != nil {
+		return err
+	}
+
+	// Download file
+	r, err := client.Retr("CHISTORY.TXT")
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	contents, err := ioutil.ReadAll(r)
+	if err != nil {
+		return err
+	}
+
+	// Process contents
+	// ... Your logic to parse the contents and check for new events
+
+	// Interact with the filesystem
+	localFilePath := filepath.Join("some_local_directory", "CHISTORY.TXT")
+	err = ioutil.WriteFile(localFilePath, contents, 0644)
+	if err != nil {
+		return err
+	}
+
+	// More processing
+	// ... Your logic to manage local files and directories
+
+	// Accumulate metrics
+	fields := map[string]interface{}{
+		"event_count": len(events), // Assuming events is a slice of events you've parsed
+	}
+	tags := map[string]string{
+		"source": "meter",
+	}
+
+	acc.AddFields("meter_events", fields, tags)
 
 	return nil
 }
