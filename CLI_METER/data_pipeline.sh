@@ -1,13 +1,14 @@
 # this file is a wrapper script for the data pipeline
 #!/bin/bash
 
-source . utils.sh
+source utils.sh
+LOG_FILE="log_data_pipeline.log"
 
 # Load the .env file
 if [ -f .env ]; then
     export $(cat .env | xargs)
 else
-    log "Error: .env file not found. Exiting script."
+    log "Error: .env file not found. Exiting script." "INFO" "$LOG_FILE"
     echo "Error: .env file not found. Exiting script."
     exit 1
 fi
