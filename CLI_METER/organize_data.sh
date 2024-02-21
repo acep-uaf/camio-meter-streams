@@ -5,6 +5,8 @@
 ######################################################
 #!/bin/bash
 
+source . utils.sh
+
 EVENT_ID=$1
 METER_TIMESTAMP=$2
 OTDEV_TIMESTAMP=$3 

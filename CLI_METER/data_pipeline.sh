@@ -1,6 +1,8 @@
 # this file is a wrapper script for the data pipeline
 #!/bin/bash
 
+source . utils.sh
+
 # Load the .env file
 if [ -f .env ]; then
     export $(cat .env | xargs)

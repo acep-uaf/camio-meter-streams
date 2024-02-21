@@ -2,10 +2,7 @@
 
 # download_by_id.sh
 
-# Function to log messages with a timestamp
-log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> $LOG_FILE
-}
+source . utils.sh
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 2 ]; then

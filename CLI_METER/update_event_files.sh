@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source . utils.sh
+
 download_event() {
     event_id=$1
     METER_TIMESTAMP=$2
@@ -11,11 +13,6 @@ download_event() {
     log "Download date from meter to ot-dev: $OTDEV_TIMESTAMP"
     # Create metadata and checksums, passing both event_id and timestamp
     source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
-}
-
-# Function to log messages with a timestamp
-log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> $LOG_FILE
 }
 
 REMOTE_TARGET_FILE="CHISTORY.TXT"
