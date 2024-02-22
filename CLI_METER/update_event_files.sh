@@ -1,7 +1,5 @@
 #!/bin/bash
 
-source utils.sh
-
 download_event() {
     event_id=$1
     METER_TIMESTAMP=$2
@@ -16,10 +14,11 @@ download_event() {
 }
 
 REMOTE_TARGET_FILE="CHISTORY.TXT"
-LOG_FILE="log_update_event_files.log"
+LOG_FILE="$LOG_DIR/update_event_files.log"
 FILES_PER_EVENT=12
 
-log "Checking for updates..." "INFO" "$LOG_FILE"
+log "Checking for new events and missing files..." "INFO" "$LOG_FILE"
+echo "Checking for new events and missing files..."
 
 # Create local directory if it doesn't exist
 if mkdir -p "$LOCAL_PATH"; then
@@ -68,6 +67,7 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
 
             if [ -d "$FULL_PATH_EVENT_DIR" ]; then
                 log "Directory exists for most recent event: $event_id." "INFO" "$LOG_FILE"
+                
                 # Count the number of non-empty files in the directory
                 non_empty_files_count=$(find "$FULL_PATH_EVENT_DIR" -type f ! -empty -print | wc -l)
 
@@ -76,7 +76,7 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
 
                 elif [ "$non_empty_files_count" -ne 0 ]; then
                     log "Some files are missing for event: $event_id" "INFO" "$LOG_FILE"
-                    log "call download_missing_file.sh" "INFO" "$LOG_FILE"
+                    log "Call download_missing_file.sh" "INFO" "$LOG_FILE"
                     source download_missing_file.sh "$FULL_PATH_EVENT_DIR" "$event_id"
                 fi
                 
@@ -91,3 +91,5 @@ fi
 
 
 log "update_event_files.sh completed" "SUCESS" "$LOG_FILE"
+echo "Event file update completed successfully."
+

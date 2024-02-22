@@ -2,7 +2,7 @@
 
 # download_by_id.sh
 
-source utils.sh
+LOG_FILE="download_by_id.log"
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 2 ]; then
@@ -13,7 +13,6 @@ fi
 # Extracting arguments into variables
 FTP_METER_SERVER_IP=$1
 EVENT_ID=$2
-LOG_FILE="log_download_by_id.log"
 LOCAL_FULL_PATH="$LOCAL_PATH/$FTP_METER_ID/level0/$EVENT_ID"
 
 # Create the local directory for this event if it doesn't exist

@@ -1,12 +1,12 @@
+#!/bin/bash
+
 # After downloading is complete and up to data 
 # this file does the following: 
 # 1. creates metadata 
 # 2. checksum/md5sum
 ######################################################
-#!/bin/bash
 
-source utils.sh
-LOG_FILE="log_organize_data.log"
+LOG_FILE="organize_data.log"
 
 EVENT_ID=$1
 METER_TIMESTAMP=$2
