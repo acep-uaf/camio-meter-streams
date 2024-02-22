@@ -1,8 +1,10 @@
+#!/bin/bash
 ##############################
 # this file downloads missing 
 # files in event id dir
 ##############################
-#!/bin/bash
+
+LOG_FILE="download_missing_file.log"
 
 # Define expected filename patterns: PREFIX_eventid.EXTENSION
 declare -A file_patterns
@@ -19,15 +21,16 @@ for prefix in "${!file_patterns[@]}"; do
         # Construct the expected filename
         expected_file="${FULL_PATH_EVENT_DIR}/${prefix}_${EVENT_ID}${extension}"
 
-        echo "expected file $expected_file" 
+        log "expected file $expected_file" "WARNING" "$LOG_FILE"
 
         # Check if the file exists
         if [ ! -f "$expected_file" ]; then
-            echo "Missing file: $expected_file, attempting to download..."
+            log "Missing file: $expected_file, attempting to download..." "INFO" "$LOG_FILE"
 
             file=${prefix}_${EVENT_ID}${extension}
             # Start an lftp session to download the missing file
             lftp -u "$FTP_METER_USER,$FTP_METER_USER_PASSWORD" "$FTP_METER_SERVER_IP" <<EOF
+            
 set xfer:clobber on
 cd $FTP_REMOTE_METER_PATH
 lcd $FULL_PATH_EVENT_DIR
@@ -47,7 +50,7 @@ EOF
             filename=$(basename "$file")
             echo "$checksum" > "$EVENT_DIR/${filename}.md5"
         else
-            echo "Failed to download $expected_file"
+            log "Failed to download $expected_file" "ERROR" "$LOG_FILE"
         fi
     done
 done

@@ -1,22 +1,25 @@
+#!/bin/bash
+
 # After downloading is complete and up to data 
 # this file does the following: 
 # 1. creates metadata 
 # 2. checksum/md5sum
 ######################################################
-#!/bin/bash
+
+LOG_FILE="organize_data.log"
 
 EVENT_ID=$1
 METER_TIMESTAMP=$2
 OTDEV_TIMESTAMP=$3 
 
-log "event id $EVENT_ID" 
-log "meter timestamp $METER_TIMESTAMP"
-log "downloand from meter to ot dev $OTDEV_TIMESTAMP"
+log "event id $EVENT_ID" "INFO" "$LOG_FILE"
+log "meter timestamp $METER_TIMESTAMP" "INFO" "$LOG_FILE"
+log "downloand from meter to ot dev $OTDEV_TIMESTAMP" "INFO" "$LOG_FILE"
 
 
 # Base directory where the event files are located
 EVENT_DIR="$LOCAL_PATH/$FTP_METER_ID/level0/$EVENT_ID"
-log "current event dir: $EVENT_DIR"
+log "current event dir: $EVENT_DIR" "INFO" "$LOG_FILE"
 
 
 # Loop through each file in the event directory
@@ -33,9 +36,9 @@ for file in "$EVENT_DIR"/*; do
         filename=$(basename "$file")
         echo "$checksum" > "$EVENT_DIR/${filename}.md5"
     else
-        echo "No file found for $file"
+        log "No file found for $file" "ERROR" "$LOG_FILE"
     fi
 done
 
-echo "Metadata and checksums created for files in $EVENT_DIR."
+log "Metadata and checksums created for files in $EVENT_DIR." "SUCCESS" "$LOG_FILE"
 

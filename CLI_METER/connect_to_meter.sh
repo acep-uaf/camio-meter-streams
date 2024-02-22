@@ -1,18 +1,49 @@
-# This file is here to test connection to meter
-
 #!/bin/bash
 
+# Assume the log function is defined in another script and sourced here
+# source /path/to/your/log_function_script.sh
+
+# This file is here to test connection to meter
+LOG_FILE="connect_to_meter.log"
+
 # Logging in to the FTP server and checking the connection
-ftp -inv $FTP_METER_SERVER_IP <<EOF
+FTP_OUTPUT=$(ftp -inv $FTP_METER_SERVER_IP <<EOF
 user $FTP_METER_USER $FTP_METER_USER_PASSWORD
+ls
 bye
 EOF
+)
 
-# Check exit status of FTP command
-if [ $? -ne 0 ]; then
-  echo "FTP connection to meter failed."
-  exit 1
+# Check if specific FTP error messages are present
+if [[ "$FTP_OUTPUT" =~ "421 Service not available, closing control connection." && "$FTP_OUTPUT" =~ "Not connected." ]]; then
+    # Log diagnostic information if FTP connection failed
+    echo "The FTP service is not available, and the connection was not established."
+    log "FTP Server IP: $FTP_METER_SERVER_IP is not available." "ERROR" "$LOG_FILE"
+    # Handle the error, e.g., exit the script or try to reconnect
+    exit 1
 else
-  echo "FTP connection to meter succeeded."
-  exit 0
+    log "FTP connection test to meter succeeded." "SUCCESS" "$LOG_FILE"
+    # Optionally, print a formatted connection report to stdout
+    echo "$FTP_OUTPUT" | awk '
+    BEGIN {
+      print "\nFTP Connection Report"
+      print "--------------------------------"
+    }
+    /Connected to/ {
+        print "Server IP: " $3
+    }
+    /User name okay, need password./ {
+        print "Status: Username accepted."
+    }
+    /User logged in, proceed./ {
+        print "Connection: Successful"
+    }
+    /Goodbye./ {
+        print "Connection: Closed"
+    }
+    END {
+      print "--------------------------------"
+      print "End of Connection Report\n"
+    }'
+    exit 0
 fi
