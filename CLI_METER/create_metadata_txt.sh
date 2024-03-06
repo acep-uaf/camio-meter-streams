@@ -5,8 +5,6 @@
 # for meter event files in txt
 #################################
 
-LOG_FILE="create_meta_txt.log"
-
 file=$1
 checksum=$2  # Accept checksum as an argument
 EVENT_DIR=$3
@@ -14,7 +12,7 @@ EVENT_DIR=$3
 filename=$(basename "$file")
 metadata_file="$EVENT_DIR/${EVENT_ID}_metadata.txt"
 
-log "Creating/Writing to $metadata_file for $file" "INFO" "$LOG_FILE"
+log "Creating/Writing to $metadata_file for $file"
 {
     echo "File: $filename"
     echo "DownloadedAt: $OTDEV_TIMESTAMP"

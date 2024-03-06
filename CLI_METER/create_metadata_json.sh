@@ -5,8 +5,6 @@
 # for meter event files in JSON
 #################################
 
-LOG_FILE="create_metadata_json.log"
-
 file=$1
 checksum=$2  # Accept checksum as an argument
 EVENT_DIR=$3
@@ -14,7 +12,7 @@ EVENT_DIR=$3
 filename=$(basename "$file")
 metadata_file="$EVENT_DIR/${EVENT_ID}_metadata.json"
 
-log "file in create-meta $file" "INFO" "$LOG_FILE"
+log "file in create-meta $file"
 # Check if the metadata JSON file already exists, if not create an empty array
 if [ ! -f "$metadata_file" ]; then
     echo '[]' > "$metadata_file"

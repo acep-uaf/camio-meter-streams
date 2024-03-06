@@ -2,17 +2,14 @@
 
 # This file is a wrapper script for the data pipeline
 
-# Source the utils.sh file
-source utils.sh
-
-# Set the log file
-LOG_FILE="data_pipeline.log"
+# Source the commons.sh file
+source commons.sh
 
 # Load the .env file
 if [ -f .env ]; then
     export $(cat .env | xargs)
 else
-    log "Error: .env file not found. Exiting script." "INFO" "$LOG_FILE"
+    log "Error: .env file not found. Exiting script."
     echo "Error: .env file not found. Exiting script."
     exit 1
 fi
@@ -33,7 +30,7 @@ chmod +x *.sh
 ./connect_to_meter.sh 
 if [ $? -ne 0 ]; then
   echo "Connection to meter failed."
-  log "Connection to meter failed." "ERROR" "$LOG_FILE"
+  log "Connection to meter failed."
   exit 1
 fi
 
@@ -44,7 +41,7 @@ fi
 ./update_event_files.sh
 if [ $? -ne 0 ]; then
   echo "Updating event files failed."
-  log "Updating event files failed." "ERROR" "$LOG_FILE"
+  log "Updating event files failed."
   exit 1
 fi
 
@@ -53,10 +50,10 @@ fi
 # ./archive_data.sh
 # if [ $? -ne 0 ]; then
 #  echo "Archiving data failed."
-#  log "Archiving data failed." "ERROR" "$LOG_FILE"
+#  log "Archiving data failed."
 #  exit 1
 # fi
 
 echo "Data processing completed successfully."
 echo -e "\n"
-log "Data processing completed successfully." "SUCCESS" "$LOG_FILE"
+log "Data processing completed successfully."

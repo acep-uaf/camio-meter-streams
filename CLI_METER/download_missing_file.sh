@@ -4,8 +4,6 @@
 # files in event id dir
 ##############################
 
-LOG_FILE="download_missing_file.log"
-
 # Define expected filename patterns: PREFIX_eventid.EXTENSION
 declare -A file_patterns
 file_patterns=(["CEV"]=".CEV" ["HR"]=".CFG .DAT .HDR .ZDAT")
@@ -21,11 +19,11 @@ for prefix in "${!file_patterns[@]}"; do
         # Construct the expected filename
         expected_file="${FULL_PATH_EVENT_DIR}/${prefix}_${EVENT_ID}${extension}"
 
-        log "expected file $expected_file" "WARNING" "$LOG_FILE"
+        log "expected file $expected_file"
 
         # Check if the file exists
         if [ ! -f "$expected_file" ]; then
-            log "Missing file: $expected_file, attempting to download..." "INFO" "$LOG_FILE"
+            log "Missing file: $expected_file, attempting to download..."
 
             file=${prefix}_${EVENT_ID}${extension}
             # Start an lftp session to download the missing file
@@ -50,7 +48,7 @@ EOF
             filename=$(basename "$file")
             echo "$checksum" > "$EVENT_DIR/${filename}.md5"
         else
-            log "Failed to download $expected_file" "ERROR" "$LOG_FILE"
+            log "Failed to download $expected_file"
         fi
     done
 done

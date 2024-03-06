@@ -2,8 +2,6 @@
 
 # download_by_id.sh
 
-LOG_FILE="download_by_id.log"
-
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 2 ]; then
     echo "Usage: $0 <FTP_METER_SERVER_IP> <EVENT_ID>"
@@ -18,9 +16,9 @@ LOCAL_FULL_PATH="$LOCAL_PATH/$FTP_METER_ID/level0/$EVENT_ID"
 # Create the local directory for this event if it doesn't exist
 mkdir -p "$LOCAL_FULL_PATH"
 if [ $? -eq 0 ]; then
-    log "Created local directory for event $EVENT_ID." "INFO" "$LOG_FILE"
+    log "Created local directory for event $EVENT_ID."
 else
-    log "Failed to create local directory for event $EVENT_ID." "ERROR" "$LOG_FILE"
+    log "Failed to create local directory for event $EVENT_ID." "err"
     exit 1
 fi
  
@@ -35,9 +33,9 @@ EOF
 
 # Check the exit status of the lftp command
 if [ $? -eq 0 ]; then
-    log "Successfully downloaded files for event $EVENT_ID." "SUCCESS" "$LOG_FILE"
+    log "Successfully downloaded files for event $EVENT_ID."
 else
-    log "Failed to download files for event $EVENT_ID." "ERROR" "$LOG_FILE"
+    log "Failed to download files for event $EVENT_ID."
     exit 1
 fi
 
