@@ -71,6 +71,7 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
                 # Count the number of non-empty files in the directory
                 non_empty_files_count=$(find "$FULL_PATH_EVENT_DIR" -type f ! -empty -print | wc -l)
 
+                # Check if the directory is complete or incomplete
                 if [ "$non_empty_files_count" -eq 12 ]; then
                     log "Complete directory for event: $event_id"
 
@@ -82,6 +83,8 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
             else #dir doesn't exists for most recent event download all events for event_id 
                 download_event "$event_id" "$METER_TIMESTAMP"
             fi
+        else
+            log "Skipping line: $line, not entirely numeric" "warn"
         fi
     done < <(awk 'NR > 3' "$LOCAL_PATH/$REMOTE_TARGET_FILE")
     log "Completed processing all events listed in $REMOTE_TARGET_FILE."
@@ -89,6 +92,6 @@ else
     log "Download failed: $REMOTE_TARGET_FILE" "err"
 fi
 
-echo "Finished processing and organizing data for all listed events successfully."
+echo "Finished downloading and updating events successfully."
 
 
