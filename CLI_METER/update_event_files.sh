@@ -3,11 +3,13 @@
 download_event() {
     event_id=$1
     METER_TIMESTAMP=$2
-    log "Calling download for event: $event_id"
-    source download_by_id.sh "$FTP_METER_SERVER_IP" "$event_id"
-    ## write to JSON event id and OTDEV_TIMESTAMP to create file to show all downloads 
-    ## save in $LOCAL_PATH
     OTDEV_TIMESTAMP=$(date --iso-8601=seconds)
+
+    log "Calling download for event: $event_id"
+
+    # Call the download_by_id script to download the event files
+    source download_by_id.sh "$FTP_METER_SERVER_IP" "$event_id"
+
     # Create metadata and checksums, passing both event_id and timestamp
     source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
 }
@@ -16,6 +18,7 @@ REMOTE_TARGET_FILE="CHISTORY.TXT"
 FILES_PER_EVENT=12
 
 log "Checking for new events and missing files..."
+echo "Checking for new events and missing files..."
 
 # Create local directory if it doesn't exist
 if mkdir -p "$LOCAL_PATH"; then
@@ -23,6 +26,7 @@ if mkdir -p "$LOCAL_PATH"; then
 else
     log "Failed to create local directory: $LOCAL_PATH" "err"
 fi
+
 # Full path for CHISTORY.txt
 FULL_PATH=$LOCAL_PATH/$REMOTE_TARGET_FILE
 
@@ -66,7 +70,6 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
                 
                 # Count the number of non-empty files in the directory
                 non_empty_files_count=$(find "$FULL_PATH_EVENT_DIR" -type f ! -empty -print | wc -l)
-                echo "non_empty_files_count: $non_empty_files_count for $event_id"
 
                 if [ "$non_empty_files_count" -eq 12 ]; then
                     log "Complete directory for event: $event_id"
@@ -81,11 +84,11 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
             fi
         fi
     done < <(awk 'NR > 3' "$LOCAL_PATH/$REMOTE_TARGET_FILE")
+    log "Completed processing all events listed in $REMOTE_TARGET_FILE."
 else
     log "Download failed: $REMOTE_TARGET_FILE" "err"
 fi
 
-log "update_event_files.sh complete"
+echo "Finished processing and organizing data for all listed events successfully."
 
-echo "Event file update success."
 

@@ -5,7 +5,7 @@ log() {
     local tag="STREAM"
 
     # This will send the message to stderr
-    echo "$1" >&2
+    #echo "$1" >&2
 
     # This will send the message to the systemd journal with a dynamic priority
     logger -p user.$priority -t "$tag" "$1"
