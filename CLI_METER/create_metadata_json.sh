@@ -17,8 +17,7 @@ log "Initiating metadata creation for file: $filename in JSON format"
 
 # Check if the metadata JSON file already exists, if not, create an empty array
 if [ ! -f "$metadata_path" ]; then
-    echo '[]' > "$metadata_path
-"
+    echo '[]' > "$metadata_path"
     log "Created new metadata file: $metadata_file"
 else
     log "Appending new entry to existing metadata file: $metadata_file"
@@ -40,12 +39,10 @@ if jq --arg file "$filename" \
         EventID: $eventID,
         DataLevel: $dataLevel,
         Checksum: $checksum
-    }]' "$metadata_path
-" > "tmp.$$.json" && mv "tmp.$$.json" "$metadata_path
-"; then
+    }]' "$metadata_path" > "tmp.$$.json" && mv "tmp.$$.json" "$metadata_path"; then
     log "Metadata file updated successfully for: $filename"
-    exit 0  # Exit with success code
+    return 0  # Exit with success code
 else
-    log "Error updating metadata for file: $filename." "err"
-    exit 1  # Exit with error code
+    log "Error updating metadata for file: $filename" "err"
+    return 1  # Exit with error code
 fi

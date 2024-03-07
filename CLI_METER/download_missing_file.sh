@@ -13,8 +13,10 @@ EVENT_ID=$2
 
 # Loop through the file patterns array
 for prefix in "${!file_patterns[@]}"; do
+
     # Split the extensions for the current prefix
     IFS=' ' read -r -a extensions <<< "${file_patterns[$prefix]}"
+
     for extension in "${extensions[@]}"; do
         # Construct the expected filename
         expected_file="${FULL_PATH_EVENT_DIR}/${prefix}_${EVENT_ID}${extension}"
@@ -24,16 +26,16 @@ for prefix in "${!file_patterns[@]}"; do
         # Check if the file exists
         if [ ! -f "$expected_file" ]; then
             log "Missing file: $expected_file, attempting to download..."
-
             file=${prefix}_${EVENT_ID}${extension}
+
             # Start an lftp session to download the missing file
             lftp -u "$FTP_METER_USER,$FTP_METER_USER_PASSWORD" "$FTP_METER_SERVER_IP" <<EOF
             
-set xfer:clobber on
-cd $FTP_REMOTE_METER_PATH
-lcd $FULL_PATH_EVENT_DIR
-mget $file
-bye
+            set xfer:clobber on
+            cd $FTP_REMOTE_METER_PATH
+            lcd $FULL_PATH_EVENT_DIR
+            mget $file
+            bye
 EOF
         fi
 
@@ -41,6 +43,7 @@ EOF
         if [ -f "$expected_file" ]; then
             # Compute checksum here, ensuring the file exists
             checksum=$(md5sum "$expected_file" | awk '{ print $1 }')
+            
             # Call the script to create metadata, passing the necessary arguments
             source create_metadata_json.sh "$expected_file" "$checksum" "$FULL_PATH_EVENT_DIR"
             

@@ -69,10 +69,10 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
                 echo "non_empty_files_count: $non_empty_files_count for $event_id"
 
                 if [ "$non_empty_files_count" -eq 12 ]; then
-                    log "Event $event_id is complete, with $non_empty_files_count files."
+                    log "Complete directory for event: $event_id"
 
                 elif [ "$non_empty_files_count" -ne 0 ]; then
-                    log "Incomplete event $event_id; downloading missing files."
+                    log "Incomplete event: $event_id" "warn"
                     source download_missing_file.sh "$FULL_PATH_EVENT_DIR" "$event_id"
                 fi
                 
