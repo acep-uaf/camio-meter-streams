@@ -16,9 +16,9 @@ LOCAL_FULL_PATH="$LOCAL_PATH/$FTP_METER_ID/level0/$EVENT_ID"
 # Create the local directory for this event if it doesn't exist
 mkdir -p "$LOCAL_FULL_PATH"
 if [ $? -eq 0 ]; then
-    log "Created local directory for event $EVENT_ID."
+    log "Created local directory for event: $EVENT_ID"
 else
-    log "Failed to create local directory for event $EVENT_ID." "err"
+    log "Failed to create local directory for event: $EVENT_ID" "err"
     exit 1
 fi
  
@@ -33,10 +33,10 @@ EOF
 
 # Check the exit status of the lftp command
 if [ $? -eq 0 ]; then
-    log "Successfully downloaded files for event $EVENT_ID."
+    log "Files downloaded for event: $EVENT_ID"
 else
-    log "Failed to download files for event $EVENT_ID."
+    log "Failed to download files for event: $EVENT_ID" "err"
     exit 1
 fi
 
-echo "Download completed for event: $EVENT_ID"
+echo "Download complete for event: $EVENT_ID"

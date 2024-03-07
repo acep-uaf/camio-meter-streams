@@ -10,31 +10,41 @@ EVENT_ID=$1
 METER_TIMESTAMP=$2
 OTDEV_TIMESTAMP=$3 
 
-log "event id $EVENT_ID"
-log "meter timestamp $METER_TIMESTAMP"
-log "downloand from meter to ot dev $OTDEV_TIMESTAMP"
-
+# Format the log entry
+log_entry=$(printf "%-20s | %-30s | %-30s" "$EVENT_ID" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP")
+log "Organize Data: $log_entry"
 
 # Base directory where the event files are located
 EVENT_DIR="$LOCAL_PATH/$FTP_METER_ID/level0/$EVENT_ID"
 log "current event dir: $EVENT_DIR"
 
-
 # Loop through each file in the event directory
 for file in "$EVENT_DIR"/*; do
-    if [ -f "$file" ]; then
+    if [ -f "$file" ] && [ -s "$file" ]; then
         # Compute checksum once here
         checksum=$(md5sum "$file" | awk '{ print $1 }')
 
         # Pass the file and checksum to both metadata creation functions
         source create_metadata_txt.sh "$file" "$checksum" "$EVENT_DIR"
+        if [ $? -eq 0 ]; then
+            log "TXT metadata created for $(basename "$file")"
+        else
+            log "Failed to create TXT metadata for $(basename "$file")" "err"
+        fi
+        
+        # Source and check create_metadata_json.sh
         source create_metadata_json.sh "$file" "$checksum" "$EVENT_DIR"
+        if [ $? -eq 0 ]; then
+            log "JSON metadata created for $(basename "$file")"
+        else
+            log "Failed to create JSON metadata for $(basename "$file")" "err"
+        fi
 
         # Store the checksum in a separate file with the same name plus .md5 extension
         filename=$(basename "$file")
         echo "$checksum" > "$EVENT_DIR/${filename}.md5"
     else
-        log "No file found for $file"
+        log "Skipped: No file found for $file" "warn"
     fi
 done
 
