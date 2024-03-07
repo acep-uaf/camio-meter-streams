@@ -26,18 +26,14 @@ for file in "$EVENT_DIR"/*; do
 
         # Pass the file and checksum to both metadata creation functions
         source create_metadata_txt.sh "$file" "$checksum" "$EVENT_DIR"
-        if [ $? -eq 0 ]; then
-            log "TXT metadata created for $(basename "$file")"
-        else
-            log "Failed to create TXT metadata for $(basename "$file")" "err"
+        if [ $? -ne 0 ]; then
+            log "create_metadata_txt.sh failed" "err"
         fi
         
         # Source and check create_metadata_json.sh
         source create_metadata_json.sh "$file" "$checksum" "$EVENT_DIR"
-        if [ $? -eq 0 ]; then
-            log "JSON metadata created for $(basename "$file")"
-        else
-            log "Failed to create JSON metadata for $(basename "$file")" "err"
+        if [ $? -ne 0 ]; then
+            log "create_metadata_json.sh failed" "err"
         fi
 
         # Store the checksum in a separate file with the same name plus .md5 extension
