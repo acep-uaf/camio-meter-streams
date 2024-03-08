@@ -24,6 +24,8 @@ fi
 # $FTP_REMOTE_METER_PATH
 # $LOCAL_PATH
 # $METER_TYPE
+# LOCATION=
+# DATA_TYPE=
 
 # make all scripts executable 
 chmod +x *.sh
@@ -36,7 +38,8 @@ chmod +x *.sh
 #fi
 
 
-./meters/$METER_TYPE/download.sh $FTP_METER_SERVER_IP "$LOCAL_PATH/$date/$FTP_METER_ID"
+source "meters/$METER_TYPE/download.sh" $FTP_METER_SERVER_IP "$LOCAL_PATH/$date/$FTP_METER_ID"
+
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.
 # after download create metadata and checksums
