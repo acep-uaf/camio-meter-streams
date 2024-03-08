@@ -21,31 +21,28 @@ fi
 # $FTP_METER_USER_PASSWORD
 # $FTP_REMOTE_METER_PATH
 # $LOCAL_PATH
+# $METER_TYPE
 
 # make all scripts executable 
 chmod +x *.sh
 
 # Call the connection script (to see if we can connect to the meter)
-./connect_to_meter.sh 
-if [ $? -ne 0 ]; then
-  log "Connection to meter failed." "err"
-  exit 1
-fi
+#./connect_to_meter.sh 
+#if [ $? -ne 0 ]; then
+#  log "Connection to meter failed." "err"
+#  exit 1
+#fi
 
-./get_events.sh $FTP_METER_SERVER_IP
-if [ $? -ne 0 ]; then
-  log "get_e event files failed." "err"
-  exit 1
-fi
+exec ./meters/$METER_TYPE/get_events.sh $FTP_METER_SERVER_IP
 
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.
 # after download create metadata and checksums
-./update_event_files.sh
-if [ $? -ne 0 ]; then
-  log "Updating event files failed." "err"
-  exit 1
-fi
+#./update_event_files.sh
+#if [ $? -ne 0 ]; then
+#  log "Updating event files failed." "err"
+#  exit 1
+#fi
 
 
 # Archive the data (copy files to archive server)

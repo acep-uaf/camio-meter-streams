@@ -8,16 +8,6 @@
 # - uses environment variables
 # - currently iterates over 
 #################################
-# Source the commons.sh file
-source commons.sh
-
-# Load the .env file
-if [ -f .env ]; then
-    export $(cat .env | xargs)
-else
-    log "Error: .env file not found. Exiting script." "err"
-    exit 1
-fi
 
 REMOTE_TARGET_FILE="CHISTORY.TXT"
 FILES_PER_EVENT=12
@@ -40,9 +30,9 @@ EOF
 
 # Check the exit status of lftp command
 if [ $? -eq 0 ]; then
-    log "lftp session successful."
+    log "lftp session successful for: $(basename "$0")"
 else
-    log "lftp session failed." "err"
+    log "lftp session failed for: $(basename "$0")" "err"
     exit 1
 fi
 
