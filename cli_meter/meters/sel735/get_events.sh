@@ -74,4 +74,3 @@ awk 'NR > 3' "$FULL_PATH" | while IFS= read -r line; do
 done
 
 log "Completed processing all events listed in $REMOTE_TARGET_FILE."
-echo "Finished downloading and updating events successfully."
