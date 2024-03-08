@@ -19,11 +19,12 @@ fi
 # Extracting arguments into variables
 meter_ip=$1
 event_id=$2
-output_dir="$3/level0/$event_id"
+download_dir="$3/level0/$event_id"
+
 # LOCATION/DATA_TYPE/YYYY-MM/METER_ID/level0/event_id
 
 # Create the local directory for this event if it doesn't exist
-mkdir -p "$output_dir"
+mkdir -p "$download_dir"
 if [ $? -eq 0 ]; then
     log "Created local directory for event: $event_id"
 else
@@ -35,7 +36,7 @@ fi
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
 set xfer:clobber on
 cd $REMOTE_METER_PATH
-lcd $output_dir
+lcd $download_dir
 mget *$event_id*.*
 bye
 EOF

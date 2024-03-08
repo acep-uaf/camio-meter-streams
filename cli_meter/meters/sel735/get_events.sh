@@ -39,8 +39,6 @@ fi
 # Full path to CHISTORY.TXT
 FULL_PATH="$output_dir/$REMOTE_TARGET_FILE"
 
-echo "Processing CHISTORY.TXT from: $FULL_PATH"
-
 # Check if CHISTORY.TXT exists and is not empty
 if [ ! -f "$FULL_PATH" ] || [ ! -s "$FULL_PATH" ]; then
     log "Download failed: $REMOTE_TARGET_FILE" "err"
@@ -69,7 +67,7 @@ awk 'NR > 3' "$FULL_PATH" | while IFS= read -r line; do
             echo "$event_id"
         fi
     else
-        log "Skipping line: $line, not entirely numeric" "warn"
+        log "Skipping line: $line, not entirely numeric. Check parsing." "warn"
     fi
 done
 

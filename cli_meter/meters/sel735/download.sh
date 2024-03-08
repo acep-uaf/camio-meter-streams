@@ -8,14 +8,13 @@
 
 # Simple CLI flag parsing
 meter_ip="$1"
-output_dir="$2"
+output_dir="$2" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
 
-# LOCATION/DATA_TYPE/YYYY-MM/METER_ID
-
+# Make dir if it doesn't exist
 mkdir -p "$output_dir"
 
+# Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
 current_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-
 
 # Test connection to meter
 source "$current_dir/test_meter_connection.sh"
@@ -29,8 +28,8 @@ fi
 source "$current_dir/get_events.sh" "$meter_ip" "$output_dir"
 
 # output_dir is the location where the data will be stored and CHISTORY.TXT will be downloaded to
-#for event_id in $($current_dir/get_events.sh "$meter_ip" "$output_dir"); do 
-#  source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
-#done
+for event_id in $($current_dir/get_events.sh "$meter_ip" "$output_dir"); do 
+  source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
+done
 
 echo "Finished downloading events."
