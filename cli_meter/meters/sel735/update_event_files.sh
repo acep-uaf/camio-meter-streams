@@ -38,7 +38,7 @@ fi
 FULL_PATH=$LOCAL_PATH/$REMOTE_TARGET_FILE
 
 # Start lftp session to download the file
-lftp -u "$FTP_METER_USER,$FTP_METER_USER_PASSWORD" "$FTP_METER_SERVER_IP" <<EOF
+lftp -u "$USERNAME,$PASSWORD" "$FTP_METER_SERVER_IP" <<EOF
 set xfer:clobber on
 cd $FTP_REMOTE_METER_PATH
 lcd $LOCAL_PATH

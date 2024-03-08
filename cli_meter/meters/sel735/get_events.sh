@@ -20,7 +20,7 @@ if [[ -z "$meter_ip" ]]; then
 fi
 
 # Connect to meter and get CHISTORY.TXT
-lftp -u "$FTP_METER_USER,$FTP_METER_USER_PASSWORD" "$meter_ip" <<EOF
+lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
 set xfer:clobber on
 cd $FTP_REMOTE_METER_PATH
 lcd $LOCAL_PATH

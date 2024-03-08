@@ -9,7 +9,7 @@
 
 # Logging in to the FTP server and checking the connection
 FTP_OUTPUT=$(ftp -inv $FTP_METER_SERVER_IP <<EOF
-user $FTP_METER_USER $FTP_METER_USER_PASSWORD
+user $USERNAME $PASSWORD
 ls
 bye
 EOF

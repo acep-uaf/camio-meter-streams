@@ -19,8 +19,8 @@ fi
 # $FTP_METER_SERVER_IP
 # $FTP_METER_NAME
 # $FTP_METER_ID
-# $FTP_METER_USER
-# $FTP_METER_USER_PASSWORD
+# $USERNAME
+# $PASSWORD
 # $FTP_REMOTE_METER_PATH
 # $LOCAL_PATH
 # $METER_TYPE
@@ -38,7 +38,7 @@ chmod +x *.sh
 #fi
 
 
-source "meters/$METER_TYPE/download.sh" $FTP_METER_SERVER_IP "$LOCAL_PATH/$date/$FTP_METER_ID"
+exec "meters/$METER_TYPE/download.sh" $FTP_METER_SERVER_IP "$LOCAL_PATH/$date/$FTP_METER_ID"
 
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.

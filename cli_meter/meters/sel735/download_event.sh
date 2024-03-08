@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #################################
-# Download files for a specific event from the meter
+# 
 # 
 ######################################################
 # This script is called from update_event_files.sh and accepts 2 arguments:
