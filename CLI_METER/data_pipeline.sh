@@ -32,6 +32,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+./get_events.sh $FTP_METER_SERVER_IP
+if [ $? -ne 0 ]; then
+  log "get_e event files failed." "err"
+  exit 1
+fi
 
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.
