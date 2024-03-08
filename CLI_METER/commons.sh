@@ -1,5 +1,11 @@
 #!/bin/bash
 
+##################################
+#
+# This sourced by data_pipeline.sh
+#
+#################################
+
 log() {
     local priority=${2:-info}
     local tag="STREAM"

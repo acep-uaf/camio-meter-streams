@@ -1,6 +1,13 @@
 #!/bin/bash
 
-# download_by_id.sh
+#################################
+# Download files for a specific event from the meter
+# 
+######################################################
+# This script is called from update_event_files.sh and accepts 2 arguments:
+# 1. FTP_METER_SERVER_IP (env?)
+# 2. event_id
+#################################
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 2 ]; then

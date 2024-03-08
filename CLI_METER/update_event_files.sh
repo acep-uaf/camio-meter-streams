@@ -1,10 +1,20 @@
 #!/bin/bash
 
+#################################
+# This script:
+# - checks for new events and missing files
+# - is called from data_pipeline.sh
+# - uses environment variables
+#################################
+
+# Source the common functions and variables
+OTDEV_TIMESTAMP=$(date --iso-8601=seconds)
+REMOTE_TARGET_FILE="CHISTORY.TXT"
+FILES_PER_EVENT=12
+
 download_event() {
     event_id=$1
     METER_TIMESTAMP=$2
-    OTDEV_TIMESTAMP=$(date --iso-8601=seconds)
-
     log "Calling download for event: $event_id"
 
     # Call the download_by_id script to download the event files
@@ -13,9 +23,6 @@ download_event() {
     # Create metadata and checksums, passing both event_id and timestamp
     source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
 }
-
-REMOTE_TARGET_FILE="CHISTORY.TXT"
-FILES_PER_EVENT=12
 
 log "Checking for new events and missing files..."
 echo "Checking for new events and missing files..."

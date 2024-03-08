@@ -1,14 +1,17 @@
 #!/bin/bash
 
-# After downloading is complete and up to data 
-# this file does the following: 
-# 1. creates metadata 
-# 2. checksum/md5sum
-######################################################
+#################################
+# This script:
+# - creates metadata & checksums/md5sum
+# - is called from update_event_files.sh
+# - uses environment variables
+# - accepts 3 arguments: event_id, meter_timestamp, otdev_timestamp
+# - calls create_metadata_txt.sh and create_metadata_json.sh
+#################################
 
 EVENT_ID=$1
 METER_TIMESTAMP=$2
-OTDEV_TIMESTAMP=$3 
+OTDEV_TIMESTAMP=$3
 
 # Format the log entry
 log_entry=$(printf "%-20s | %-30s | %-30s" "$EVENT_ID" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP")
@@ -27,22 +30,21 @@ for file in "$EVENT_DIR"/*; do
         # Pass the file and checksum to both metadata creation functions
         source create_metadata_txt.sh "$file" "$checksum" "$EVENT_DIR"
         if [ $? -ne 0 ]; then
-            log "create_metadata_txt.sh failed" "err"
+            log "create_metadata_txt.sh failed for: $file" "err"
         fi
-        
+
         # Source and check create_metadata_json.sh
         source create_metadata_json.sh "$file" "$checksum" "$EVENT_DIR"
         if [ $? -ne 0 ]; then
-            log "create_metadata_json.sh failed" "err"
+            log "create_metadata_json.sh failed for: $file" "err"
         fi
 
         # Store the checksum in a separate file with the same name plus .md5 extension
         filename=$(basename "$file")
-        echo "$checksum" > "$EVENT_DIR/${filename}.md5"
+        echo "$checksum" >"$EVENT_DIR/${filename}.md5"
     else
         log "Skipped: No file found for $file" "warn"
     fi
+
+    log "Metadata and checksums created for: $EVENT_ID"
 done
-
-log "Metadata and checksums created for files in $EVENT_DIR."
-
