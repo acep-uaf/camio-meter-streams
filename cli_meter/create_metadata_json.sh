@@ -32,7 +32,7 @@ fi
 if jq --arg file "$filename" \
     --arg downloadedAt "$OTDEV_TIMESTAMP" \
     --arg meterEventDate "$METER_TIMESTAMP" \
-    --arg meterID "$FTP_METER_ID" \
+    --arg meterID "$METER_ID" \
     --arg eventID "$EVENT_ID" \
     --arg dataLevel "level0" \
     --arg checksum "$checksum" \

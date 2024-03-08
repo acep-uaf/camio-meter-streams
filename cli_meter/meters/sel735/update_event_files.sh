@@ -18,7 +18,7 @@ download_event() {
     log "Calling download for event: $event_id"
 
     # Call the download_by_id script to download the event files
-    source download_by_id.sh "$FTP_METER_SERVER_IP" "$event_id"
+    source download_by_id.sh "$METER_IP" "$event_id"
 
     # Create metadata and checksums, passing both event_id and timestamp
     source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
@@ -38,7 +38,7 @@ fi
 FULL_PATH=$LOCAL_PATH/$REMOTE_TARGET_FILE
 
 # Start lftp session to download the file
-lftp -u "$USERNAME,$PASSWORD" "$FTP_METER_SERVER_IP" <<EOF
+lftp -u "$USERNAME,$PASSWORD" "$METER_IP" <<EOF
 set xfer:clobber on
 cd $FTP_REMOTE_METER_PATH
 lcd $LOCAL_PATH
@@ -64,7 +64,7 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
 
         # Check if $event_id is entirely numeric
         if [[ $event_id =~ ^[0-9]+$ ]]; then
-            FULL_PATH_EVENT_DIR="$LOCAL_PATH/$FTP_METER_ID/level0/$event_id"
+            FULL_PATH_EVENT_DIR="$LOCAL_PATH/$METER_ID/level0/$event_id"
 
             # Extract timestamp components from the line
             read month day year hour min sec msec <<<$(echo "$line" | awk -F, '{print $3, $4, $5, $6, $7, $8, $9}')

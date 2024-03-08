@@ -52,7 +52,7 @@ while IFS= read -r line; do
 
     # Check if $event_id is entirely numeric
     if [[ $event_id =~ ^[0-9]+$ ]]; then
-        FULL_PATH_EVENT_DIR="$LOCAL_PATH/$FTP_METER_ID/level0/$event_id"
+        FULL_PATH_EVENT_DIR="$LOCAL_PATH/$METER_ID/level0/$event_id"
 
         if [ -d "$FULL_PATH_EVENT_DIR" ]; then
             log "Checking event directory: $event_id"

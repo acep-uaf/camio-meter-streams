@@ -16,29 +16,22 @@ else
 fi
 
 # Evnironment Variables 
-# $FTP_METER_SERVER_IP
+# $METER_IP
 # $FTP_METER_NAME
-# $FTP_METER_ID
+# $METER_ID
 # $USERNAME
 # $PASSWORD
 # $FTP_REMOTE_METER_PATH
 # $LOCAL_PATH
 # $METER_TYPE
-# LOCATION=
-# DATA_TYPE=
+# $LOCATION
+# $DATA_TYPE
 
 # make all scripts executable 
 chmod +x *.sh
 
-# Call the connection script (to see if we can connect to the meter)
-#./connect_to_meter.sh 
-#if [ $? -ne 0 ]; then
-#  log "Connection to meter failed." "err"
-#  exit 1
-#fi
-
-
-exec "meters/$METER_TYPE/download.sh" $FTP_METER_SERVER_IP "$LOCAL_PATH/$date/$FTP_METER_ID"
+# 
+exec "meters/$METER_TYPE/download.sh" $METER_IP "$LOCAL_PATH/$date/$METER_ID"
 
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.

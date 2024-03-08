@@ -18,7 +18,7 @@ log_entry=$(printf "%-20s | %-30s | %-30s" "$EVENT_ID" "$METER_TIMESTAMP" "$OTDE
 log "Organize Data: $log_entry"
 
 # Base directory where the event files are located
-EVENT_DIR="$LOCAL_PATH/$FTP_METER_ID/level0/$EVENT_ID"
+EVENT_DIR="$LOCAL_PATH/$METER_ID/level0/$EVENT_ID"
 log "current event dir: $EVENT_DIR"
 
 # Loop through each file in the event directory

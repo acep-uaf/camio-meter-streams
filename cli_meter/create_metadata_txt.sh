@@ -25,7 +25,7 @@ if {
     echo "File: $filename"
     echo "DownloadedAt: $OTDEV_TIMESTAMP"
     echo "MeterEventDate: $METER_TIMESTAMP"
-    echo "MeterID: $FTP_METER_ID"
+    echo "MeterID: $METER_ID"
     echo "EventID: $EVENT_ID"
     echo "DataLevel: level0"
     echo "Checksum: $checksum"  # Include the checksum in the metadata

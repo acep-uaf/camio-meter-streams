@@ -5,20 +5,20 @@
 # 
 ######################################################
 # This script is called from update_event_files.sh and accepts 2 arguments:
-# 1. FTP_METER_SERVER_IP (env?)
+# 1. METER_IP (env?)
 # 2. event_id
 #################################
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <FTP_METER_SERVER_IP> <EVENT_ID>"
+    echo "Usage: $0 <METER_IP> <EVENT_ID>"
     exit 1
 fi
 
 # Extracting arguments into variables
-FTP_METER_SERVER_IP=$1
+METER_IP=$1
 EVENT_ID=$2
-LOCAL_FULL_PATH="$LOCAL_PATH/$FTP_METER_ID/level0/$EVENT_ID"
+LOCAL_FULL_PATH="$LOCAL_PATH/$METER_ID/level0/$EVENT_ID"
 
 # Create the local directory for this event if it doesn't exist
 mkdir -p "$LOCAL_FULL_PATH"
@@ -30,7 +30,7 @@ else
 fi
  
 # Single lftp session
-lftp -u "$USERNAME,$PASSWORD" "$FTP_METER_SERVER_IP" <<EOF
+lftp -u "$USERNAME,$PASSWORD" "$METER_IP" <<EOF
 set xfer:clobber on
 cd $FTP_REMOTE_METER_PATH
 lcd $LOCAL_FULL_PATH

@@ -32,7 +32,7 @@ for prefix in "${!file_patterns[@]}"; do
             log "Downloading missing file: $missing_file"
 
             # Start an lftp session to download the missing file
-            lftp -u "$USERNAME,$PASSWORD" "$FTP_METER_SERVER_IP" <<EOF
+            lftp -u "$USERNAME,$PASSWORD" "$METER_IP" <<EOF
             
             set xfer:clobber on
             cd $FTP_REMOTE_METER_PATH

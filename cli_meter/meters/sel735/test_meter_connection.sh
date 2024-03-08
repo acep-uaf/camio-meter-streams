@@ -8,7 +8,7 @@
 #################################
 
 # Logging in to the FTP server and checking the connection
-FTP_OUTPUT=$(ftp -inv $FTP_METER_SERVER_IP <<EOF
+FTP_OUTPUT=$(ftp -inv $METER_IP <<EOF
 user $USERNAME $PASSWORD
 ls
 bye
@@ -19,7 +19,7 @@ EOF
 if [[ "$FTP_OUTPUT" =~ "421 Service not available, closing control connection." && "$FTP_OUTPUT" =~ "Not connected." ]]; then
     # Log diagnostic information if FTP connection failed
     echo "The FTP service is not available, and the connection was not established."
-    log "FTP Server IP: $FTP_METER_SERVER_IP is not available." "err"
+    log "FTP Server IP: $METER_IP is not available." "err"
     # Handle the error, e.g., exit the script or try to reconnect
     return 1
 else
