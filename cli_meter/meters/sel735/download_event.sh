@@ -18,7 +18,7 @@ fi
 # Extracting arguments into variables
 METER_IP=$1
 EVENT_ID=$2
-LOCAL_FULL_PATH="$LOCAL_PATH/$METER_ID/level0/$EVENT_ID"
+LOCAL_FULL_PATH="$DATA_TYPE/$METER_ID/level0/$EVENT_ID"
 
 # Create the local directory for this event if it doesn't exist
 mkdir -p "$LOCAL_FULL_PATH"
@@ -32,7 +32,7 @@ fi
 # Single lftp session
 lftp -u "$USERNAME,$PASSWORD" "$METER_IP" <<EOF
 set xfer:clobber on
-cd $FTP_REMOTE_METER_PATH
+cd $REMOTE_METER_PATH
 lcd $LOCAL_FULL_PATH
 mget *$EVENT_ID*.*
 bye

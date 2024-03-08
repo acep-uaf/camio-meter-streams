@@ -22,8 +22,8 @@ fi
 # Connect to meter and get CHISTORY.TXT
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
 set xfer:clobber on
-cd $FTP_REMOTE_METER_PATH
-lcd $LOCAL_PATH
+cd $REMOTE_METER_PATH
+lcd $DATA_TYPE
 mget $REMOTE_TARGET_FILE
 bye
 EOF
@@ -37,7 +37,7 @@ else
 fi
 
 # Full path to CHISTORY.TXT
-FULL_PATH="$LOCAL_PATH/$REMOTE_TARGET_FILE"
+FULL_PATH="$DATA_TYPE/$REMOTE_TARGET_FILE"
 
 # Check if CHISTORY.TXT exists and is not empty
 if [ ! -f "$FULL_PATH" ] || [ ! -s "$FULL_PATH" ]; then
@@ -52,7 +52,7 @@ while IFS= read -r line; do
 
     # Check if $event_id is entirely numeric
     if [[ $event_id =~ ^[0-9]+$ ]]; then
-        FULL_PATH_EVENT_DIR="$LOCAL_PATH/$METER_ID/level0/$event_id"
+        FULL_PATH_EVENT_DIR="$DATA_TYPE/$METER_ID/level0/$event_id"
 
         if [ -d "$FULL_PATH_EVENT_DIR" ]; then
             log "Checking event directory: $event_id"
@@ -75,7 +75,7 @@ while IFS= read -r line; do
     else
         log "Skipping line: $line, not entirely numeric" "warn"
     fi
-done < <(awk 'NR > 3' "$LOCAL_PATH/$REMOTE_TARGET_FILE")
+done < <(awk 'NR > 3' "$DATA_TYPE/$REMOTE_TARGET_FILE")
 
 log "Completed processing all events listed in $REMOTE_TARGET_FILE."
 

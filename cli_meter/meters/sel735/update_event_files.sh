@@ -28,20 +28,20 @@ log "Checking for new events and missing files..."
 echo "Checking for new events and missing files..."
 
 # Create local directory if it doesn't exist
-if mkdir -p "$LOCAL_PATH"; then
-    log "Created/verified local directory: $LOCAL_PATH"
+if mkdir -p "$DATA_TYPE"; then
+    log "Created/verified local directory: $DATA_TYPE"
 else
-    log "Failed to create local directory: $LOCAL_PATH" "err"
+    log "Failed to create local directory: $DATA_TYPE" "err"
 fi
 
 # Full path for CHISTORY.txt
-FULL_PATH=$LOCAL_PATH/$REMOTE_TARGET_FILE
+FULL_PATH=$DATA_TYPE/$REMOTE_TARGET_FILE
 
 # Start lftp session to download the file
 lftp -u "$USERNAME,$PASSWORD" "$METER_IP" <<EOF
 set xfer:clobber on
-cd $FTP_REMOTE_METER_PATH
-lcd $LOCAL_PATH
+cd $REMOTE_METER_PATH
+lcd $DATA_TYPE
 mget $REMOTE_TARGET_FILE
 bye
 EOF
@@ -64,7 +64,7 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
 
         # Check if $event_id is entirely numeric
         if [[ $event_id =~ ^[0-9]+$ ]]; then
-            FULL_PATH_EVENT_DIR="$LOCAL_PATH/$METER_ID/level0/$event_id"
+            FULL_PATH_EVENT_DIR="$DATA_TYPE/$METER_ID/level0/$event_id"
 
             # Extract timestamp components from the line
             read month day year hour min sec msec <<<$(echo "$line" | awk -F, '{print $3, $4, $5, $6, $7, $8, $9}')
@@ -93,7 +93,7 @@ if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
         else
             log "Skipping line: $line, not entirely numeric" "warn"
         fi
-    done < <(awk 'NR > 3' "$LOCAL_PATH/$REMOTE_TARGET_FILE")
+    done < <(awk 'NR > 3' "$DATA_TYPE/$REMOTE_TARGET_FILE")
     log "Completed processing all events listed in $REMOTE_TARGET_FILE."
 else
     log "Download failed: $REMOTE_TARGET_FILE" "err"

@@ -17,12 +17,10 @@ fi
 
 # Evnironment Variables 
 # $METER_IP
-# $FTP_METER_NAME
 # $METER_ID
 # $USERNAME
 # $PASSWORD
-# $FTP_REMOTE_METER_PATH
-# $LOCAL_PATH
+# $REMOTE_METER_PATH
 # $METER_TYPE
 # $LOCATION
 # $DATA_TYPE
@@ -31,7 +29,7 @@ fi
 chmod +x *.sh
 
 # 
-exec "meters/$METER_TYPE/download.sh" $METER_IP "$LOCAL_PATH/$date/$METER_ID"
+exec "meters/$METER_TYPE/download.sh" $METER_IP "$DATA_TYPE/$date/$METER_ID"
 
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.
