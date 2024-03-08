@@ -5,6 +5,8 @@
 # Source the commons.sh file
 source commons.sh
 
+date=$(date '+%Y-%m')
+
 # Load the .env file
 if [ -f .env ]; then
     export $(cat .env | xargs)
@@ -33,8 +35,8 @@ chmod +x *.sh
 #  exit 1
 #fi
 
-exec ./meters/$METER_TYPE/get_events.sh $FTP_METER_SERVER_IP
 
+./meters/$METER_TYPE/download.sh $FTP_METER_SERVER_IP "$LOCAL_PATH/$date/$FTP_METER_ID"
 # Call the update-event-files script to see if there are new files available,
 # if so, the script will call the download_by_id script.
 # after download create metadata and checksums
