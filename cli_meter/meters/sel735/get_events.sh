@@ -4,26 +4,26 @@
 # This script:
 # - returns a list of event_id's that need to be downloaded
 # - is called from data_pipeline.sh
-# - accepts 1 argument: $meter_ip
+# - accepts 2 arguments: $meter_ip and $output_dir
 # - uses environment variables
-# - currently iterates over 
 #################################
+
+# Check if the correct number of arguments are passed
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <meter_ip> <output_dir>"
+    exit 1
+fi
 
 REMOTE_TARGET_FILE="CHISTORY.TXT"
 FILES_PER_EVENT=12
 meter_ip=$1
-
-# Ensure meter IP is provided
-if [[ -z "$meter_ip" ]]; then
-    echo "Meter IP argument is required."
-    exit 1
-fi
+output_dir=$2
 
 # Connect to meter and get CHISTORY.TXT
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
 set xfer:clobber on
 cd $REMOTE_METER_PATH
-lcd $DATA_TYPE
+lcd $output_dir
 mget $REMOTE_TARGET_FILE
 bye
 EOF
@@ -37,7 +37,9 @@ else
 fi
 
 # Full path to CHISTORY.TXT
-FULL_PATH="$DATA_TYPE/$REMOTE_TARGET_FILE"
+FULL_PATH="$output_dir/$REMOTE_TARGET_FILE"
+
+echo "Processing CHISTORY.TXT from: $FULL_PATH"
 
 # Check if CHISTORY.TXT exists and is not empty
 if [ ! -f "$FULL_PATH" ] || [ ! -s "$FULL_PATH" ]; then
@@ -45,38 +47,31 @@ if [ ! -f "$FULL_PATH" ] || [ ! -s "$FULL_PATH" ]; then
     exit 1
 fi
 
-# Parse each line to get event ID and then extract timestamp components from the line
-while IFS= read -r line; do
-    # Extract event ID using awk, assuming it's the second field in the line
+# Parse CHISTORY.TXT starting from line 4
+awk 'NR > 3' "$FULL_PATH" | while IFS= read -r line; do
     event_id=$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2}')
 
-    # Check if $event_id is entirely numeric
     if [[ $event_id =~ ^[0-9]+$ ]]; then
-        FULL_PATH_EVENT_DIR="$DATA_TYPE/$METER_ID/level0/$event_id"
+        FULL_PATH_EVENT_DIR="$output_dir/level0/$event_id"
+        
+        log "Checking for event: $event_id in directory: $FULL_PATH_EVENT_DIR"
 
         if [ -d "$FULL_PATH_EVENT_DIR" ]; then
-            log "Checking event directory: $event_id"
-
-            # Count the number of non-empty files in the directory
             non_empty_files_count=$(find "$FULL_PATH_EVENT_DIR" -type f ! -empty -print | wc -l)
 
-            # Check if the directory is complete or incomplete
-            if [ "$non_empty_files_count" -eq 12 ]; then
+            if [ "$non_empty_files_count" -eq $FILES_PER_EVENT ]; then
                 log "Complete directory for event: $event_id"
-
             elif [ "$non_empty_files_count" -ne 0 ]; then
                 log "Incomplete event: $event_id" "warn"
             fi
         else
             log "No event directory found: $event_id" "warn"
             echo "$event_id"
-
         fi
     else
         log "Skipping line: $line, not entirely numeric" "warn"
     fi
-done < <(awk 'NR > 3' "$DATA_TYPE/$REMOTE_TARGET_FILE")
+done
 
 log "Completed processing all events listed in $REMOTE_TARGET_FILE."
-
 echo "Finished downloading and updating events successfully."
