@@ -3,7 +3,7 @@
 #################################
 # This script:
 # - returns a list of event_id's that need to be downloaded
-# - is called from data_pipeline.sh
+# - is called from download.sh
 # - accepts 2 arguments: $meter_ip and $output_dir
 # - uses environment variables
 #################################

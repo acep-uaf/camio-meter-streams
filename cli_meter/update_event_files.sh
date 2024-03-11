@@ -8,7 +8,7 @@
 #################################
 
 # Source the common functions and variables
-OTDEV_TIMESTAMP=$(date --iso-8601=seconds)
+otdev_timestamp=$(date --iso-8601=seconds)
 REMOTE_TARGET_FILE="CHISTORY.TXT"
 FILES_PER_EVENT=12
 
@@ -21,7 +21,7 @@ download_event() {
     source download_by_id.sh "$METER_IP" "$event_id"
 
     # Create metadata and checksums, passing both event_id and timestamp
-    source organize_data.sh "$event_id" "$METER_TIMESTAMP" "$OTDEV_TIMESTAMP"
+    source generate_event_metadata.sh "$event_id" "$METER_TIMESTAMP" "$otdev_timestamp"
 }
 
 log "Checking for new events and missing files..."
