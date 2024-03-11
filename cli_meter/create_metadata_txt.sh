@@ -10,23 +10,35 @@
 # 3. The full path to the local event directory
 #################################
 
+# Check if the correct number of arguments are passed
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <file> <checksum> <event_dir>"
+    exit 1
+fi
+
 file=$1
 checksum=$2
-EVENT_DIR=$3
+event_dir=$3
 
 filename=$(basename "$file")
-metadata_file="${EVENT_ID}_metadata.txt"
-metadata_path="$EVENT_DIR/$metadata_file"
+metadata_file="${event_id}_metadata.txt"
+metadata_path="$event_dir/$metadata_file"
 
-log "Initiating metadata (TXT) creation for file: $filename"
+log "File: $file"
+log "Event directory: $event_dir"
+log "Filename: $filename"
+log "Metadata file: $metadata_file"
+log "Metadata path: $metadata_path"
+
+log "Initiating metadata (TXT) creation for file: $metadata_file"
 
 # Attempt to write metadata, checking for success
 if { 
     echo "File: $filename"
-    echo "DownloadedAt: $OTDEV_TIMESTAMP"
-    echo "MeterEventDate: $METER_TIMESTAMP"
-    echo "MeterID: $FTP_METER_ID"
-    echo "EventID: $EVENT_ID"
+    echo "DownloadedAt: $otdev_timestamp"
+    echo "MeterEventDate: $meter_timestamp"
+    echo "MeterID: $METER_ID"
+    echo "EventID: $event_id"
     echo "DataLevel: level0"
     echo "Checksum: $checksum"  # Include the checksum in the metadata
     echo "----"

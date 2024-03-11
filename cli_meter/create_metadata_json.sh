@@ -10,15 +10,26 @@
 # 3. The full path to the local event directory
 #################################
 
+# Check if the correct number of arguments are passed
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <file> <checksum> <event_dir>"
+    exit 1
+fi
+
 file=$1
 checksum=$2 
-EVENT_DIR=$3
+event_dir=$3
 
 filename=$(basename "$file")
-metadata_file="${EVENT_ID}_metadata.json"
-metadata_path="$EVENT_DIR/$metadata_file"
+metadata_file="${event_id}_metadata.json"
+metadata_path="$event_dir/$metadata_file"
 
-log "Initiating metadata (JSON) for file: $filename"
+log "File: $file"
+log "Event directory: $event_dir"
+log "Filename: $filename"
+log "Metadata file: $metadata_file"
+
+log "Initiating metadata (JSON) for filename: $filename"
 
 # Check if the metadata JSON file already exists, if not, create an empty array
 if [ ! -f "$metadata_path" ]; then
@@ -30,10 +41,10 @@ fi
 
 # Append the new entry with jq and update the metadata file without logging sensitive information
 if jq --arg file "$filename" \
-    --arg downloadedAt "$OTDEV_TIMESTAMP" \
-    --arg meterEventDate "$METER_TIMESTAMP" \
-    --arg meterID "$FTP_METER_ID" \
-    --arg eventID "$EVENT_ID" \
+    --arg downloadedAt "$otdev_timestamp" \
+    --arg meterEventDate "$meter_timestamp" \
+    --arg meterID "$METER_ID" \
+    --arg eventID "$event_id" \
     --arg dataLevel "level0" \
     --arg checksum "$checksum" \
     '. += [{
