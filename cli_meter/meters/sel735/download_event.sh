@@ -1,14 +1,15 @@
 #!/bin/bash
 
-#################################
-# 
-# 
 ######################################################
-# This script is called from download.sh and accepts 3 arguments:
-# 1. meter_ip
-# 2. event_id
-# 3. path
-#################################
+# Downloads event files from a remote meter to a specified local directory.
+# Usage: (call from download.sh) ./download_event.sh <meter_ip> <event_id> <output_dir>
+# - meter_ip: IP address of the  meter.
+# - event_id: Identifier of the event to download.
+# - output_dir: Base directory for downloads, final path includes /level0/event_id.
+# Requires 'lftp', USERNAME, and PASSWORD for FTP access.
+# Constructs and downloads to: output_dir/YYYY-MM/METER_ID/level0/event_id
+######################################################
+
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 3 ]; then
