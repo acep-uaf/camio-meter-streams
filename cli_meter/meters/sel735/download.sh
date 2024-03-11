@@ -14,7 +14,7 @@ output_dir="$2" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
 mkdir -p "$output_dir"
 
 # Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
-current_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+current_dir=$(dirname "${0}")
 
 # Test connection to meter
 source "$current_dir/test_meter_connection.sh"
