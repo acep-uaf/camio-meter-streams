@@ -24,9 +24,18 @@ default_password=$(yq '.credentials.password' "$config_path")
 num_meters=$(yq '.meters | length' "$config_path")
 location=$(yq '.location' "$config_path")
 data_type=$(yq '.data_type' "$config_path")
-output_dir="$location/$data_type/$date"
+
+
+
+# Check for null or empty values
+[[ -z "$default_username" ]] && exit_with_error "Default username cannot be null or empty."
+[[ -z "$default_password" ]] && exit_with_error "Default password cannot be null or empty."
+[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && exit_with_error "Number of meters must be greater than 0."
+[[ -z "$location" ]] && exit_with_error "Location cannot be null or empty."
+[[ -z "$data_type" ]] && exit_with_error "Data type cannot be null or empty."
 
 # Create the directory if it doesn't exist
+output_dir="$location/$data_type/$date"
 mkdir -p "$output_dir"
 
 # Loop through the meters and download the event files

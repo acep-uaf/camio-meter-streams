@@ -2,14 +2,13 @@
 
 # General settings for the application
 application:
-  name: ""
+  name: "Meter Data Collection"
   version: 1.0
 
 # Configuration Settings
 location: ""
 data_type: ""
-# Default remote path for downloading events
-remote_directory: "EVENTS"
+remote_directory: ""
 
 # Default credentials for FTP server
 credentials:
@@ -23,4 +22,3 @@ meters:
     type: ""
     username: "" # Optional override
     password: "" # Optional override
-    
