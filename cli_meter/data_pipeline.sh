@@ -1,15 +1,14 @@
 #!/bin/bash
 
-# This file is a wrapper script for the data pipeline
-
 # Source the commons.sh file
 source commons.sh
 
-config_path="./acep-data-streams/kea/events/sel735_config.yml"
+# TODO: Change this path when ready to deploy
+config_path="./config/acep-data-streams/kea/events/sel735_config.yml"
 
 # Make sure the output config file exists
 if [ -f "$config_path" ]; then
-    log "Config file exists."
+    log "Config file exists at: $config_path."
 else
     log "Config file does not exist." "err"
     exit 1
@@ -25,12 +24,10 @@ num_meters=$(yq '.meters | length' "$config_path")
 location=$(yq '.location' "$config_path")
 data_type=$(yq '.data_type' "$config_path")
 
-
-
 # Check for null or empty values
 [[ -z "$default_username" ]] && exit_with_error "Default username cannot be null or empty."
 [[ -z "$default_password" ]] && exit_with_error "Default password cannot be null or empty."
-[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && exit_with_error "Number of meters must be greater than 0."
+[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && exit_with_error "Must have at least 1 meter in the config file."
 [[ -z "$location" ]] && exit_with_error "Location cannot be null or empty."
 [[ -z "$data_type" ]] && exit_with_error "Data type cannot be null or empty."
 

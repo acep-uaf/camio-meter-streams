@@ -15,8 +15,8 @@ fi
 
 # TODO: Move these variable? Into config file?
 REMOTE_TARGET_FILE="CHISTORY.TXT"
-
 FILES_PER_EVENT=12
+
 meter_ip=$1
 output_dir=$2
 
