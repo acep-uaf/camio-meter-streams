@@ -15,6 +15,7 @@ if [ "$#" -ne 2 ]; then
 fi
 
 REMOTE_TARGET_FILE="CHISTORY.TXT"
+REMOTE_METER_PATH="EVENTS"
 FILES_PER_EVENT=12
 meter_ip=$1
 output_dir=$2

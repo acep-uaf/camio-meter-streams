@@ -10,6 +10,7 @@
 # Constructs and downloads to: output_dir/YYYY-MM/METER_ID/level0/event_id
 ######################################################
 
+REMOTE_METER_PATH="EVENTS"
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 3 ]; then
@@ -27,7 +28,7 @@ download_dir="$3/level0/$event_id"
 # Create the local directory for this event if it doesn't exist
 mkdir -p "$download_dir"
 if [ $? -eq 0 ]; then
-    log "Created local directory for event: $event_id"
+    log "Created local directory for event: $event_id from script: $(basename "$0")"
 else
     log "Failed to create local directory for event: $event_id" "err"
     exit 1

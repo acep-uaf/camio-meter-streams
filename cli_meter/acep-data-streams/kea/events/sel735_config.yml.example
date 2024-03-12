@@ -1,0 +1,25 @@
+# This file contains the configuration settings for SEL735 meters.
+
+# General settings for the application
+application:
+  name: ""
+  version: 1.0
+  
+# Configuration Settings
+location: ""
+data_type: "events"
+# Default remote path for downloading events
+remote_directory: "EVENTS"
+
+# Default credentials for FTP server
+credentials:
+  username: ""
+  password: ""
+
+# Configuration for the meter and optional username/password override
+meters:
+  - ip: ""
+    id: "acep-735-dry_01"
+    type: "sel735"
+    username: "" # Optional override
+    password: "" # Optional override
