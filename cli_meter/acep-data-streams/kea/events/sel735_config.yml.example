@@ -7,7 +7,7 @@ application:
 
 # Configuration Settings
 location: ""
-data_type: "events"
+data_type: ""
 # Default remote path for downloading events
 remote_directory: "EVENTS"
 
@@ -19,8 +19,8 @@ credentials:
 # Configuration for the meter and optional username/password override
 meters:
   - ip: ""
-    id: "acep-735-dry_01"
-    type: "sel735"
+    id: ""
+    type: ""
     username: "" # Optional override
     password: "" # Optional override
     
