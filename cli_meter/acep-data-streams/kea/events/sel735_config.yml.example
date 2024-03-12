@@ -4,7 +4,7 @@
 application:
   name: ""
   version: 1.0
-  
+
 # Configuration Settings
 location: ""
 data_type: "events"
@@ -23,3 +23,4 @@ meters:
     type: "sel735"
     username: "" # Optional override
     password: "" # Optional override
+    

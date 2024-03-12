@@ -10,8 +10,6 @@
 # Constructs and downloads to: output_dir/YYYY-MM/METER_ID/level0/event_id
 ######################################################
 
-REMOTE_METER_PATH="EVENTS"
-
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <meter_ip> <event_id> <output_dir>"
