@@ -5,7 +5,6 @@
 # - returns a list of event_id's that need to be downloaded
 # - is called from download.sh
 # - accepts 2 arguments: $meter_ip and $output_dir
-# - uses environment variables
 #################################
 
 # Check if the correct number of arguments are passed
@@ -14,8 +13,10 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
+# TODO: Move these variable? Into config file?
 REMOTE_TARGET_FILE="CHISTORY.TXT"
 FILES_PER_EVENT=12
+
 meter_ip=$1
 output_dir=$2
 
@@ -37,25 +38,26 @@ else
 fi
 
 # Full path to CHISTORY.TXT
-FULL_PATH="$output_dir/$REMOTE_TARGET_FILE"
+# TODO: Rename variable "target_path"?
+target_path="$output_dir/$REMOTE_TARGET_FILE"
 
 # Check if CHISTORY.TXT exists and is not empty
-if [ ! -f "$FULL_PATH" ] || [ ! -s "$FULL_PATH" ]; then
+if [ ! -f "$target_path" ] || [ ! -s "$target_path" ]; then
     log "Download failed: $REMOTE_TARGET_FILE" "err"
     exit 1
 fi
 
 # Parse CHISTORY.TXT starting from line 4
-awk 'NR > 3' "$FULL_PATH" | while IFS= read -r line; do
+awk 'NR > 3' "$target_path" | while IFS= read -r line; do
     event_id=$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2}')
 
     if [[ $event_id =~ ^[0-9]+$ ]]; then
-        FULL_PATH_EVENT_DIR="$output_dir/level0/$event_id"
+        event_dir_path="$output_dir/level0/$event_id"
         
-        log "Checking for event: $event_id in directory: $FULL_PATH_EVENT_DIR"
+        log "Checking for event: $event_id in directory: $event_dir_path"
 
-        if [ -d "$FULL_PATH_EVENT_DIR" ]; then
-            non_empty_files_count=$(find "$FULL_PATH_EVENT_DIR" -type f ! -empty -print | wc -l)
+        if [ -d "$event_dir_path" ]; then
+            non_empty_files_count=$(find "$event_dir_path" -type f ! -empty -print | wc -l)
 
             if [ "$non_empty_files_count" -eq $FILES_PER_EVENT ]; then
                 log "Complete directory for event: $event_id"

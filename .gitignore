@@ -1,6 +1,5 @@
 
 =======
-secrets.json
 *.cev
 *.CEV
 *.cfg
@@ -19,6 +18,10 @@ secrets.json
 *.json
 *.JSON
 
-*CHISTORY.TXT
-EVENTS
+CHISTORY.TXT
+*.zip
+*.ZIP
+*.yml
+*.yaml
+
 >>>>>>> ot-dev-ftp-meter-download

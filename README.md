@@ -8,8 +8,9 @@ Ensure you have the following before running the pipeline:
 - A Unix-like environment (Linux, macOS, or a Unix-like terminal in Windows)
 - FTP access credentials (username and password) for the SEL-735 meter
 - The following must be installed on your system:
-    - `ftp` or `lftp` — for FTP operations
+    - `lftp` — for FTP operations
     - `jq` — if working with JSON data
+    - `yq` - for parsing config files
 
 ## Installation
 1. Clone the repository to your local machine and navigate to the CLI_METER directory:
