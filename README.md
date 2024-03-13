@@ -1,84 +1,83 @@
-# IN PROGRESS: SEL-735 Meter Data Pipeline
+# SEL-735 Meter Event Data Pipeline (IN PROGRESS 03/13/24)
 
-This repository contains a set of Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline handles tasks such as connecting to the meter via FTP, downloading files, organizing and renaming data, and archiving the files for further use.
+This repository contains a set of Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline **currently** handles:
+- Connecting to the meter via FTP
+- Checking for new event files
+- Downloading event files
+- Organizing and creating metadata
 
 ## Prerequisites
 Ensure you have the following before running the pipeline:
 
-- A Unix-like environment (Linux, macOS, or a Unix-like terminal in Windows)
-- FTP access credentials (username and password) for the SEL-735 meter
-- The following must be installed on your system:
-    - `lftp` — for FTP operations
-    - `jq` — if working with JSON data
-    - `yq` - for parsing config files
+- Unix-like environment (Linux, macOS, or a Unix-like Windows terminal)
+- Access to the `ot-dev` server with SSH, FTP credentials, and meter details.
+- Installed on `ot-dev`:
+    - `lftp` — FTP operations
+    - `jq` — JSON metadata
+    - `yq` - YAML config files
 
 ## Installation
-1. Clone the repository to your local machine and navigate to the CLI_METER directory:
+1. You must be connected to the `ot-dev` server. See **OT-dev(SSH)** in the [ACEP Wiki](https://wiki.acep.uaf.edu/en/teams/data-ducts/aetb).
+ 
+2. Clone the repository and prepare the scripts:
 
     ```bash
-    git clone [repo url]
-    cd data-ducks-STREAM/CLI_METER
-    ```
-
-2. Make all scripts executable:
-
-    ```bash
+    git clone git@github.com:acep-uaf/data-ducks-STREAM.git
+    cd data-ducks-STREAM/cli_meter
     chmod +x *.sh
     ```
-
-    This will ensure that all `.sh` files in the directory are executable.
+    **Note**: You can check your SSH connection with `ssh -T git@github.com`
 
 ## Configuration
-1. Copy the template environment variables file to a new `.env` file:
+1. Navigate and copy the `sel735_config.yml.example` file to a new `sel735_config.yml` file:
 
     ```bash
-    cp .env.example .env
+    cd config/acep-data-streams/kea/events
+    cp sel735_config.yml.example sel735_config.yml
     ```
 
-2. Update the `.env` file with your FTP server details.
+2. **Update** the config file with the FTP credentials and meter details.
 
-3. Secure the `.env` file so that only the owner can read and write:
+3. Secure the `sel735_config.yml` file so that only the owner can read and write:
 
     ```bash
-    chmod 600 .env
+    chmod 600 cli_meter/config/acep-data-streams/kea/events/sel735_config.yml
     ```
 
 ## Usage
-To start the data pipeline, execute the `data-pipeline.sh` script:
+Run the data pipeline from the `cli_meter` directory:
 
 ```bash
 ./data_pipeline.sh
 ```
 
-## rsync 
+# rsync Service
 
-created a service to run for moving files (see stream.sh script)
-service name is rsync_stream.service
+Manage file transfers with rsync_stream.service. Use `systemctl` to start, stop, enable, disable, or check the service:
 
+**Service**: `rsync_stream.service` (see `stream.sh`)
 
-With this unit file, `systemd` will manage your script as a service, meaning you can start, stop, restart, and check the status of the service using `systemctl` commands.
-
-To start the service:
+**Start**
 ```bash
 sudo systemctl start your-service-name.service
 ```
 
-To stop the service:
+**Stop**
 ```bash
 sudo systemctl stop your-service-name.service
 ```
 
-To enable the service to start on boot:
+**Enable on Boot**
 ```bash
 sudo systemctl enable your-service-name.service
 ```
 
-To disable the service from starting on boot:
+**Disable on Boot**
 ```bash
 sudo systemctl disable your-service-name.service
 ```
 
-To check the status of the service:
+**Status**
 ```bash
 sudo systemctl status your-service-name.service
 ```
