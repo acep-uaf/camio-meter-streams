@@ -30,7 +30,7 @@ for event_id in $($current_dir/get_events.sh "$meter_ip" "$output_dir"); do
 
   # Check if download_event.sh was successful before creating metadata
   if [ $? -eq 0 ]; then
-    # Assuming create_metadata_json.sh and create_metadata_txt.sh take the event directory as input
+    # create metadate for each file in the event directory
     source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir"
   else
     echo "Download failed for event_id: $event_id, skipping metadata creation."

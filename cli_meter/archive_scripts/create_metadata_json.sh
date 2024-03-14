@@ -1,24 +1,23 @@
 #!/bin/bash
 
-#################################
+##########################################################
 # This file creates metadata
 # for meter event files in JSON
-#################################
-# This script is called from organize_data.sh & download_missing_file.sh and accepts three arguments:
+#
+# This script is called from organize_data.sh & 
+# download_missing_file.sh and accepts 2 arguments:
 # 1. The name of the file
-# 2. The checksum of the file
-# 3. The full path to the local event directory
-#################################
+# 2. The full path to the local event directory
+##########################################################
 
 # Check if the correct number of arguments are passed
-if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <file> <checksum> <event_dir>"
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <file> <event_dir>"
     exit 1
 fi
 
 file=$1
-checksum=$2 
-event_dir=$3
+event_dir=$2
 
 filename=$(basename "$file")
 metadata_file="${event_id}_metadata.json"
@@ -46,7 +45,6 @@ if jq --arg file "$filename" \
     --arg meterID "$METER_ID" \
     --arg eventID "$event_id" \
     --arg dataLevel "level0" \
-    --arg checksum "$checksum" \
     '. += [{
         File: $file,
         DownloadedAt: $downloadedAt,
@@ -54,7 +52,6 @@ if jq --arg file "$filename" \
         MeterID: $meterID,
         EventID: $eventID,
         DataLevel: $dataLevel,
-        Checksum: $checksum
     }]' "$metadata_path" > "tmp.$$.json" && mv "tmp.$$.json" "$metadata_path"; then
     log "Metadata (JSON) file updated successfully for: $filename"
     return 0  # Exit with success code
