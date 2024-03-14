@@ -10,6 +10,7 @@ fi
 meter_ip=$1
 event_id=$2
 download_dir="$3/level0/$event_id"
+remote_dir="EVENTS"
 
 # LOCATION/DATA_TYPE/YYYY-MM/METER_ID/level0/event_id
 
@@ -25,7 +26,7 @@ fi
 # Single lftp session
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
 set xfer:clobber on
-cd $REMOTE_METER_PATH
+cd $remote_dir
 lcd $download_dir
 mget *$event_id*.*
 bye

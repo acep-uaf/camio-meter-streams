@@ -8,7 +8,6 @@ application:
 # Configuration Settings
 location: ""
 data_type: ""
-remote_directory: ""
 
 # Default credentials for FTP server
 credentials:
