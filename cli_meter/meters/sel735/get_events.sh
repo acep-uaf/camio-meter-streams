@@ -13,9 +13,9 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-# TODO: Move these variable? Into config file?
-REMOTE_TARGET_FILE="CHISTORY.TXT"
-FILES_PER_EVENT=12
+remote_target_file="CHISTORY.TXT"
+remote_dir="EVENTS"
+files_per_event=12
 
 meter_ip=$1
 output_dir=$2
@@ -23,9 +23,9 @@ output_dir=$2
 # Connect to meter and get CHISTORY.TXT
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
 set xfer:clobber on
-cd $REMOTE_METER_PATH
+cd $remote_dir
 lcd $output_dir
-mget $REMOTE_TARGET_FILE
+mget $remote_target_file
 bye
 EOF
 
@@ -39,11 +39,11 @@ fi
 
 # Full path to CHISTORY.TXT
 # TODO: Rename variable "target_path"?
-target_path="$output_dir/$REMOTE_TARGET_FILE"
+target_path="$output_dir/$remote_target_file"
 
 # Check if CHISTORY.TXT exists and is not empty
 if [ ! -f "$target_path" ] || [ ! -s "$target_path" ]; then
-    log "Download failed: $REMOTE_TARGET_FILE" "err"
+    log "Download failed: $remote_target_file" "err"
     exit 1
 fi
 
@@ -59,7 +59,7 @@ awk 'NR > 3' "$target_path" | while IFS= read -r line; do
         if [ -d "$event_dir_path" ]; then
             non_empty_files_count=$(find "$event_dir_path" -type f ! -empty -print | wc -l)
 
-            if [ "$non_empty_files_count" -eq $FILES_PER_EVENT ]; then
+            if [ "$non_empty_files_count" -eq $files_per_event ]; then
                 log "Complete directory for event: $event_id"
             elif [ "$non_empty_files_count" -ne 0 ]; then
                 log "Incomplete event: $event_id" "warn"
@@ -73,4 +73,4 @@ awk 'NR > 3' "$target_path" | while IFS= read -r line; do
     fi
 done
 
-log "Completed processing all events listed in $REMOTE_TARGET_FILE."
+log "Completed processing all events listed in $remote_target_file."

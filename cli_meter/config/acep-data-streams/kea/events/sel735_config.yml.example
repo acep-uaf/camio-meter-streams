@@ -5,10 +5,12 @@ application:
   name: "Meter Data Collection"
   version: 1.0
 
+# Optional: if not specified, will download to current directory 
+download_directory: ""
+
 # Configuration Settings
 location: ""
 data_type: ""
-remote_directory: ""
 
 # Default credentials for FTP server
 credentials:
@@ -17,8 +19,16 @@ credentials:
 
 # Configuration for the meter and optional username/password override
 meters:
+  # Meter 1
   - ip: ""
     id: ""
     type: ""
     username: "" # Optional override
     password: "" # Optional override
+  # Next meter here
+  - ip: ""
+    id: ""
+    type: ""
+    username: "" # Optional override
+    password: "" # Optional override
+  
