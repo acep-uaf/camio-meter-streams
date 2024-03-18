@@ -1,13 +1,14 @@
 #!/bin/bash
 
-#################################
+####################################################
 # This file downloads missing files in event id dir
 #
-#################################
-# This script is called from update_event_files.sh and accepts 2 arguments:
+#####################################################
+# This script is called from update_event_files.sh 
+# and accepts 2 arguments:
 # 1. full path to the local event_id directory
 # 2. event_id
-#################################
+#####################################################
 
 # Define expected filename patterns: PREFIX_eventid.EXTENSION
 declare -A file_patterns
@@ -43,25 +44,13 @@ EOF
 
             # Check if the file was successfully downloaded
             if [ -f "$expected_file_path" ] && [ -s "$expected_file_path" ]; then
-                # Compute checksum here, ensuring the file exists
-                checksum=$(md5sum "$expected_file_path" | awk '{ print $1 }')
 
-                # Source and check create_metadata_txt.sh
-                source create_metadata_txt.sh "$expected_file_path" "$checksum" "$FULL_PATH_EVENT_DIR"
+                # Source and check create_metadata_yml.sh
+                source create_metadata_yml.sh "$expected_file_path" "$FULL_PATH_EVENT_DIR"
                 if [ $? -ne 0 ]; then
-                    log "create_metadata_txt.sh failed for: $expected_file_path" "err"
+                    log "create_metadata_yml.sh failed for: $expected_file_path" "err"
                 fi
 
-                # Source and check create_metadata_json.sh
-                source create_metadata_json.sh "$expected_file_path" "$checksum" "$FULL_PATH_EVENT_DIR"
-                if [ $? -ne 0 ]; then
-                    log "create_metadata_json.sh failed for: $expected_file_path" "err"
-                fi
-
-                # Store the checksum in a separate file with the same name plus .md5 extension
-                filename=$(basename "$expected_file_path")
-                log "Metadata and checksums created for: $filename"
-                echo "$checksum" >"$EVENT_DIR/${filename}.md5"
             else
                 log "Failed to download $expected_file_path" "err"
             fi

@@ -62,6 +62,6 @@ for ((i = 0; i < num_meters; i++)); do
     export PASSWORD=${meter_password:-$default_password}
 
     # Execute download script
-    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir/$meter_id"
+    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type"
 
 done
