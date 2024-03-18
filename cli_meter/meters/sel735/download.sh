@@ -27,6 +27,8 @@ if [ $? -ne 0 ]; then
 fi
 
 
+# FUNCTION 
+#######################################################################################
 # Function to extract and format the timestamp for a given event ID from CHISTORY.TXT
 get_event_timestamp() {
     local event_id="$1"
@@ -51,7 +53,7 @@ get_event_timestamp() {
     echo "Timestamp for event ID $event_id not found."
     return 1
 }
-
+###############################################################################################
 
 
 # output_dir is the location where the data will be stored and CHISTORY.TXT will be downloaded to
@@ -59,19 +61,13 @@ for event_id in $($current_dir/get_events.sh "$meter_ip" "$output_dir"); do
   # Download the event
   source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
 
-  echo "NEXT DOWNLOAD"
-
 
   # Check if download_event.sh was successful before creating metadata
   if [ $? -eq 0 ]; then
-    echo "Download successful for event_id: $event_id"
     # grab timestamp from meter (CHISTORY.txt)
     meter_download_timestamp=$(get_event_timestamp "$event_id" "$output_dir")
-    echo "Timestamp: $meter_download_timestamp"
-    # meter_download_timestamp=$(date --iso-8601=seconds)
 
     if [ -n "$meter_download_timestamp" ]; then
-      echo "Timestamp extracted for event_id: $event_id"
       # Proceed to create metadata with the extracted timestamp
       otdev_download_timestamp=$(date --iso-8601=seconds)
       source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"

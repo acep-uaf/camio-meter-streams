@@ -25,14 +25,10 @@ meter_type=$4
 meter_download_timestamp=$5
 otdev_download_timestamp=$6
 
-echo "Event Dir: $event_dir"
 
 # Loop through each file in the event directory
 for file in "$event_dir"/*; do
-    echo "FOR LOOP File: $file"
     if [ -f "$file" ] && [ -s "$file" ]; then
-        echo "File exists and is not empty: $file"
-
         # Source and check create_metadata_yml.sh
         source create_metadata_yml.sh "$file" "$event_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
         if [ $? -ne 0 ]; then
