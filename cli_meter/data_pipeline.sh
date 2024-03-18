@@ -49,10 +49,8 @@ for ((i = 0; i < num_meters; i++)); do
     export USERNAME=${meter_username:-$default_username}
     export PASSWORD=${meter_password:-$default_password}
     export REMOTE_METER_PATH=$(yq ".remote_directory" "$config_path")
-    export METER_ID=$meter_id
-    export METER_TYPE=$meter_type
 
     # Execute download script
-    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir/$meter_id"
+    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type"
 
 done

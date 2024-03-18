@@ -11,13 +11,18 @@
 ##########################################################
 
 # Check if the correct number of arguments are passed
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <file> <event_dir>"
+if [ "$#" -ne 6 ]; then
+    echo "Usage: $0 <file> <event_dir> <meter_id> <meter_type> <meter_download_timestamp> <otdev_download_timestamp>"
     exit 1
 fi
 
 file=$1
 event_dir=$2
+meter_id=$3
+meter_type=$4
+meter_download_timestamp=$5
+otdev_download_timestamp=$6
+
 
 filename=$(basename "$file")
 metadata_file="${event_id}_metadata.yml"
@@ -34,10 +39,10 @@ log "Initiating metadata (YAML) creation for file: $filename"
 # Append metadata to the YAML file
 if {
     echo "- File: $filename"
-    echo "  DownloadedAt: \"$otdev_timestamp\""
-    echo "  MeterEventDate: \"$meter_timestamp\""
-    echo "  MeterID: \"$METER_ID\""
-    echo "  MeterType: \"$METER_TYPE\"" 
+    echo "  DownloadedAt: \"$otdev_download_timestamp\""
+    echo "  MeterEventDate: \"$meter_download_timestamp\""
+    echo "  MeterID: \"$meter_id\""
+    echo "  MeterType: \"$meter_type\"" 
     echo "  EventID: \"$event_id\""
     echo "  DataLevel: \"level0\""
 } >> "$metadata_path"; then

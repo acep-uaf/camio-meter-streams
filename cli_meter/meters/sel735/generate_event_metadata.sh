@@ -9,23 +9,32 @@
 # - calls create_metadata_txt.sh and create_metadata_json.sh
 ###############################################################
 
+echo "Creating metadata for event: $event_id"
+
 # Check if the correct number of arguments are passed
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <event_id> <event_dir>"
+if [ "$#" -ne 6 ]; then
+    echo "Usage: $0 <event_id> <event_dir> <meter_id> <meter_type> <meter_download_timestamp> <otdev_download_timestamp>"
     exit 1
 fi
 
+
 event_id=$1
 event_dir="$2/level0/$event_id" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID/
-meter_timestamp=$(date --iso-8601=seconds) # CHANGE: This is not the timestamp from the meter
-otdev_timestamp=$(date --iso-8601=seconds)
+meter_id=$3
+meter_type=$4
+meter_download_timestamp=$5
+otdev_download_timestamp=$6
+
+echo "Event Dir: $event_dir"
 
 # Loop through each file in the event directory
 for file in "$event_dir"/*; do
+    echo "FOR LOOP File: $file"
     if [ -f "$file" ] && [ -s "$file" ]; then
+        echo "File exists and is not empty: $file"
 
         # Source and check create_metadata_yml.sh
-        source create_metadata_yml.sh "$file" "$event_dir"
+        source create_metadata_yml.sh "$file" "$event_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
         if [ $? -ne 0 ]; then
             log "create_metadata_yml.sh failed for: $file" "err"
         fi
