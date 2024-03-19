@@ -5,6 +5,19 @@
 #
 #################################
 
+# Cleanup function declaration
+cleanup() {
+  event_dir="$output_dir/level0/$current_event_id"
+
+  if [ -d "$event_dir" ]; then
+    rm -rf "$event_dir"
+  else
+    echo "No path found: $event_dir"
+  fi
+  exit 1
+}
+
+
 # Simple CLI flag parsing
 meter_ip="$1"
 output_dir="$2" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
@@ -16,6 +29,9 @@ mkdir -p "$output_dir"
 
 # Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
 current_dir=$(dirname "${0}")
+
+# Trap commands to call cleanup on Ctrl+C (SIGINT) or Ctrl+Z (SIGTSTP)
+trap cleanup SIGINT SIGTSTP
 
 # Test connection to meter
 source "$current_dir/test_meter_connection.sh" "$meter_ip"
@@ -59,6 +75,7 @@ get_event_timestamp() {
 # output_dir is the location where the data will be stored and CHISTORY.TXT will be downloaded to
 for event_id in $($current_dir/get_events.sh "$meter_ip" "$output_dir"); do
   # Download the event
+  current_event_id=$event_id # Update current_event_id for the cleanup function
   source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
 
 
