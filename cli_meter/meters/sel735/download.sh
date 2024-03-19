@@ -5,34 +5,32 @@
 #
 #################################
 
-# Cleanup function declaration
-cleanup() {
-  event_dir="$output_dir/level0/$current_event_id"
-
-  if [ -d "$event_dir" ]; then
-    rm -rf "$event_dir"
-  else
-    echo "No path found: $event_dir"
-  fi
-  exit 1
-}
+# Check for exactly 4 arguments
+if [ "$#" -ne 4 ]; then
+    echo "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type>"
+    exit 1
+fi
 
 # Simple CLI flag parsing
 meter_ip="$1"
 output_dir="$2" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
 meter_id="$3"
 meter_type="$4"
-current_event_id="0"
-
-# Make dir if it doesn't exist
-mkdir -p "$output_dir"
 
 # Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
 current_dir=$(dirname "${0}")
 cleanup_script="$current_dir/cleanup.sh"
 
+cleanup () {
+  echo "Cleaning up..."
+  bash "$cleanup_script" "$output_dir" "$current_event_id" "$meter_ip"
+}
+
+# Make dir if it doesn't exist
+mkdir -p "$output_dir"
+
 # Trap commands to call cleanup on Ctrl+C (SIGINT) or Ctrl+Z (SIGTSTP)
-trap "$cleanup_script $output_dir $current_event_id" SIGINT SIGTSTP
+trap cleanup SIGINT SIGTSTP
 
 # Test connection to meter
 source "$current_dir/test_meter_connection.sh" "$meter_ip"

@@ -1,39 +1,24 @@
 #!/bin/bash
 
 # Check for correct number of arguments
-if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 <output_dir> <event_id>"
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <output_dir> <event_id> <meter_ip>"
     exit 1
 fi
 
 output_dir=$1
 event_id=$2
+event_dir="$output_dir/level0/$event_id"
 
-# Function to check for problematic FTP connections
-check_ftp_connections() {
-    # Example using netstat, adjust for your FTP server's IP and port as necessary
-    if netstat -ant | grep ':21' | grep -v 'ESTABLISHED'; then
-        echo "Detected non-standard FTP connections that may need investigation."
-        # Handle or log this situation as needed
-        return 1 # Indicate a potential issue
-    else
-        echo "No problematic FTP connections detected."
-        return 0 # All clear
-    fi
-}
+# New path with .incomplete suffix
+incomplete_event_dir="${event_dir}.incomplete"
 
-# Cleanup function declaration
-cleanup() {
-    event_dir="$output_dir/level0/$event_id"
+if [ -d "$event_dir" ]; then
+    log "Renaming directory to mark as incomplete: $event_dir -> $incomplete_event_dir" "warn"
+    echo "Incomplete download: $event_id"
+    mv "$event_dir" "$incomplete_event_dir"
+else
+    echo "No path found: $event_dir"
+fi
 
-    # Call the new check function before proceeding
-    check_ftp_connections || exit 1
 
-    if [ -d "$event_dir" ]; then
-        echo "Removing directory: $event_dir"
-        rm -rf "$event_dir"
-    else
-        echo "No path found: $event_dir"
-    fi
-}
-cleanup
