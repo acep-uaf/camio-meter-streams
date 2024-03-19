@@ -15,7 +15,7 @@ fi
 
 remote_target_file="CHISTORY.TXT"
 remote_dir="EVENTS"
-files_per_event=12
+files_per_event=6
 
 meter_ip=$1
 output_dir=$2

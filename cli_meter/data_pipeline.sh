@@ -32,8 +32,6 @@ download_dir=$(yq '.download_directory' "$config_path")
 [[ -z "$location" ]] && exit_with_error "Location cannot be null or empty."
 [[ -z "$data_type" ]] && exit_with_error "Data type cannot be null or empty."
 
-
-
 # Adjust output_dir based on download_directory from config
 if [[ -n "$download_dir" ]]; then
     output_dir="$download_dir/$location/$data_type/$date"
@@ -63,15 +61,9 @@ for ((i = 0; i < num_meters; i++)); do
     export USERNAME=${meter_username:-$default_username}
     export PASSWORD=${meter_password:-$default_password}
 
-    # Before calling the download script, set current_event_dir
-    current_event_dir="$output_dir/$meter_id"
-
     # Execute download script
-    "meters/$meter_type/download.sh" "$meter_ip" "$current_event_dir" "$meter_id" "$meter_type"
-
-    # Reset current_event_dir
-    current_event_dir=""
+    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type"
 
 done
 
-echo "Finished downloading events!!!!!!!!"
+echo "Download Complete"
