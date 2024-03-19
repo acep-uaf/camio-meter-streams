@@ -1,24 +1,23 @@
 #!/bin/bash
 
-#################################
+##########################################################
 # This file creates metadata
 # for meter event files in TXT
-#################################
-# This script is called from organize_data.sh & download_missing_file.sh and accepts three arguments:
+#
+# This script is called from organize_data.sh & 
+# download_missing_file.sh and accepts 2 arguments:
 # 1. The name of the file
-# 2. The checksum of the file
-# 3. The full path to the local event directory
-#################################
+# 2. The full path to the local event directory
+##########################################################
 
 # Check if the correct number of arguments are passed
-if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <file> <checksum> <event_dir>"
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <file> <event_dir>"
     exit 1
 fi
 
 file=$1
-checksum=$2
-event_dir=$3
+event_dir=$2
 
 filename=$(basename "$file")
 metadata_file="${event_id}_metadata.txt"
@@ -40,7 +39,6 @@ if {
     echo "MeterID: $METER_ID"
     echo "EventID: $event_id"
     echo "DataLevel: level0"
-    echo "Checksum: $checksum"  # Include the checksum in the metadata
     echo "----"
 } >> "$metadata_path"; then
     log "Metadata (TXT) file updated successfully for: $filename"

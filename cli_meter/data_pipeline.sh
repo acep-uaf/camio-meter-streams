@@ -80,7 +80,7 @@ for ((i = 0; i < num_meters; i++)); do
     current_event_dir="$output_dir/$meter_id"
 
     # Execute download script
-    "meters/$meter_type/download.sh" "$meter_ip" "$current_event_dir"
+    "meters/$meter_type/download.sh" "$meter_ip" "$current_event_dir" "$meter_id" "$meter_type"
 
     # Reset current_event_dir
     current_event_dir=""
