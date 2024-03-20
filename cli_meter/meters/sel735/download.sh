@@ -5,17 +5,32 @@
 #
 #################################
 
+# Check for exactly 4 arguments
+if [ "$#" -ne 4 ]; then
+    echo "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type>"
+    exit 1
+fi
+
 # Simple CLI flag parsing
 meter_ip="$1"
 output_dir="$2" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
 meter_id="$3"
 meter_type="$4"
 
+# Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
+current_dir=$(dirname "${0}")
+cleanup_script="$current_dir/cleanup.sh"
+
+cleanup () {
+  echo "Cleaning up..."
+  bash "$cleanup_script" "$output_dir" "$current_event_id" "$meter_ip"
+}
+
 # Make dir if it doesn't exist
 mkdir -p "$output_dir"
 
-# Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
-current_dir=$(dirname "${0}")
+# Trap commands to call cleanup on Ctrl+C (SIGINT) or Ctrl+Z (SIGTSTP)
+trap cleanup SIGINT SIGTSTP
 
 # Test connection to meter
 source "$current_dir/test_meter_connection.sh" "$meter_ip"
@@ -56,11 +71,13 @@ get_event_timestamp() {
 ###############################################################################################
 
 
-# output_dir is the location where the data will be stored and CHISTORY.TXT will be downloaded to
+# output_dir is the location where the data will be stored
 for event_id in $($current_dir/get_events.sh "$meter_ip" "$output_dir"); do
-  # Download the event
-  source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
+  # Update current_event_id for the cleanup function
+  current_event_id=$event_id 
 
+  # Download event
+  source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
 
   # Check if download_event.sh was successful before creating metadata
   if [ $? -eq 0 ]; then
