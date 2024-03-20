@@ -4,7 +4,7 @@
 source commons.sh
 
 # TODO: Change this path when ready to deploy
-config_path="./config/acep-data-streams/kea/events/sel735_config.yml"
+config_path="./config/acep-data-streams/config.yml"
 
 # Get the current date in YYYY-MM format
 date=$(date '+%Y-%m')
@@ -54,8 +54,8 @@ for ((i = 0; i < num_meters; i++)); do
     meter_id=$(yq ".meters[$i].id" "$config_path")
 
     # Use the default credentials if specific meter credentials are not provided
-    meter_username=$(yq ".meters[$i].username // strenv(default_username)" "$config_path")
-    meter_password=$(yq ".meters[$i].password // strenv(default_password)" "$config_path")
+    meter_username=$(yq ".meters[$i].credentials.username // strenv(default_username)" "$config_path")
+    meter_password=$(yq ".meters[$i].credentials.password // strenv(default_password)" "$config_path")
 
     # Set environment variables
     export USERNAME=${meter_username:-$default_username}
