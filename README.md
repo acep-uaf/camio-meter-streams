@@ -10,7 +10,7 @@ This repository contains a set of Bash scripts that make up a data pipeline, des
 Ensure you have the following before running the pipeline:
 
 - Unix-like environment (Linux, macOS, or a Unix-like Windows terminal)
-- Access to the `ot-dev` server with SSH, FTP credentials, and meter details.
+- Access to the `ot-dev` server with **admin priveledges**, FTP credentials, and meter details.
 - Installed on `ot-dev`:
     - `lftp` — FTP operations
     - `jq` — JSON metadata
@@ -29,26 +29,25 @@ Ensure you have the following before running the pipeline:
     **Note**: You can check your SSH connection with `ssh -T git@github.com`
 
 ## Configuration
-1. Navigate and copy the `sel735_config.yml.example` file to a new `sel735_config.yml` file:
+1. Navigate and copy the `config.yml.example` file to a new `config.yml` file:
 
     ```bash
-    cd config/acep-data-streams/kea/events
-    cp sel735_config.yml.example sel735_config.yml
+    cp config.yml.example config.yml
     ```
 
 2. **Update** the config file with the FTP credentials and meter details.
 
-3. Secure the `sel735_config.yml` file so that only the owner can read and write:
+3. Secure the `config.yml` file so that only the owner can read and write:
 
     ```bash
-    chmod 600 cli_meter/config/acep-data-streams/kea/events/sel735_config.yml
+    chmod 600 config.yml
     ```
 
 ## Usage
-Run the data pipeline from the `cli_meter` directory:
+You must have admin privledges to run the data pipeline from the `cli_meter` directory:
 
 ```bash
-./data_pipeline.sh
+sudo ./data_pipeline.sh
 ```
 
 # rsync Service
