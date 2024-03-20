@@ -4,7 +4,7 @@
 source commons.sh
 
 # TODO: Change this path when ready to deploy
-config_path="./config/acep-data-streams/config.yml"
+config_path="/etc/acep-data-streams/config.yml"
 
 # Get the current date in YYYY-MM format
 date=$(date '+%Y-%m')
@@ -18,12 +18,12 @@ else
 fi
 
 # Read the config file
-default_username=$(yq '.credentials.username' "$config_path")
-default_password=$(yq '.credentials.password' "$config_path")
-num_meters=$(yq '.meters | length' "$config_path")
-location=$(yq '.location' "$config_path")
-data_type=$(yq '.data_type' "$config_path")
-download_dir=$(yq '.download_directory' "$config_path")
+default_username=$(yq '.credentials.username' $config_path)
+default_password=$(yq '.credentials.password' $config_path)
+num_meters=$(yq '.meters | length' $config_path)
+location=$(yq '.location' $config_path)
+data_type=$(yq '.data_type' $config_path)
+download_dir=$(yq '.download_directory' $config_path)
 
 # Check for null or empty values
 [[ -z "$default_username" ]] && exit_with_error "Default username cannot be null or empty."
@@ -49,13 +49,13 @@ fi
 
 # Loop through the meters and download the event files
 for ((i = 0; i < num_meters; i++)); do
-    meter_type=$(yq ".meters[$i].type" "$config_path")
-    meter_ip=$(yq ".meters[$i].ip" "$config_path")
-    meter_id=$(yq ".meters[$i].id" "$config_path")
+    meter_type=$(yq ".meters[$i].type" $config_path)
+    meter_ip=$(yq ".meters[$i].ip" $config_path)
+    meter_id=$(yq ".meters[$i].id" $config_path)
 
     # Use the default credentials if specific meter credentials are not provided
-    meter_username=$(yq ".meters[$i].credentials.username // strenv(default_username)" "$config_path")
-    meter_password=$(yq ".meters[$i].credentials.password // strenv(default_password)" "$config_path")
+    meter_username=$(yq ".meters[$i].credentials.username // strenv(default_username)" $config_path)
+    meter_password=$(yq ".meters[$i].credentials.password // strenv(default_password)" $config_path)
 
     # Set environment variables
     export USERNAME=${meter_username:-$default_username}

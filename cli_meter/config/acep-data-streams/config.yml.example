@@ -2,10 +2,10 @@
 
 # General settings for the application
 application:
-  name: "Meter Data Collection"
+  name: "Event Data Collection"
   version: 1.0
 
-# Optional: if not specified, will download to current directory 
+# Optional: if not specified, will download to current directory, give absolute path 
 download_directory: ""
 
 # Configuration Settings
@@ -19,16 +19,17 @@ credentials:
 
 # Configuration for the meter and optional username/password override
 meters:
-  # Meter 1
+# Meter 1
   - ip: ""
     id: ""
     type: ""
-    username: "" # Optional override
-    password: "" # Optional override
-  # Next meter here
+    credentials:
+      username: "" # Optional override
+      password: "" # Optional override
+# Next meter here
   - ip: ""
     id: ""
     type: ""
-    username: "" # Optional override
-    password: "" # Optional override
-  
+    credentials:
+      username: "" # Optional override
+      password: "" # Optional override
