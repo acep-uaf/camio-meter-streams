@@ -66,4 +66,10 @@ for ((i = 0; i < num_meters; i++)); do
 
 done
 
-echo "Download Complete"
+# Check if the loop completed successfully or was interrupted
+if [ $? -eq 0 ]; then
+    echo "Download complete to : $output_dir"
+else
+    echo "Failed to Download"
+fi
+
