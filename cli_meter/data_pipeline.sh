@@ -65,3 +65,5 @@ for ((i = 0; i < num_meters; i++)); do
     "meters/$meter_type/download.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type"
 
 done
+
+echo "Download Complete"
