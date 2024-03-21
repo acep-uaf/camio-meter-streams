@@ -26,10 +26,3 @@ meters:
     credentials:
       username: "" # Optional override
       password: "" # Optional override
-# Next meter here
-  - ip: ""
-    id: ""
-    type: ""
-    credentials:
-      username: "" # Optional override
-      password: "" # Optional override
