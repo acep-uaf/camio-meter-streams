@@ -25,3 +25,4 @@ CHISTORY.TXT
 *.yaml
 
 >>>>>>> ot-dev-ftp-meter-download
+*.download_progress

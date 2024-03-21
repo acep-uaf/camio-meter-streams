@@ -39,6 +39,7 @@ else
     output_dir="$location/$data_type/$date"
 fi
 
+
 # Create the directory if it doesn't exist
 mkdir -p "$output_dir"
 if [ $? -eq 0 ]; then
@@ -46,6 +47,7 @@ if [ $? -eq 0 ]; then
 else
     log "Failed to create directory: $output_dir" "err"
 fi
+
 
 # Loop through the meters and download the event files
 for ((i = 0; i < num_meters; i++)); do
@@ -61,9 +63,18 @@ for ((i = 0; i < num_meters; i++)); do
     export USERNAME=${meter_username:-$default_username}
     export PASSWORD=${meter_password:-$default_password}
 
-    # Execute download script
-    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type"
+    echo "Processing meter: $meter_id with IP: $meter_ip"
 
+    current_dir=$(dirname "$(readlink -f "$0")")
+    # Optionally, check and attempt to redownload incomplete downloads before starting new downloads for this meter
+    source "${current_dir}/check_missing.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type" "$meter_ip"
+
+    # Execute download script
+    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" 
+
+    # Optionally, check for incomplete downloads again after attempting new downloads for this meter
+    source "${current_dir}/check_missing.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type" "$meter_ip"
+    echo "Completed processing for meter $meter_id"
 done
 
 # Check if the loop completed successfully or was interrupted
