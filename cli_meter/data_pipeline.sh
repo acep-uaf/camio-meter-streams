@@ -3,27 +3,46 @@
 # Source the commons.sh file
 source commons.sh
 
-# TODO: Change this path when ready to deploy
-config_path="/etc/acep-data-streams/config.yml"
+config="/etc/acep-data-streams/config.yml"
+download_dir="" # To be potentially overriden by flags
 
-# Get the current date in YYYY-MM format
-date=$(date '+%Y-%m')
+# Parse command line arguments for --config/-c and --download_dir/-d flags
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --config | -c)
+        config="$2"
+        shift 2
+        ;;
+    --download_dir | -d)
+        download_dir="$2"
+        shift 2
+        ;;
+    *)
+        echo "Unknown parameter passed: $1"
+        exit 1
+        ;;
+    esac
+done
 
 # Make sure the output config file exists
-if [ -f "$config_path" ]; then
-    log "Config file exists at: $config_path."
+if [ -f "$config" ]; then
+    log "Config file exists at: "$config"."
 else
     log "Config file does not exist." "err"
     exit 1
 fi
 
+# Read values from the config file if not overridden by command-line args
+if [ -z "$download_dir" ]; then
+    download_dir=$(yq '.download_directory' "$config")
+fi
+
 # Read the config file
-default_username=$(yq '.credentials.username' $config_path)
-default_password=$(yq '.credentials.password' $config_path)
-num_meters=$(yq '.meters | length' $config_path)
-location=$(yq '.location' $config_path)
-data_type=$(yq '.data_type' $config_path)
-download_dir=$(yq '.download_directory' $config_path)
+default_username=$(yq '.credentials.username' "$config")
+default_password=$(yq '.credentials.password' "$config")
+num_meters=$(yq '.meters | length' "$config")
+location=$(yq '.location' "$config")
+data_type=$(yq '.data_type' "$config")
 
 # Check for null or empty values
 [[ -z "$default_username" ]] && exit_with_error "Default username cannot be null or empty."
@@ -32,12 +51,7 @@ download_dir=$(yq '.download_directory' $config_path)
 [[ -z "$location" ]] && exit_with_error "Location cannot be null or empty."
 [[ -z "$data_type" ]] && exit_with_error "Data type cannot be null or empty."
 
-# Adjust output_dir based on download_directory from config
-if [[ -n "$download_dir" ]]; then
-    output_dir="$download_dir/$location/$data_type/$date"
-else
-    output_dir="$location/$data_type/$date"
-fi
+output_dir="$download_dir/$location/$data_type/$(date '+%Y-%m')"
 
 # Create the directory if it doesn't exist
 mkdir -p "$output_dir"
@@ -49,13 +63,13 @@ fi
 
 # Loop through the meters and download the event files
 for ((i = 0; i < num_meters; i++)); do
-    meter_type=$(yq ".meters[$i].type" $config_path)
-    meter_ip=$(yq ".meters[$i].ip" $config_path)
-    meter_id=$(yq ".meters[$i].id" $config_path)
+    meter_type=$(yq ".meters[$i].type" $config)
+    meter_ip=$(yq ".meters[$i].ip" $config)
+    meter_id=$(yq ".meters[$i].id" $config)
 
     # Use the default credentials if specific meter credentials are not provided
-    meter_username=$(yq ".meters[$i].credentials.username // strenv(default_username)" $config_path)
-    meter_password=$(yq ".meters[$i].credentials.password // strenv(default_password)" $config_path)
+    meter_username=$(yq ".meters[$i].credentials.username // strenv(default_username)" $config)
+    meter_password=$(yq ".meters[$i].credentials.password // strenv(default_password)" $config)
 
     # Set environment variables
     export USERNAME=${meter_username:-$default_username}
@@ -72,4 +86,3 @@ if [ $? -eq 0 ]; then
 else
     echo "Failed to Download"
 fi
-
