@@ -16,8 +16,8 @@
 #####################################################
 
 # Check if exactly four arguments are provided
-if [ "$#" -ne 7 ]; then
-    echo "Usage: $0 <full_path_event_dir> <event_id> <meter_id> <meter_type> <download_progress_dir> <meter_ip> <output_dir>" 
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <full_path_event_dir> <event_id> <meter_ip>" 
     exit 1
 fi
 
@@ -25,31 +25,12 @@ fi
 declare -A file_patterns
 file_patterns=(["CEV"]=".CEV" ["HR"]=".CFG .DAT .HDR .ZDAT")
 
+#change to lowecase
 FULL_PATH_EVENT_DIR=$1
 EVENT_ID=$2
-meter_id=$3
-meter_type=$4
-download_progress_dir=$5
-meter_ip=$6
-output_dir=$7
+meter_ip=$3
 REMOTE_METER_PATH="EVENTS"
 
-
-# FUNCTIONS 
-#######################################################################################
-
-# Function to mark an event as in progress
-mark_as_in_progress() {
-    local event_id=$1
-    touch "$download_progress_dir/in_progress/$event_id"
-}
-
-# Function to mark an event as completed
-mark_as_completed() {
-    local event_id=$1
-    mv "$download_progress_dir/in_progress/$event_id" "$download_progress_dir/completed/$event_id"
-}
-###############################################################################################
 
 # Loop through the file patterns array
 for prefix in "${!file_patterns[@]}"; do
@@ -77,7 +58,6 @@ EOF
             # Check the exit status of the lftp command
             if [ $? -eq 0 ]; then
                 echo "Downloaded missing file: $missing_file"
-                mark_as_completed "$EVENT_ID"
             else
                 echo "Failed to download missing file: $missing_file" "err"
             fi
