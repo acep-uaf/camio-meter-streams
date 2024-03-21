@@ -67,12 +67,12 @@ for ((i = 0; i < num_meters; i++)); do
 
     current_dir=$(dirname "$(readlink -f "$0")")
     # Optionally, check and attempt to redownload incomplete downloads before starting new downloads for this meter
-    source "${current_dir}/check_missing.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type"
+    source "${current_dir}/check_missing.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type" "$meter_ip"
 
     # Execute download script
-    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type"
+    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" 
 
     # Optionally, check for incomplete downloads again after attempting new downloads for this meter
-    source "${current_dir}/check_missing.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type"
+    source "${current_dir}/check_missing.sh" "$meter_ip" "$output_dir/$meter_id" "$meter_id" "$meter_type" "$meter_ip"
     echo "Completed processing for meter $meter_id"
 done
