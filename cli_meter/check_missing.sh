@@ -27,6 +27,11 @@ event_dir_path="$output_dir/level0"
 
 echo "CALLING CHECK_MISSING.SH"
 
+# Function to mark an event as completed
+mark_as_completed() {
+    local event_id=$1
+    mv "$download_progress_dir/in_progress/$event_id" "$download_progress_dir/completed/$event_id"
+}
 
 # Function to check if all files for an event have been downloaded
 all_files_downloaded() {
@@ -76,7 +81,7 @@ if [ -d "$download_progress_dir/in_progress" ]; then
         echo "Attempting to redownload event: $event_id due to incomplete download."
 
         # Execute download script for the specific event
-        source "meters/$meter_type/download_missing_file.sh" "$event_path" "$event_id" "$meter_id" "$meter_type" "$download_progress_dir" "$meter_ip" "$output_dir"
+        source "meters/$meter_type/download_missing_file.sh" "$event_path" "$event_id" "$meter_ip"
 
         # After attempting to redownload, check if all files are present
         if all_files_downloaded "$event_path" "$event_id"; then
@@ -89,6 +94,9 @@ if [ -d "$download_progress_dir/in_progress" ]; then
             echo "METADATA PASS IN event path as 1st arg $event_path"
             source "meters/$meter_type/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
             # Check if metadata was successfully created
+
+            mark_as_completed "$event_id"
+
             if [ $? -eq 0 ]; then
                 echo "Metadata created for event: $event_id"
             else
