@@ -19,18 +19,9 @@ meter_type="$4"
 
 # Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
 current_dir=$(dirname "${0}")
-cleanup_script="$current_dir/cleanup.sh"
-
-cleanup () {
-  echo "Cleaning up..."
-  bash "$cleanup_script" "$output_dir" "$current_event_id" "$meter_ip"
-}
 
 # Make dir if it doesn't exist
 mkdir -p "$output_dir"
-
-# Trap commands to call cleanup on Ctrl+C (SIGINT) or Ctrl+Z (SIGTSTP)
-trap cleanup SIGINT SIGTSTP
 
 # Test connection to meter
 source "$current_dir/test_meter_connection.sh" "$meter_ip"
