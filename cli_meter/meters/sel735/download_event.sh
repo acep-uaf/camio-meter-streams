@@ -15,19 +15,6 @@ remote_dir="EVENTS"
 
 # LOCATION/DATA_TYPE/YYYY-MM/METER_ID/level0/
 
-# Define directories for tracking download status within the specified output directory
-mkdir -p "$download_progress_dir/in_progress" "$download_progress_dir/completed"
-
-# Function to mark an event as in progress
-mark_as_in_progress() {
-    touch "$download_progress_dir/in_progress/$event_id"
-}
-
-# Function to mark an event as completed
-mark_as_completed() {
-    mv "$download_progress_dir/in_progress/$event_id" "$download_progress_dir/completed/$event_id"
-}
-
 
 # Create the local directory for this event if it doesn't exist
 mkdir -p "$download_dir"
@@ -38,8 +25,6 @@ else
     exit 1
 fi
 
-# Mark the event as in progress
-mark_as_in_progress 
 
 # Single lftp session
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
