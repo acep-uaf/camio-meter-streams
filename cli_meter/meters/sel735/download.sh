@@ -59,6 +59,20 @@ get_event_timestamp() {
     echo "Timestamp for event ID $event_id not found."
     return 1
 }
+
+# Function to check if all files for an event have been downloaded
+validate_download() {
+    local event_dir=$1
+    local event_id=$2
+    # Assuming these are the files you expect to have downloaded
+    local expected_files=("CEV_${event_id}.CEV" "HR_${event_id}.CFG" "HR_${event_id}.DAT" "HR_${event_id}.HDR" "HR_${event_id}.ZDAT")
+    for file in "${expected_files[@]}"; do
+        if [ ! -f "${event_dir}/${file}" ]; then
+            return 0 # File is missing
+        fi
+    done
+    return 1 # All files are present
+}
 ###############################################################################################
 
 
@@ -83,8 +97,20 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$output_
 
     if [ -n "$meter_download_timestamp" ]; then
       # Proceed to create metadata with the extracted timestamp
+      # this timestamp is for when we run the download script, not when the event occurred
       otdev_download_timestamp=$(date --iso-8601=seconds)
-      source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
+
+      #check if all files are downloaded before generating metadata
+      # if validate_download is true zip event dir 
+      if validate_download "$output_dir" "$event_id"; then
+        echo "All files downloaded for event_id: $event_id"
+        source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
+        #TODO: create zip_event.sh
+        #source "$current_dir/zip_event.sh" "$output_dir" "$event_id"
+      else
+        echo "Not all files downloaded for event_id: $event_id"
+        #TODO: handle this case
+      fi
     else
       echo "Could not extract timestamp for event_id: $event_id"
     fi
