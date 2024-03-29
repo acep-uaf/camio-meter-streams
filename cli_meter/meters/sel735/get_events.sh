@@ -8,8 +8,8 @@
 #################################
 
 # Check if the correct number of arguments are passed
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <meter_ip> <output_dir>"
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <meter_ip> <meter_id> <output_dir>"
     exit 1
 fi
 
@@ -18,7 +18,8 @@ remote_dir="EVENTS"
 files_per_event=6
 
 meter_ip=$1
-output_dir=$2
+meter_id=$2
+output_dir=$3
 
 # Connect to meter and get CHISTORY.TXT
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
@@ -49,10 +50,15 @@ fi
 
 # Parse CHISTORY.TXT starting from line 4
 awk 'NR > 3' "$target_path" | while IFS= read -r line; do
-    event_id=$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2}')
+    # event_id=$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2}')
+
+    # Extract event_id, year, and month
+    read event_id year month <<<$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2, $5, $3}')
+    log "$event_id $year $month"
 
     if [[ $event_id =~ ^[0-9]+$ ]]; then
-        event_dir_path="$output_dir/level0/$event_id"
+        date_dir="$year-$month"
+        event_dir_path="$output_dir/$date_dir/$meter_id/$event_id"
         
         log "Checking for event: $event_id in directory: $event_dir_path"
 
@@ -66,7 +72,7 @@ awk 'NR > 3' "$target_path" | while IFS= read -r line; do
             fi
         else
             log "No event directory found: $event_id" "warn"
-            echo "$event_id"
+            echo "$event_id,$date_dir"
         fi
     else
         log "Skipping line: $line, not entirely numeric. Check parsing." "warn"

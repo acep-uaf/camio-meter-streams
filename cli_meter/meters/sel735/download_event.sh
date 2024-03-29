@@ -9,11 +9,10 @@ fi
 # Extracting arguments into variables
 meter_ip=$1
 event_id=$2
-download_dir="$3/level0/$event_id"
+# Assumes $3 = /../LOCATION/DATA_TYPE/YYYY-MM/METER_ID
+download_dir="$3/$event_id"
 download_progress_dir="$3/.download_progress"
 remote_dir="EVENTS"
-
-# LOCATION/DATA_TYPE/YYYY-MM/METER_ID/level0/
 
 # Define directories for tracking download status within the specified output directory
 mkdir -p "$download_progress_dir/in_progress" "$download_progress_dir/completed"
