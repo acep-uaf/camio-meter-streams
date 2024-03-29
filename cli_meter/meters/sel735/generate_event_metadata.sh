@@ -19,7 +19,7 @@ fi
 
 
 event_id=$1
-event_dir="$2/level0/$event_id" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID/
+event_dir="$2/$event_id" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID/
 meter_id=$3
 meter_type=$4
 meter_download_timestamp=$5
@@ -41,6 +41,6 @@ for file in "$event_dir"/*; do
     else
         log "Skipped: No file found for $file" "warn"
     fi
-
-    log "Metadata created for: $event_id"
 done
+
+log "Metadata generated for event: $event_id"

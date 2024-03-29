@@ -44,7 +44,7 @@ target_path="$output_dir/$remote_target_file"
 
 # Check if CHISTORY.TXT exists and is not empty
 if [ ! -f "$target_path" ] || [ ! -s "$target_path" ]; then
-    log "Download failed: $remote_target_file" "err"
+    log "Download failed: $remote_target_file, could not find file: $target_path" "err"
     exit 1
 fi
 
@@ -54,10 +54,10 @@ awk 'NR > 3' "$target_path" | while IFS= read -r line; do
 
     # Extract event_id, year, and month
     read event_id year month <<<$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2, $5, $3}')
-    log "$event_id $year $month"
 
     if [[ $event_id =~ ^[0-9]+$ ]]; then
-        date_dir="$year-$month"
+        formatted_month=$(printf '%02d' "$month")
+        date_dir="$year-$formatted_month"
         event_dir_path="$output_dir/$date_dir/$meter_id/$event_id"
         
         log "Checking for event: $event_id in directory: $event_dir_path"
@@ -71,7 +71,7 @@ awk 'NR > 3' "$target_path" | while IFS= read -r line; do
                 log "Incomplete event: $event_id" "warn"
             fi
         else
-            log "No event directory found: $event_id" "warn"
+            log "No event directory found, proceeding to download event: $event_id"
             echo "$event_id,$date_dir"
         fi
     else
