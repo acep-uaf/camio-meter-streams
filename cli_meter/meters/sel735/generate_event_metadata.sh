@@ -26,11 +26,14 @@ meter_download_timestamp=$5
 otdev_download_timestamp=$6
 
 
+# Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
+current_dir=$(dirname "${0}")
+
 # Loop through each file in the event directory
 for file in "$event_dir"/*; do
     if [ -f "$file" ] && [ -s "$file" ]; then
         # Source and check create_metadata_yml.sh
-        source create_metadata_yml.sh "$file" "$event_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
+        source "$current_dir/create_metadata_yml.sh" "$file" "$event_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
         if [ $? -ne 0 ]; then
             log "create_metadata_yml.sh failed for: $file" "err"
         fi
