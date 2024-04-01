@@ -9,7 +9,7 @@ fi
 # Extracting arguments into variables
 meter_ip=$1
 event_id=$2
-download_dir="$3/level0/$event_id"
+download_dir="$3/$event_id" # Assumes $3 = /../location/data_type/YYYY-MM/METER_ID
 download_progress_dir="$3/.download_progress"
 remote_dir="EVENTS"
 
@@ -19,7 +19,7 @@ remote_dir="EVENTS"
 # Create the local directory for this event if it doesn't exist
 mkdir -p "$download_dir"
 if [ $? -eq 0 ]; then
-    log "Created local directory for event: $event_id from script: $(basename "$0")"
+    log "Created local directory for event: $event_id"
 else
     log "Failed to create local directory for event: $event_id" "err"
     exit 1
@@ -37,11 +37,11 @@ EOF
 
 # Check the exit status of the lftp command
 if [ $? -eq 0 ]; then
-    log "Files downloaded for event: $event_id"
-    mark_as_completed
+    log "Download complete for event: $event_id"
+    echo "Download complete for event: $event_id"
 else
     log "Failed to download files for event: $event_id" "err"
     exit 1
 fi
 
-echo "Download complete for event: $event_id"
+

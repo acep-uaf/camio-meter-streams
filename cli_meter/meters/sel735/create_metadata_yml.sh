@@ -28,13 +28,8 @@ filename=$(basename "$file")
 metadata_file="${event_id}_metadata.yml"
 metadata_path="$event_dir/$metadata_file"
 
-log "File: $file"
-log "Event directory: $event_dir"
-log "Filename: $filename"
-log "Metadata file: $metadata_file"
-log "Metadata path: $metadata_path"
 
-log "Initiating metadata (YAML) creation for file: $filename"
+log "Starting metadata generation for file: $filename"
 
 # Append metadata to the YAML file
 if {
@@ -46,9 +41,9 @@ if {
     echo "  EventID: \"$event_id\""
     echo "  DataLevel: \"level0\""
 } >> "$metadata_path"; then
-    log "Metadata (YAML) file updated successfully for: $filename"
+    log "Metadata updated for: $filename"
     return 0  # Exit with success code
 else
-    log "Error updating metadata (YAML) for file: $filename" "err"
+    log "Error updating metadata for file: $filename" "err"
     return 1  # Exit with error code
 fi

@@ -13,7 +13,7 @@ fi
 
 # Simple CLI flag parsing
 meter_ip="$1"
-output_dir="$2" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
+base_output_dir="$2/level0" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
 meter_id="$3"
 meter_type="$4"
 
@@ -21,7 +21,7 @@ meter_type="$4"
 current_dir=$(dirname "${0}")
 
 # Make dir if it doesn't exist
-mkdir -p "$output_dir"
+mkdir -p "$base_output_dir"
 
 # Test connection to meter
 source "$current_dir/test_meter_connection.sh" "$meter_ip"
@@ -77,11 +77,17 @@ validate_download() {
 
 
 # output_dir is the location where the data will be stored
-for event_id in $($current_dir/get_events.sh "$meter_ip" "$output_dir"); do
+for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_output_dir"); do
+
+  # Split the output into event_id and formatted_date
+  IFS=',' read -r event_id date_dir <<< "$event_info"
+
   # Update current_event_id for the cleanup function
   current_event_id=$event_id 
 
-  # Download event
+  # Update output_dir and download event
+  output_dir="$base_output_dir/$date_dir/$meter_id"
+
   source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
 
   # Check if download_event.sh was successful before creating metadata
