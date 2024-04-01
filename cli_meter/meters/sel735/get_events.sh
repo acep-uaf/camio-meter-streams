@@ -13,20 +13,27 @@ if [ "$#" -ne 3 ]; then
     exit 1
 fi
 
-remote_target_file="CHISTORY.TXT"
-remote_dir="EVENTS"
-files_per_event=6
-
 meter_ip=$1
 meter_id=$2
 output_dir=$3
+
+files_per_event=6
+remote_filename="CHISTORY.TXT"
+remote_dir="EVENTS"
+temp_dir_path="temp_dir.XXXXXX"
+
+# Create a temporary directory to store the CHISTORY.TXT file
+temp_dir=$(mktemp -d $temp_dir_path)
+
+# Remove temporary directory on exit
+trap 'rm -rf "$temp_dir"' EXIT
 
 # Connect to meter and get CHISTORY.TXT
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
 set xfer:clobber on
 cd $remote_dir
-lcd $output_dir
-mget $remote_target_file
+lcd $temp_dir
+mget $remote_filename
 bye
 EOF
 
@@ -38,18 +45,17 @@ else
     exit 1
 fi
 
-# Full path to CHISTORY.TXT
-# TODO: Rename variable "target_path"?
-target_path="$output_dir/$remote_target_file"
+# Path to CHISTORY.TXT in the temporary directory
+temp_file_path="$temp_dir/$remote_filename"
 
 # Check if CHISTORY.TXT exists and is not empty
-if [ ! -f "$target_path" ] || [ ! -s "$target_path" ]; then
-    log "Download failed: $remote_target_file, could not find file: $target_path" "err"
+if [ ! -f "$temp_file_path" ] || [ ! -s "$temp_file_path" ]; then
+    log "Download failed: $remote_filename. Could not find file: $temp_file_path" "err"
     exit 1
 fi
 
 # Parse CHISTORY.TXT starting from line 4
-awk 'NR > 3' "$target_path" | while IFS= read -r line; do
+awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
     # event_id=$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2}')
 
     # Extract event_id, year, and month
@@ -72,11 +78,13 @@ awk 'NR > 3' "$target_path" | while IFS= read -r line; do
             fi
         else
             log "No event directory found, proceeding to download event: $event_id"
+
+            # Output the event_id and date_dir back to download.sh to parse through
             echo "$event_id,$date_dir"
         fi
     else
-        log "Skipping line: $line, not entirely numeric. Check parsing." "warn"
+        log "Skipping line: $line, not entirely numeric. Check parsing." "err"
     fi
 done
 
-log "Completed processing all events listed in $remote_target_file."
+log "Completed processing all events listed in $remote_filename."
