@@ -16,6 +16,7 @@ Ensure you have the following before running the pipeline:
     - `jq` — JSON metadata
     - `yq` - YAML config files
     - `sudo apt-get install zip`
+    - `sudo apt-get install unzip`
 
 ## Installation
 1. You must be connected to the `ot-dev` server. See **OT-dev(SSH)** in the [ACEP Wiki](https://wiki.acep.uaf.edu/en/teams/data-ducts/aetb).

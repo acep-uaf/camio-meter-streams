@@ -114,7 +114,7 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
         echo "Checksum for event directory $event_id generated."
 
         # Proceed to zip the event directory, including all files and the checksum.md5 file
-        zip -r -q "$output_dir/${event_id}.zip" "$output_dir"
+        zip -r -q "$output_dir/${event_id}.zip" "$output_dir/$event_id"
         echo "Event directory $event_id zipped, including checksum."
 
       else
