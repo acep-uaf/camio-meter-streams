@@ -56,35 +56,40 @@ fi
 
 # Parse CHISTORY.TXT starting from line 4
 awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
-    # event_id=$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2}')
-
-    # Extract event_id, year, and month
-    read event_id year month <<<$(echo "$line" | awk -F, '{gsub(/"/, "", $2); print $2, $5, $3}')
+    # Remove quotes and then extract fields
+    clean_line=$(echo "$line" | sed 's/"//g')
+    IFS=, read -r _ event_id month day year hour min sec _ <<<"$clean_line"
 
     if [[ $event_id =~ ^[0-9]+$ ]]; then
+        # Format event timestamp, pad month for date directory, and construct event directory path.
+        event_timestamp=$(printf '%04d-%02d-%02dT%02d:%02d:%02d' "$year" "$month" "$day" "$hour" "$min" "$sec")
         formatted_month=$(printf '%02d' "$month")
         date_dir="$year-$formatted_month"
         event_dir_path="$output_dir/$date_dir/$meter_id/$event_id"
-        
-        log "Checking for event: $event_id in directory: $event_dir_path"
 
+        # Check if the event directory exists and has all the files
         if [ -d "$event_dir_path" ]; then
+            log "Event directory found: $event_id"
             non_empty_files_count=$(find "$event_dir_path" -type f ! -empty -print | wc -l)
 
             if [ "$non_empty_files_count" -eq $files_per_event ]; then
                 log "Complete directory for event: $event_id"
+
             elif [ "$non_empty_files_count" -ne 0 ]; then
                 log "Incomplete event: $event_id" "warn"
             fi
+
         else
             log "No event directory found, proceeding to download event: $event_id"
 
             # Output the event_id and date_dir back to download.sh to parse through
-            echo "$event_id,$date_dir"
+            echo "$event_id,$date_dir,$event_timestamp"
         fi
+
     else
         log "Skipping line: $line, not entirely numeric. Check parsing." "err"
     fi
+    
 done
 
 log "Completed processing all events listed in $remote_filename."
