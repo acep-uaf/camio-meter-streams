@@ -51,9 +51,6 @@ validate_download() {
 # Initialize a flag to indicate the success of the entire loop process
 loop_success=true
 
-# Initialize a flag to indicate the success of the entire loop process
-loop_success=true
-
 # output_dir is the location where the data will be stored
 for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_output_dir"); do
 

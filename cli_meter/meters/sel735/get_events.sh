@@ -100,10 +100,8 @@ done
 
 # After the loop, check the flag and log accordingly
 if [ "$loop_success" = true ]; then
-  echo "Successfully processed all events."
   log "Successfully processed all events."
 else
-  echo "Finished processing with some errors. Check logs for more information."
   log "Finished processing with some errors." "err"
 fi
 
