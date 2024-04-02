@@ -54,6 +54,9 @@ if [ ! -f "$temp_file_path" ] || [ ! -s "$temp_file_path" ]; then
     exit 1
 fi
 
+# Initialize a flag to indicate the success of the entire loop process
+loop_success=true
+
 # Parse CHISTORY.TXT starting from line 4
 awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
     # Remove quotes and then extract fields
@@ -76,7 +79,8 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
                 log "Complete directory for event: $event_id"
 
             elif [ "$non_empty_files_count" -ne 0 ]; then
-                log "Incomplete event: $event_id" "warn"
+                #TODO: Handle this case
+                log "Directoy exists, incomplete event: $event_id" "warn"
             fi
 
         else
@@ -88,8 +92,19 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
 
     else
         log "Skipping line: $line, not entirely numeric. Check parsing." "err"
+        loop_success=false
+        
     fi
     
 done
 
-log "Completed processing all events listed in $remote_filename."
+# After the loop, check the flag and log accordingly
+if [ "$loop_success" = true ]; then
+  echo "Successfully processed all events."
+  log "Successfully processed all events."
+else
+  echo "Finished processing with some errors. Check logs for more information."
+  log "Finished processing with some errors." "err"
+fi
+
+

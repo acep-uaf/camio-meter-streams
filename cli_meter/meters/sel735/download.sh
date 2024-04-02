@@ -48,6 +48,12 @@ validate_download() {
 }
 ###############################################################################################
 
+# Initialize a flag to indicate the success of the entire loop process
+loop_success=true
+
+# Initialize a flag to indicate the success of the entire loop process
+loop_success=true
+
 # output_dir is the location where the data will be stored
 for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_output_dir"); do
 
@@ -67,24 +73,32 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
     # Timestamp is time this script is run.
     download_timestamp=$(date --iso-8601=seconds)
 
-      #check if all files are downloaded before generating metadata
-      # if validate_download is true zip event dir 
-      if validate_download "$output_dir" "$event_id"; then
-        echo "All files downloaded for event_id: $event_id"
-        source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
-        #TODO: create zip_event.sh
-        #source "$current_dir/zip_event.sh" "$output_dir" "$event_id"
-      else
-        echo "Not all files downloaded for event_id: $event_id"
-        #TODO: handle this case
-      fi
+    #check if all files are downloaded before generating metadata
+    # if validate_download is true zip event dir
+    if validate_download "$output_dir" "$event_id"; then
+      source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"
+      #TODO: create zip_event.sh
+      #source "$current_dir/zip_event.sh" "$output_dir" "$event_id"
     else
       #TODO: handle this case
+      echo "Not all files downloaded for event_id: $event_id"
       log "Not all files downloaded for event: $event_id" "warn"
+      loop_success=false
     fi
 
   else
     echo "Download failed for event_id: $event_id, skipping metadata creation."
+    log "Download failed for event_id: $event_id, skipping metadata creation." "warn"
+    loop_success=false
   fi
 
 done
+
+# After the loop, check the flag and log accordingly
+if [ "$loop_success" = true ]; then
+  echo "Successfully downloaded all events."
+  log "Successfully downloaded all events."
+else
+  echo "Finished downloaded with some errors. Check logs for more information."
+  log "Finished downloaded with some errors." "err"
+fi
