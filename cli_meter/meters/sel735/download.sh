@@ -88,6 +88,7 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
   # Update output_dir and download event
   output_dir="$base_output_dir/$date_dir/$meter_id"
 
+  # download_event downloads 5 files for each event 
   source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
 
   # Check if download_event.sh was successful before creating metadata
@@ -100,13 +101,22 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
       # this timestamp is for when we run the download script, not when the event occurred
       otdev_download_timestamp=$(date --iso-8601=seconds)
 
-      #check if all files are downloaded before generating metadata
+      #check if all files are downloaded before generating metadata/checksum/zip
       # if validate_download is true zip event dir 
       if validate_download "$output_dir" "$event_id"; then
         echo "All files downloaded for event_id: $event_id"
+
+        # Generate metadata for the event
         source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
-        #TODO: create zip_event.sh
-        #source "$current_dir/zip_event.sh" "$output_dir" "$event_id"
+        
+        # Generate MD5 checksums for all files in the event directory, including the metadata file
+        md5sum $output_dir/* > $output_dir/$event_id/checksum.md5
+        echo "Checksum for event directory $event_id generated."
+
+        # Proceed to zip the event directory, including all files and the checksum.md5 file
+        zip -r -q "$output_dir/${event_id}.zip" "$output_dir"
+        echo "Event directory $event_id zipped, including checksum."
+
       else
         echo "Not all files downloaded for event_id: $event_id"
         #TODO: handle this case
