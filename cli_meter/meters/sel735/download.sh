@@ -7,8 +7,8 @@
 
 # Check for exactly 4 arguments
 if [ "$#" -ne 4 ]; then
-    echo "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type>"
-    exit 1
+  echo "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type>"
+  exit 1
 fi
 
 # Simple CLI flag parsing
@@ -32,58 +32,33 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-
-# FUNCTION 
-#######################################################################################
-# Function to extract and format the timestamp for a given event ID from CHISTORY.TXT
-get_event_timestamp() {
-    local event_id="$1"
-    local chistory_file="$2/CHISTORY.TXT"
-    local timestamp=""
-
-    # Ensure CHISTORY.TXT exists
-    if [ ! -f "$chistory_file" ]; then
-        echo "CHISTORY.TXT file not found."
-        return 1
-    fi
-
-    # Extract the timestamp for the given event ID
-    while IFS=, read -r _ eid month day year hour min sec _; do
-        if [[ "$eid" == "$event_id" ]]; then
-            timestamp=$(printf '%04d-%02d-%02dT%02d:%02d:%02d' "$year" "$month" "$day" "$hour" "$min" "$sec")
-            echo "$timestamp"
-            return 0
-        fi
-    done < <(tail -n +3 "$chistory_file") # Skip header lines
-
-    echo "Timestamp for event ID $event_id not found."
-    return 1
-}
-
+###############################################################################################
 # Function to check if all files for an event have been downloaded
 validate_download() {
-    local event_dir=$1
-    local event_id=$2
-    # Assuming these are the files you expect to have downloaded
-    local expected_files=("CEV_${event_id}.CEV" "HR_${event_id}.CFG" "HR_${event_id}.DAT" "HR_${event_id}.HDR" "HR_${event_id}.ZDAT")
-    for file in "${expected_files[@]}"; do
-        if [ ! -f "${event_dir}/${file}" ]; then
-            return 0 # File is missing
-        fi
-    done
-    return 1 # All files are present
+  local event_dir=$1
+  local event_id=$2
+  # Assuming these are the files you expect to have downloaded
+  local expected_files=("CEV_${event_id}.CEV" "HR_${event_id}.CFG" "HR_${event_id}.DAT" "HR_${event_id}.HDR" "HR_${event_id}.ZDAT")
+  for file in "${expected_files[@]}"; do
+    if [ ! -f "${event_dir}/${file}" ]; then
+      return 0 # File is missing
+    fi
+  done
+  return 1 # All files are present
 }
 ###############################################################################################
 
+# Initialize a flag to indicate the success of the entire loop process
+loop_success=true
 
 # output_dir is the location where the data will be stored
 for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_output_dir"); do
 
   # Split the output into event_id and formatted_date
-  IFS=',' read -r event_id date_dir <<< "$event_info"
+  IFS=',' read -r event_id date_dir event_timestamp <<<"$event_info"
 
   # Update current_event_id for the cleanup function
-  current_event_id=$event_id 
+  current_event_id=$event_id
 
   # Update output_dir and download event
   output_dir="$base_output_dir/$date_dir/$meter_id"
@@ -96,13 +71,8 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
 
   # Check if download_event.sh was successful before creating metadata
   if [ $? -eq 0 ]; then
-    # grab timestamp from meter (CHISTORY.txt)
-    meter_download_timestamp=$(get_event_timestamp "$event_id" "$output_dir")
-
-    if [ -n "$meter_download_timestamp" ]; then
-      # Proceed to create metadata with the extracted timestamp
-      # this timestamp is for when we run the download script, not when the event occurred
-      otdev_download_timestamp=$(date --iso-8601=seconds)
+    # Timestamp is time this script is run.
+    download_timestamp=$(date --iso-8601=seconds)
 
       #check if all files are downloaded before generating metadata/checksum/zip
       # if validate_download is true zip event dir 
@@ -110,28 +80,29 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
         # echo "All files downloaded for event_id: $event_id"
 
         # Generate metadata and checksums of files for the event
-        source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
+        source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"
 
         # Proceed to zip the event directory, including all files and the checksum.md5 file
         # Make sure to run the zip command from the base_output_dir to prevent long paths
         pushd "$base_output_dir/$date_dir/$meter_id" > /dev/null # Change into the directory containing event directories
         zip -r -q "${event_id}.zip" "$event_id" # Zip the event directory
-        # echo "Event directory $event_id zipped, including checksum."
         echo "$event_id Validated and Zipped."
         echo "-------------------------------------->"
         popd > /dev/null # Return to the previous directory
 
       else
-        echo "Not all files downloaded for event_id: $event_id"
         #TODO: handle this case
+        echo "Not all files downloaded for event_id: $event_id"
+        log "Not all files downloaded for event: $event_id" "warn"
+        loop_success=false
       fi
-    else
-      echo "Could not extract timestamp for event_id: $event_id"
-    fi
-  else
-    echo "Download failed for event_id: $event_id, skipping metadata creation."
-  fi
-
 done
 
-echo "Finished downloading events."
+# After the loop, check the flag and log accordingly
+if [ "$loop_success" = true ]; then
+  echo "Successfully downloaded all events."
+  log "Successfully downloaded all events."
+else
+  echo "Finished downloaded with some errors. Check logs for more information."
+  log "Finished downloaded with some errors." "err"
+fi

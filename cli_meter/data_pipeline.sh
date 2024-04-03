@@ -82,7 +82,7 @@ for ((i = 0; i < num_meters; i++)); do
     # Execute download script
     "meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" 
 
-    echo "Completed processing for meter $meter_id"
+    echo "Processing complete for meter: $meter_id"
 done
 
 # Check if the loop completed successfully or was interrupted
