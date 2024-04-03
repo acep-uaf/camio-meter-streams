@@ -23,11 +23,18 @@ meter_type=$4
 meter_download_timestamp=$5
 otdev_download_timestamp=$6
 
+# Extract the event ID from the directory name or another source if it is available differently
+event_id=$(basename "$event_dir")
 
 filename=$(basename "$file")
 metadata_file="${event_id}_metadata.yml"
 metadata_path="$event_dir/$metadata_file"
 
+# Calculate the checksum of the file
+checksum=$(md5sum "$file" | awk '{print $1}')
+
+# Append the checksum and filename to a checksum.md5 file in the event directory
+echo "$checksum $filename" >> "$event_dir/checksum.md5"
 
 log "Starting metadata generation for file: $filename"
 
@@ -40,6 +47,7 @@ if {
     echo "  MeterType: \"$meter_type\"" 
     echo "  EventID: \"$event_id\""
     echo "  DataLevel: \"level0\""
+    echo "  Checksum: \"$checksum\""
 } >> "$metadata_path"; then
     log "Metadata updated for: $filename"
     return 0  # Exit with success code

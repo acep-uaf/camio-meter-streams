@@ -9,7 +9,7 @@
 # - calls create_metadata_txt.sh and create_metadata_json.sh
 ###############################################################
 
-echo "Creating metadata for event: $event_id"
+# echo "Creating metadata for event: $event_id"
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 6 ]; then

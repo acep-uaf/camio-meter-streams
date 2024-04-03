@@ -88,6 +88,9 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
   # Update output_dir and download event
   output_dir="$base_output_dir/$date_dir/$meter_id"
 
+  # event dir
+  event_dir="$output_dir/$event_id"
+
   # download_event downloads 5 files for each event 
   source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
 
@@ -104,18 +107,19 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
       #check if all files are downloaded before generating metadata/checksum/zip
       # if validate_download is true zip event dir 
       if validate_download "$output_dir" "$event_id"; then
-        echo "All files downloaded for event_id: $event_id"
+        # echo "All files downloaded for event_id: $event_id"
 
-        # Generate metadata for the event
+        # Generate metadata and checksums of files for the event
         source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
-        
-        # Generate MD5 checksums for all files in the event directory, including the metadata file
-        md5sum $output_dir/* > $output_dir/$event_id/checksum.md5
-        echo "Checksum for event directory $event_id generated."
 
         # Proceed to zip the event directory, including all files and the checksum.md5 file
-        zip -r -q "$output_dir/${event_id}.zip" "$output_dir/$event_id"
-        echo "Event directory $event_id zipped, including checksum."
+        # Make sure to run the zip command from the base_output_dir to prevent long paths
+        pushd "$base_output_dir/$date_dir/$meter_id" > /dev/null # Change into the directory containing event directories
+        zip -r -q "${event_id}.zip" "$event_id" # Zip the event directory
+        # echo "Event directory $event_id zipped, including checksum."
+        echo "$event_id Validated and Zipped."
+        echo "-------------------------------------->"
+        popd > /dev/null # Return to the previous directory
 
       else
         echo "Not all files downloaded for event_id: $event_id"
