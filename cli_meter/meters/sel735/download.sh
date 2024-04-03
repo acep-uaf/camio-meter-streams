@@ -53,18 +53,12 @@ loop_success=true
 
 # output_dir is the location where the data will be stored
 for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_output_dir"); do
-
   # Split the output into event_id and formatted_date
   IFS=',' read -r event_id date_dir event_timestamp <<<"$event_info"
-
   # Update current_event_id for the cleanup function
   current_event_id=$event_id
-
   # Update output_dir and download event
   output_dir="$base_output_dir/$date_dir/$meter_id"
-
-  # event dir
-  event_dir="$output_dir/$event_id"
 
   # download_event downloads 5 files for each event 
   source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
@@ -96,7 +90,13 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
         log "Not all files downloaded for event: $event_id" "warn"
         loop_success=false
       fi
+  else
+    echo "Download failed for event_id: $event_id, skipping metadata creation."
+    log "Download failed for event_id: $event_id, skipping metadata creation." "warn"
+    loop_success=false
+  fi
 done
+
 
 # After the loop, check the flag and log accordingly
 if [ "$loop_success" = true ]; then
