@@ -1,37 +1,9 @@
 #!/bin/bash
-
 #################################
-#
+# 
 #
 #################################
-
-# Check for exactly 4 arguments
-if [ "$#" -ne 4 ]; then
-  echo "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type>"
-  exit 1
-fi
-
-# Simple CLI flag parsing
-meter_ip="$1"
-base_output_dir="$2/level0" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
-meter_id="$3"
-meter_type="$4"
-
-# Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
-current_dir=$(dirname "${0}")
-
-# Make dir if it doesn't exist
-mkdir -p "$base_output_dir"
-
-# Test connection to meter
-source "$current_dir/test_meter_connection.sh" "$meter_ip"
-
-# Check if test_meter_connection.sh was successful
-if [ $? -ne 0 ]; then
-  echo "Connection to meter at $meter_ip failed."
-  exit 1
-fi
-
+########### FUNCTIONS ###########
 ###############################################################################################
 # Function to check if all files for an event have been downloaded
 validate_download() {
@@ -47,6 +19,34 @@ validate_download() {
   return 1 # All files are present
 }
 ###############################################################################################
+
+
+# Check for exactly 4 arguments
+if [ "$#" -ne 4 ]; then
+  echo "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type>"
+  exit 1
+fi
+
+# Simple CLI flag parsing
+meter_ip="$1"
+base_output_dir="$2/working" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
+base_zipped_output_dir="$2/level0" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID
+meter_id="$3"
+meter_type="$4"
+
+# Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
+current_dir=$(dirname "${0}")
+# Make dir if it doesn't exist
+mkdir -p "$base_output_dir"
+
+# Test connection to meter
+source "$current_dir/test_meter_connection.sh" "$meter_ip"
+
+# Check if test_meter_connection.sh was successful
+if [ $? -ne 0 ]; then
+  echo "Connection to meter at $meter_ip failed."
+  exit 1
+fi
 
 # Initialize a flag to indicate the success of the entire loop process
 loop_success=true
@@ -68,21 +68,15 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
     # Timestamp is time this script is run.
     download_timestamp=$(date --iso-8601=seconds)
 
-      #check if all files are downloaded before generating metadata/checksum/zip
-      # if validate_download is true zip event dir 
+      # If all files are downloaded successfully generate metadata/checksum then zip
       if validate_download "$output_dir" "$event_id"; then
-        # echo "All files downloaded for event_id: $event_id"
-
         # Generate metadata and checksums of files for the event
         source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"
 
-        # Proceed to zip the event directory, including all files and the checksum.md5 file
-        # Make sure to run the zip command from the base_output_dir to prevent long paths
-        pushd "$base_output_dir/$date_dir/$meter_id" > /dev/null # Change into the directory containing event directories
-        zip -r -q "${event_id}.zip" "$event_id" # Zip the event directory
-        echo "$event_id Validated and Zipped."
-        echo "-------------------------------------->"
-        popd > /dev/null # Return to the previous directory
+        # Zip the event directory, including all files and the checksum.md5 file
+        event_zipped_output_dir="$base_zipped_output_dir/$date_dir/$meter_id"
+        mkdir -p "$event_zipped_output_dir"
+        source "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id"
 
       else
         #TODO: handle this case
