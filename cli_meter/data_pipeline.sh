@@ -1,7 +1,9 @@
 #!/bin/bash
 
+current_dir=$(dirname "$(readlink -f "$0")")
+
 # Source the commons.sh file
-source commons.sh
+source "$current_dir/commons.sh"
 
 config_path="/etc/acep-data-streams/config.yml"
 download_dir="" # To be potentially overriden by flags
@@ -77,10 +79,8 @@ for ((i = 0; i < num_meters; i++)); do
     export USERNAME=${meter_username:-$default_username}
     export PASSWORD=${meter_password:-$default_password}
 
-    current_dir=$(dirname "$(readlink -f "$0")")
-
     # Execute download script
-    "meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" 
+    "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" 
 
     echo "Processing complete for meter: $meter_id"
 done
