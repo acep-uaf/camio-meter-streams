@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Source the commons.sh file
 current_dir=$(dirname "$(readlink -f "$0")")
-
+# Source the commons.sh file
 source "$current_dir/commons.sh"
 
 config_path="/etc/acep-data-streams/config.yml"

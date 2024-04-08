@@ -13,44 +13,18 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-# Logging in to the FTP server and checking the connection
-ftp_output=$(ftp -inv $meter_ip <<EOF
-user $USERNAME $PASSWORD
-ls
-bye
-EOF
-)
+# Logging in to the FTP server and checking the connection using lftp
 
-# Check if specific FTP error messages are present
-if [[ "$ftp_output" =~ "421 Service not available, closing control connection." && "$ftp_output" =~ "Not connected." ]]; then
-    # Log diagnostic information if FTP connection failed
-    echo "The FTP service is not available, and the connection was not established."
-    log "FTP Server IP: $meter_ip is not available." "err"
-    # Handle the error, e.g., exit the script or try to reconnect
-    return 1
-else
-    log "FTP connection test to meter succeeded."
-    # Optionally, print a formatted connection report to stdout
-    echo "$ftp_output" | awk '
-    BEGIN {
-      print "\nFTP Connection Report"
-      print "--------------------------------"
-    }
-    /Connected to/ {
-        print "Server IP: " $3
-    }
-    /User name okay, need password./ {
-        print "Status: Username accepted."
-    }
-    /User logged in, proceed./ {
-        print "Connection: Successful"
-    }
-    /Goodbye./ {
-        print "Connection: Closed"
-    }
-    END {
-      print "--------------------------------"
-      print "End of Connection Report\n"
-    }'
+lftp_output=$(lftp -u $USERNAME,$PASSWORD -e "pwd; bye" $meter_ip)
+lftp_exit_status=$?
+
+if [ "$lftp_exit_status" -eq 0 ]; then
+    echo "Successful connection test to meter: $meter_ip"
     return 0
+else
+    echo "The FTP service is not available, and the connection was not established. Check for multiple connections to the meter: $meter_ip"
+    log "FTP Server IP: $meter_ip is not available." "err"
+    return 1
 fi
+
+
