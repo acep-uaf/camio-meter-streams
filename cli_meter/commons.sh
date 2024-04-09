@@ -6,22 +6,15 @@
 #
 #################################
 
-log() {
-    local priority=${2:-info}
-    local tag="STREAM"
-
-    # This will send the message to stderr
-    #echo "$1" >&2
-
-    # This will send the message to the systemd journal with a dynamic priority
-    logger -p user.$priority -t "$tag" "$1"
-}
-
-# Function to exit script with an error message
-exit_with_error() {
+fail() {
   echo "$1" >&2
   exit 1
 }
 
+# Output message to stdout & stderr
+log() {
+  echo "$1" >&2
+}
+
 export -f log
-export -f exit_with_error
+export -f fail

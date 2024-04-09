@@ -9,22 +9,18 @@
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <meter_ip>"
-    exit 1
+    fail "Usage: $0 <meter_ip>"
 fi
 
 # Logging in to the FTP server and checking the connection using lftp
 
 lftp_output=$(lftp -u $USERNAME,$PASSWORD -e "pwd; bye" $meter_ip)
-lftp_exit_status=$?
 
-if [ "$lftp_exit_status" -eq 0 ]; then
-    echo "Successful connection test to meter: $meter_ip"
+if [ "$?" -eq 0 ]; then
+    log "Successful connection test to meter: $meter_ip"
     return 0
 else
-    echo "The FTP service is not available, and the connection was not established. Check for multiple connections to the meter: $meter_ip"
-    log "FTP Server IP: $meter_ip is not available." "err"
-    return 1
+    fail "The FTP service is not available, and the connection was not established. Check for multiple connections to the meter: $meter_ip"
 fi
 
 

@@ -13,18 +13,15 @@ log "Creating metadata for event: $event_id"
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 6 ]; then
-    echo "Usage: $0 <event_id> <event_dir> <meter_id> <meter_type> <meter_download_timestamp> <otdev_download_timestamp>"
-    exit 1
+    fail "Usage: $0 <event_id> <event_dir> <meter_id> <meter_type> <event_timestamp> <download_timestamp>"
 fi
 
-
 event_id=$1
-event_dir="$2/$event_id" # Assumes LOCATION/DATA_TYPE/YYYY-MM/METER_ID/
+event_dir="$2/$event_id" # Assumes LOCATION/DATA_TYPE/YYYY-MM/working/METER_ID/
 meter_id=$3
 meter_type=$4
-meter_download_timestamp=$5
-otdev_download_timestamp=$6
-
+event_timestamp=$5
+download_timestamp=$6
 
 # Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
 current_dir=$(dirname "${0}")
@@ -33,13 +30,14 @@ current_dir=$(dirname "${0}")
 for file in "$event_dir"/*; do
     if [ -f "$file" ] && [ -s "$file" ]; then
         # Source and check create_metadata_yml.sh
-        source "$current_dir/create_metadata_yml.sh" "$file" "$event_dir" "$meter_id" "$meter_type" "$meter_download_timestamp" "$otdev_download_timestamp"
+        source "$current_dir/create_metadata_yml.sh" "$file" "$event_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"
+        
         if [ $? -ne 0 ]; then
-            log "create_metadata_yml.sh failed for: $file" "err"
+            fail "create_metadata_yml.sh failed for: $file"
         fi
 
     else
-        log "Skipped: No file found for $file" "warn"
+        fail "Error: No file found for $file"
     fi
 done
 

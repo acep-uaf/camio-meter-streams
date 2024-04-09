@@ -15,8 +15,7 @@
 
 # Check for exactly 3 arguments
 if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <source_dir> <dest_dir> <event_id>"
-    exit 1
+    fail "Usage: $0 <source_dir> <dest_dir> <event_id>"
 fi
 
 source_dir="$1"
@@ -26,8 +25,7 @@ event_id="$3"
 zip -r -q "${dest_dir}/${event_id}.zip" "$source_dir"/* 
 
 if [ $? -eq 0 ]; then
-    echo "$event_id Validated and Zipped.--->"
+    log "Files validated and zipped for event: $event_id"
 else
-    echo "Error zipping files for $event_id"
-    exit 1
+    fail "Error zipping files for $event_id"
 fi

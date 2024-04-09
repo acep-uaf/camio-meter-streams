@@ -9,8 +9,7 @@
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <meter_ip> <meter_id> <output_dir>"
-    exit 1
+    fail "Usage: $0 <meter_ip> <meter_id> <output_dir>"
 fi
 
 meter_ip=$1
@@ -29,20 +28,19 @@ temp_dir=$(mktemp -d $temp_dir_path)
 trap 'rm -rf "$temp_dir"' EXIT
 
 # Connect to meter and get CHISTORY.TXT
-lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<EOF
+lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<END_FTP_SESSION
 set xfer:clobber on
 cd $remote_dir
 lcd $temp_dir
 mget $remote_filename
 bye
-EOF
+END_FTP_SESSION
 
 # Check the exit status of lftp command
 if [ $? -eq 0 ]; then
     log "lftp session successful for: $(basename "$0")"
 else
-    log "lftp session failed for: $(basename "$0")" "err"
-    exit 1
+    fail "lftp session failed for: $(basename "$0")"
 fi
 
 # Path to CHISTORY.TXT in the temporary directory
@@ -50,8 +48,7 @@ temp_file_path="$temp_dir/$remote_filename"
 
 # Check if CHISTORY.TXT exists and is not empty
 if [ ! -f "$temp_file_path" ] || [ ! -s "$temp_file_path" ]; then
-    log "Download failed: $remote_filename. Could not find file: $temp_file_path" "err"
-    exit 1
+    fail "Download failed: $remote_filename. Could not find file: $temp_file_path"
 fi
 
 # Initialize a flag to indicate the success of the entire loop process
@@ -80,7 +77,7 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
 
             elif [ "$non_empty_files_count" -ne 0 ]; then
                 #TODO: Handle this case
-                log "Directoy exists, incomplete event: $event_id" "warn"
+                log "Directoy exists, incomplete event: $event_id"
             fi
 
         else
@@ -91,18 +88,16 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
         fi
 
     else
-        log "Skipping line: $line, not entirely numeric. Check parsing." "err"
+        fail "Skipping line: $line, not entirely numeric. Check parsing."
         loop_success=false
-        
+
     fi
-    
+
 done
 
 # After the loop, check the flag and log accordingly
 if [ "$loop_success" = true ]; then
-  log "Successfully processed all events."
+    log "Successfully processed all events."
 else
-  log "Finished processing with some errors." "err"
+    log "Finished processing with some errors."
 fi
-
-

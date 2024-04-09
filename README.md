@@ -1,6 +1,6 @@
 # SEL-735 Meter Event Data Pipeline (IN PROGRESS 03/13/24)
 
-This repository contains a set of ```Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline **currently** handles:
+This repository contains a set of Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline **currently** handles:
 - Connecting to the meter via FTP
 - Checking for new event files
 - Downloading event files
@@ -21,19 +21,18 @@ Ensure you have the following before running the pipeline:
 ## Installation
 1. You must be connected to the `ot-dev` server. See **OT-dev(SSH)** in the [ACEP Wiki](https://wiki.acep.uaf.edu/en/teams/data-ducts/aetb).
  
-2. Clone the repository and prepare the scripts:
+2. Clone the repository:
 
-    ``````bash
-    git clone git@github.com:acep-uaf/data-ducks-STREAM.git
-    cd data-ducks-STREAM/cli_meter
-    chmod +x *.sh
+    ```bash
+    git clone git@github.com:acep-uaf/camio-meter-streams.git
+    cd camio-meter-streams/cli_meter
     ```
     **Note**: You can check your SSH connection with `ssh -T git@github.com`
 
 ## Configuration
 1. Navigate and copy the `config.yml.example` file to a new `config.yml` file:
 
-    ``````bash
+    ```bash
     cp config.yml.example config.yml
     ```
 
@@ -41,7 +40,7 @@ Ensure you have the following before running the pipeline:
 
 3. Secure the `config.yml` file so that only the owner can read and write:
 
-    ``````bash
+    ```bash
     chmod 600 config.yml
     ```
 
@@ -50,7 +49,7 @@ To run the data pipeline, you must have admin privileges and execute the script 
 
 ### Basic Command
 ```bash
-sudo ./data_pipeline.sh
+ ./data_pipeline.sh
 ```
 This command runs the script with default settings, where it looks for the configuration file at /etc/acep-data-streams/config.yml and determines the download directory based on the settings within the config file.
 
@@ -62,12 +61,12 @@ This command runs the script with default settings, where it looks for the confi
 Use the --config (or -c for short) flag to specify a custom path to the configuration file.
 
 ```bash
-sudo ./data_pipeline.sh --config /path/to/config.yml
+./data_pipeline.sh --config /path/to/config.yml
 ```
 Or using the short form:
 
 ```bash
-sudo ./data_pipeline.sh -c /path/to/config.yml
+./data_pipeline.sh -c /path/to/config.yml
 ```
 #### Download Directory
 `--download_dir or -d`
@@ -75,23 +74,23 @@ sudo ./data_pipeline.sh -c /path/to/config.yml
 Use the --download_dir (or -d for short) flag to specify a custom download directory. This directory will be used to store the downloaded data, overriding the directory specified in the configuration file.
 
 ```bash
-sudo ./data_pipeline.sh --download_dir /path/to/download_directory
+./data_pipeline.sh --download_dir /path/to/download_directory
 ```
 Or using the short form:
 
 ```bash
-sudo ./data_pipeline.sh -d /path/to/download_directory
+./data_pipeline.sh -d /path/to/download_directory
 ```
 ### Combining Flags
 You can combine both flags to customize both the configuration file path and the download directory:
 
 ```bash
-sudo ./data_pipeline.sh --config /path/to/config.yml --download_dir /path/to/download_directory
+./data_pipeline.sh --config /path/to/config.yml --download_dir /path/to/download_directory
 ```
 Or using short forms:
 
 ```bash
-sudo ./data_pipeline.sh -c /path/to/config.yml -d /path/to/download_directory
+./data_pipeline.sh -c /path/to/config.yml -d /path/to/download_directory
 ```
 
 **Note:** Order of flags does not matter and you can use short and long form together.
@@ -102,27 +101,27 @@ Manage file transfers with rsync_stream.service. Use `systemctl` to start, stop,
 **Service**: `rsync_stream.service` (see `stream.sh`)
 
 **Start**
-``````bash
+```bash
 sudo systemctl start your-service-name.service
 ```
 
 **Stop**
-``````bash
+```bash
 sudo systemctl stop your-service-name.service
 ```
 
 **Enable on Boot**
-``````bash
+```bash
 sudo systemctl enable your-service-name.service
 ```
 
 **Disable on Boot**
-``````bash
+```bash
 sudo systemctl disable your-service-name.service
 ```
 
 **Status**
-``````bash
+```bash
 sudo systemctl status your-service-name.service
 ```
 
