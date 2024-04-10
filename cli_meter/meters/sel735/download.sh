@@ -37,7 +37,7 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
   IFS=',' read -r event_id date_dir event_timestamp <<<"$event_info"
 
   # Update current_event_id for mark_event_incomplete()
-  export current_event_id=$event_id
+  current_event_id=$event_id
 
   # Update output_dir
   output_dir="$base_output_dir/$date_dir/$meter_id"
