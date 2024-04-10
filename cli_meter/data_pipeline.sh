@@ -28,7 +28,7 @@ done
 if [ -f "$config_path" ]; then
     log "Config file exists at: $config_path"
 else
-    fail "Config file does not exist." "err"
+    fail "Config: Config file does not exist."
 fi
 
 # Read values from the config file if not overridden by command-line args
@@ -44,11 +44,11 @@ location=$(yq '.location' "$config_path")
 data_type=$(yq '.data_type' "$config_path")
 
 # Check for null or empty values
-[[ -z "$default_username" ]] && fail "Default username cannot be null or empty."
-[[ -z "$default_password" ]] && fail "Default password cannot be null or empty."
-[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && fail "Must have at least 1 meter in the config file."
-[[ -z "$location" ]] && fail "Location cannot be null or empty."
-[[ -z "$data_type" ]] && fail "Data type cannot be null or empty."
+[[ -z "$default_username" ]] && fail "Config: Default username cannot be null or empty."
+[[ -z "$default_password" ]] && fail "Config: Default password cannot be null or empty."
+[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && fail "Config: Must have at least 1 meter in the config file."
+[[ -z "$location" ]] && fail "Config: Location cannot be null or empty."
+[[ -z "$data_type" ]] && fail "Config: Data type cannot be null or empty."
 
 output_dir="$download_dir/$location/$data_type"
 
@@ -57,7 +57,7 @@ mkdir -p "$output_dir"
 if [ $? -eq 0 ]; then
     log "Directory created successfully: $output_dir"
 else
-    fail "Failed to create directory: $output_dir" "err"
+    fail "Failed to create directory: $output_dir"
 fi
 
 # Loop through the meters and download the event files
@@ -74,14 +74,13 @@ for ((i = 0; i < num_meters; i++)); do
     export USERNAME=${meter_username:-$default_username}
     export PASSWORD=${meter_password:-$default_password}
 
-    # Execute download script
-    "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type"
-
-    # Check if the loop completed successfully or was interrupted
-    if [ $? -eq 0 ]; then
+    # Execute download script and check its success in one step
+    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type"; then
         log "Download complete for meter: $meter_id"
     else
-        fail "Download failed for meter: $meter_id"
+        log "Download failed for meter: $meter_id. Moving to next meter."
+        echo "" # Add a newline readability
+        # Skip to the next iteration of the loop
+        continue
     fi
-    
 done

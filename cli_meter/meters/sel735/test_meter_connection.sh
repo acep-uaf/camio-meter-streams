@@ -22,5 +22,3 @@ if [ "$?" -eq 0 ]; then
 else
     fail "The FTP service is not available, and the connection was not established. Check for multiple connections to the meter: $meter_ip"
 fi
-
-

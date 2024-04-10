@@ -35,8 +35,6 @@ checksum=$(md5sum "$file" | awk '{print $1}')
 # Append the checksum and filename to a checksum.md5 file in the event directory
 echo "$checksum $filename" >> "$event_dir/checksum.md5"
 
-log "Starting metadata generation for file: $filename"
-
 # Append metadata to the YAML file
 if {
     echo "- File: $filename"
@@ -48,9 +46,9 @@ if {
     echo "  DataLevel: \"level0\""
     echo "  Checksum: \"$checksum\""
 } >> "$metadata_path"; then
-    log "Metadata updated for: $filename"
+    log "Metadata generated for: $filename"
     return 0 # Exit with success code
 else
-    log "Error updating metadata for file: $filename"
+    log "Error generating metadata for: $filename"
     return 1 # Exit with error code
 fi

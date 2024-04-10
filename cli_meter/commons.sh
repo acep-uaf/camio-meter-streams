@@ -1,13 +1,9 @@
 #!/bin/bash
 
-##################################
-#
-# This sourced by data_pipeline.sh
-#
-#################################
+# This sourced by data_pipeline.sh and contains common functions used by other scripts
 
 fail() {
-  echo "$1" >&2
+  echo "[ERROR] $1" >&2
   exit 1
 }
 

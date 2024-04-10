@@ -34,5 +34,3 @@ if [ $? -eq 0 ]; then
 else
     fail "Failed to download files for event: $event_id"
 fi
-
-

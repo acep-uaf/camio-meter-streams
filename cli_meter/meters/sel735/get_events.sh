@@ -16,7 +16,7 @@ meter_ip=$1
 meter_id=$2
 output_dir=$3
 
-files_per_event=6
+files_per_event=7
 remote_filename="CHISTORY.TXT"
 remote_dir="EVENTS"
 temp_dir_path="temp_dir.XXXXXX"
@@ -69,15 +69,14 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
 
         # Check if the event directory exists and has all the files
         if [ -d "$event_dir_path" ]; then
-            log "Event directory found: $event_id"
             non_empty_files_count=$(find "$event_dir_path" -type f ! -empty -print | wc -l)
-
+            
             if [ "$non_empty_files_count" -eq $files_per_event ]; then
                 log "Complete directory for event: $event_id"
 
             elif [ "$non_empty_files_count" -ne 0 ]; then
                 #TODO: Handle this case
-                log "Directoy exists, incomplete event: $event_id"
+                log "Incomplete directory for event: $event_id"
             fi
 
         else
