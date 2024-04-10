@@ -1,5 +1,4 @@
 handle_sigint() {
-    log "" # Newline for readability
     # Mark event incomplete if event_id is set
     if [ -n "$current_event_id" ]; then
         local output_dir="$base_output_dir/$date_dir/$meter_id"
@@ -8,7 +7,6 @@ handle_sigint() {
         log "current_event_id is not set, no event to move to .incomplete."
     fi
 
-    fail "Operating interupted by SIGINT"
 }
 
 # Mark event as incomplete
@@ -43,9 +41,10 @@ mark_event_incomplete() {
 
     # Move the current directory to its new incomplete name
     mv "$original_dir" "${base_incomplete_dir}_${suffix}"
-    log "Moved event $event_id to ${base_incomplete_dir}_${suffix}"
+    log "" # Add a new line for better readability
+    log "Moved event $event_id to ${event_id}.incomplete_${suffix}"
   else
-    echo "Error: Directory $original_dir does not exist."
+    log "[ERROR] Directory $original_dir does not exist."
   fi
 }
 

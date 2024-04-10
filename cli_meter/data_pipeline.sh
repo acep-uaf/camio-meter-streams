@@ -4,6 +4,9 @@ current_dir=$(dirname "$(readlink -f "$0")")
 # Source the commons.sh file
 source "$current_dir/commons.sh"
 
+# Set up trap for SIGINT
+trap "fail 'Operation interupted by SIGINT'" SIGINT
+
 config_path=""
 download_dir="" # To be potentially overriden by flags
 
@@ -34,6 +37,9 @@ fi
 # Read values from the config file if not overridden by command-line args
 if [ -z "$download_dir" ]; then
     download_dir=$(yq '.download_directory' "$config_path")
+    if [ -z "$download_dir" ]; then
+        fail "Config: Download directory cannot be null or empty, check config or add the download flag -d"
+    fi
 fi
 
 # Read the config file
