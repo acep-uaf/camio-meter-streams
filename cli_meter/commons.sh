@@ -1,27 +1,16 @@
 #!/bin/bash
 
-##################################
-#
-# This sourced by data_pipeline.sh
-#
-#################################
+# This sourced by data_pipeline.sh and contains common functions used by other scripts
 
-log() {
-    local priority=${2:-info}
-    local tag="STREAM"
-
-    # This will send the message to stderr
-    #echo "$1" >&2
-
-    # This will send the message to the systemd journal with a dynamic priority
-    logger -p user.$priority -t "$tag" "$1"
-}
-
-# Function to exit script with an error message
-exit_with_error() {
-  echo "$1" >&2
+fail() {
+  echo "[ERROR] $1" >&2
   exit 1
 }
 
+# Output message to stdout & stderr
+log() {
+  echo "$1" >&2
+}
+
 export -f log
-export -f exit_with_error
+export -f fail
