@@ -4,6 +4,21 @@ current_dir=$(dirname "$(readlink -f "$0")")
 # Source the commons.sh file
 source "$current_dir/commons.sh"
 
+# Lock file path
+lock_file="$current_dir/myscript.lock"
+
+# Check for existing lock file
+if [ -f "$lock_file" ]; then
+    echo "Another instance of the script is running. Exiting."
+    exit 1
+fi
+
+# Create lock file
+touch "$lock_file"
+
+# Set up trap to remove lock file on script exit
+trap 'rm -f "$lock_file"' EXIT INT TERM
+
 # Set up trap for SIGINT
 trap "fail 'Operation interupted by SIGINT'" SIGINT
 
