@@ -1,26 +1,32 @@
 #!/bin/bash
 
+### HEADER ###
 current_dir=$(dirname "$(readlink -f "$0")")
 # Source the commons.sh file
 source "$current_dir/commons.sh"
 
-# Lock file path
-lock_file="$current_dir/myscript.lock"
+LOCKFILE="/var/lock/`basename $0`" # Define the lock file path using scripts basename
+LOCKFD=99 # Assign a high file descriptor number for locking 
 
-# Check for existing lock file
-if [ -f "$lock_file" ]; then
-    echo "Another instance of the script is running. Exiting."
-    exit 1
-fi
+# PRIVATE
+_lock()             { flock -$1 $LOCKFD; } # Lock function: apply flock with given arg to LOCKFD
+_no_more_locking()  { _lock u; _lock xn && rm -f $LOCKFILE; } # Cleanup function: unlock, remove lockfile
+_prepare_locking()  { eval "exec $LOCKFD>\"$LOCKFILE\""; trap _no_more_locking EXIT; } # Ensure lock cleanup runs on script exit
 
-# Create lock file
-touch "$lock_file"
+# ON START
+_prepare_locking 
 
-# Set up trap to remove lock file on script exit
-trap 'rm -f "$lock_file"' EXIT INT TERM
+# PUBLIC
+exlock_now()        { _lock xn; }  # obtain an exclusive lock immediately or fail
+exlock()            { _lock x; }   # obtain an exclusive lock
+shlock()            { _lock s; }   # obtain a shared lock
+unlock()            { _lock u; }   # drop a lock
 
-# Set up trap for SIGINT
-trap "fail 'Operation interupted by SIGINT'" SIGINT
+### BEGINING OF SCRIPT ###
+ 
+# Try to lock exclusively without waiting; exit if another instance is running
+exlock_now || exit 1
+
 
 config_path=""
 download_dir="" # To be potentially overriden by flags
