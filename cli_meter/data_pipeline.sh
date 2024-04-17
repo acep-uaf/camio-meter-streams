@@ -12,6 +12,7 @@ LOCKFD=99 # Assign a high file descriptor number for locking
 _lock()             { flock -$1 $LOCKFD; } # Lock function: apply flock with given arg to LOCKFD
 _no_more_locking()  { _lock u; _lock xn && rm -f $LOCKFILE; } # Cleanup function: unlock, remove lockfile
 _prepare_locking()  { eval "exec $LOCKFD>\"$LOCKFILE\""; trap _no_more_locking EXIT; } # Ensure lock cleanup runs on script exit
+_failed_locking()   { echo "Another instance is already running!"; exit 1; } # Error message for failed locking
 
 # ON START
 _prepare_locking 
@@ -25,7 +26,7 @@ unlock()            { _lock u; }   # drop a lock
 ### BEGINING OF SCRIPT ###
  
 # Try to lock exclusively without waiting; exit if another instance is running
-exlock_now || exit 1
+exlock_now || _failed_locking
 
 
 config_path=""
