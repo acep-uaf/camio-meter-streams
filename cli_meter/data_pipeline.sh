@@ -7,8 +7,9 @@ source "$current_dir/commons.sh"
 # Set up trap for SIGINT
 trap "fail 'Operation interupted by SIGINT'" SIGINT
 
+# To be optionally be overriden by flags
 config_path=""
-download_dir="" # To be potentially overriden by flags
+download_dir=""
 
 # Parse command line arguments for --config/-c and --download_dir/-d flags
 while [[ "$#" -gt 0 ]]; do

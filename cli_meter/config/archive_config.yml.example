@@ -1,0 +1,8 @@
+archive:
+  source_directory: "/path/to/source"
+  destination_directory: "/path/to/destination"
+
+mqtt:
+  host: ""
+  port: 
+  topic: ""
