@@ -27,21 +27,19 @@ if [ -d "$SOURCE_DIR" ] && [ -n "$(ls -A $SOURCE_DIR)" ]; then
     # Check the status of the rsync command
     if [ $? -eq 0 ]; then
         # Parse and display the number of sent bytes
-        sent_bytes=$(echo "$rsync_output" | grep -oP 'sent \K[0-9,]+')
+        sent_bytes=$(echo "$rsync_output" | grep -oP 'sent \K[0-9,]+' | tr -d ',')
         if [ "$sent_bytes" -eq "$MIN_BYTES_SENT" ]; then
-            echo "No files transferred - directories are already in sync."
+            log "No files transferred - directories are already in sync."
             exit 0
         else  
-            echo "Sent $sent_bytes bytes"
             # Parse output to extract filenames or just the numeric part before .zip
             echo "$rsync_output" | grep -E '\.zip$' | while IFS= read -r line; do
                 # Extract the filename
                 filename=$(echo "$line" | awk -F/ '{print $NF}')
-                echo "Filename: $filename"
+                log "File transfered: $filename"
 
                 # Extract the event_id before .zip
                 event_id=$(echo "$filename" | sed 's/\.zip$//')
-                echo "Number: $event_id"
 
                 # Call another script or command with $filename or $event_id
                 # ./another_script.sh "$filename"
