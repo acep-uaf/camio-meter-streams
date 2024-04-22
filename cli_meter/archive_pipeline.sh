@@ -37,7 +37,7 @@ done
 
 # Make sure a config path was set
 if [[ -z "$config_path" ]]; then
-    log "Error: Config path must be specified."
+    log "Config path must be specified."
     show_help_flag
 fi
 

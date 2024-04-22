@@ -20,7 +20,9 @@ MIN_BYTES_SENT=666
 source "$current_dir/commons.sh"
 
 # Create source and destination directories if they don't exist
-mkdir -p "$dest_dir"
+# Ensure remote directory exists using SSH
+ssh "$dest_user@$dest_host" "mkdir -p '$dest_dir'" || { fail "Failed to create remote directory"; }
+#mkdir -p "$dest_dir"
 
 # Populate the source directory with sample files if it's empty
 if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
@@ -31,8 +33,7 @@ if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
     # -v : Verbose mode to see what rsync is doing
     # --delete : Deletes extraneous files from destination to make it exactly match the source
     # --ignore-existing : Skip updating files that exist on the destination
-     rsync_output=$(rsync -av --delete --ignore-existing "$src_dir" "$dest_dir")
-    # rsync_output=$(rsync -av --delete --ignore-existing "$src_dir" "$dest_user@$dest_host:$dest_dir")
+    rsync_output=$(rsync -av --delete --ignore-existing "$src_dir" "$dest_user@$dest_host:$dest_dir")
 
     # Check the status of the rsync command
     if [ $? -eq 0 ]; then
