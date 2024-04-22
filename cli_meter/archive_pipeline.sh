@@ -4,24 +4,41 @@
 
 # Define the current directory
 current_dir=$(dirname "$(readlink -f "$0")")
-echo $current_dir
 source "$current_dir/commons.sh"
 
 # To be optionally be overriden by flags
 config_path=""
+# Function to display help
+show_help() {
+    log "Usage: $0 [options]"
+    log ""
+    log "Options:"
+    log "  -c, --config <path>    Specify the path to the config file."
+    log "  -h, --help             Display this help message and exit."
+    log ""
+    log "Examples:"
+    log "  $0 -c /path/to/config.yaml"
+    log "  $0 --config /path/to/config.yaml"
+    exit 0
+}
 
-# Parse command line arguments for --config/-c
+# Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-    --config | -c)
-        config_path="$2"
-        shift 2
-        ;;
-    *)
-        fail "Unknown parameter passed: $1"
-        ;;
+        -c|--config)
+            config_path="$2"
+            shift 2
+            ;;
+        -h|--help)
+            show_help
+            ;;
+        *)
+            log "Unknown parameter passed: $1"
+            show_help
+            ;;
     esac
 done
+
 
 # Make sure the output config file exists
 if [ -f "$config_path" ]; then
