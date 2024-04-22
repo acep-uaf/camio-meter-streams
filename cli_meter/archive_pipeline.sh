@@ -13,12 +13,12 @@ show_help() {
     log "Usage: $0 [options]"
     log ""
     log "Options:"
-    log "  -c, --config <path>    Specify the path to the config file."
+    log "  -c, --config <path>    Specify the path to the YML config file."
     log "  -h, --help             Display this help message and exit."
     log ""
     log "Examples:"
-    log "  $0 -c /path/to/config.yaml"
-    log "  $0 --config /path/to/config.yaml"
+    log "  $0 -c /path/to/config.yml"
+    log "  $0 --config /path/to/config.yml"
     exit 0
 }
 
