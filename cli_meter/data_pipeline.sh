@@ -12,37 +12,30 @@ config_path=""
 download_dir=""
 
 # Function to display help
-show_help() {
-    log "Usage: $0 [options]"
-    log ""
-    log "Options:"
-    log "  -c, --config <path>          Specify the path to the YML config file."
-    log "  -d, --download_dir <path>    Specify the path to the download directory."
-    log "  -h, --help                   Display this help message and exit."
-    log ""
-    log "Examples:"
-    log "  $0 -c /path/to/config.yml -d /path/to/download_dir"
-    log "  $0 --config /path/to/config.yml --download_dir /path/to/download_dir"
-    exit 0
-}
 
 # Parse command line arguments for --config/-c and --download_dir/-d flags
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -c | --config)
+        if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
+            show_help_flag "-d"
+        fi
         config_path="$2"
         shift 2
         ;;
     -d | --download_dir)
+        if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
+            show_help_flag "-d"
+        fi
         download_dir="$2"
         shift 2
         ;;
     -h | --help)
-        show_help
+        show_help_flag "-d"
         ;;
     *)
         log "Unknown parameter passed: $1"
-        show_help
+        show_help_flag "-d"
         ;;
     esac
 done

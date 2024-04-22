@@ -8,36 +8,38 @@ source "$current_dir/commons.sh"
 
 # To be optionally be overriden by flags
 config_path=""
-# Function to display help
-show_help() {
-    log "Usage: $0 [options]"
-    log ""
-    log "Options:"
-    log "  -c, --config <path>    Specify the path to the YML config file."
-    log "  -h, --help             Display this help message and exit."
-    log ""
-    log "Examples:"
-    log "  $0 -c /path/to/config.yml"
-    log "  $0 --config /path/to/config.yml"
-    exit 0
-}
+
+# Check if no command line arguments were provided
+if [ "$#" -eq 0 ]; then
+    show_help_flag
+fi
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -c|--config)
-            config_path="$2"
-            shift 2
-            ;;
-        -h|--help)
-            show_help
-            ;;
-        *)
-            log "Unknown parameter passed: $1"
-            show_help
-            ;;
+    -c | --config)
+        if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
+            log "Error: Missing value for the configuration path after '$1'."
+            show_help_flag
+        fi
+        config_path="$2"
+        shift 2
+        ;;
+    -h | --help)
+        show_help_flag
+        ;;
+    *)
+        log "Unknown parameter passed: $1"
+        show_help_flag
+        ;;
     esac
 done
+
+# Make sure a config path was set
+if [[ -z "$config_path" ]]; then
+    log "Error: Config path must be specified."
+    show_help_flag
+fi
 
 # Make sure the output config file exists
 if [ -f "$config_path" ]; then
@@ -56,9 +58,17 @@ mqtt_broker=$(yq e '.mqtt.connection.host' "$config_path")
 mqtt_port=$(yq e '.mqtt.connection.port' "$config_path")
 mqtt_topic=$(yq e '.mqtt.topic.name' "$config_path")
 
+# Check for null or empty values
+[[ -z "$src_dir" ]] && fail "Config: Source directory cannot be null or empty."
+[[ -z "$dest_dir" ]] && fail "Config: Destination directory cannot be null or empty."
+[[ -z "$dest_user" ]] && fail "Config: Destination user cannot be null or empty."
+[[ -z "$dest_host" ]] && fail "Config: Destination host cannot be null or empty."
+[[ -z "$mqtt_broker" ]] && fail "Config: MQTT broker cannot be null or empty."
+[[ -z "$mqtt_port" || ! "$mqtt_port" =~ ^[0-9]+$ ]] && fail "Config: MQTT port must be a valid number."
+[[ -z "$mqtt_topic" ]] && fail "Config: MQTT topic cannot be null or empty."
+
 # Archive the downloaded files
 $current_dir/archive_data.sh "$src_dir" "$dest_dir" "$dest_user" "$dest_host" | while IFS= read -r event_id; do
     # Publish the event ID to the MQTT broker
     "$current_dir/mqtt_pub.sh" "$mqtt_broker" "$mqtt_port" "$mqtt_topic" "$event_id"
 done
-

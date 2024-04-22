@@ -24,12 +24,15 @@ mkdir -p "$dest_dir"
 
 # Populate the source directory with sample files if it's empty
 if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
-    log "Attempting to transfer data from: $src_dir to $dest_dir on $dest_host as $dest_user"
+    log "Attempting to transfer data from: $src_dir to $dest_dir"
+    # on $dest_host as $dest_user"
 
     # -a : Archive mode to preserve attributes and copy directories recursively
     # -v : Verbose mode to see what rsync is doing
     # --delete : Deletes extraneous files from destination to make it exactly match the source
-    rsync_output=$(rsync -av --delete --ignore-existing "$src_dir" "$dest_dir")
+    # --ignore-existing : Skip updating files that exist on the destination
+     rsync_output=$(rsync -av --delete --ignore-existing "$src_dir" "$dest_dir")
+    # rsync_output=$(rsync -av --delete --ignore-existing "$src_dir" "$dest_user@$dest_host:$dest_dir")
 
     # Check the status of the rsync command
     if [ $? -eq 0 ]; then
