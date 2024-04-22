@@ -1,8 +1,27 @@
-archive:
-  source_directory: "/path/to/source"
-  destination_directory: "/path/to/destination"
+# This YAML file configures file archiving from a local source to a remote 
+# destination and details the MQTT broker settings for message publication.
 
+# Archive Configuration
+archive:
+  source:
+    # Local source directory to archive files from
+    directory: ""  
+
+  destination:
+    # Remote destination directory to archive files to
+    directory: ""  
+    # Username for SSH access to the destination host
+    user: ""
+    # Hostname or IP address of the destination server           
+    host: ""       
+
+# MQTT Broker Configuration
 mqtt:
-  host: ""
-  port: 
-  topic: ""
+  connection:
+    host: "" 
+    port:                    
+
+  topic:
+    name: ""
+
+

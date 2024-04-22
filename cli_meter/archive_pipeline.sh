@@ -39,7 +39,6 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-
 # Make sure the output config file exists
 if [ -f "$config_path" ]; then
     log "Config file exists at: $config_path"
@@ -48,14 +47,17 @@ else
 fi
 
 # Parse configuration using yq
-source_dir=$(yq e '.archive.source_directory' $config_path)
-destination_dir=$(yq e '.archive.destination_directory' $config_path)
-mqtt_broker=$(yq e '.mqtt.host' $config_path)
-mqtt_port=$(yq e '.mqtt.port' $config_path) # If you need to use the port
-mqtt_topic=$(yq e '.mqtt.topic' $config_path)
+src_dir=$(yq e '.archive.source.directory' "$config_path")
+dest_dir=$(yq e '.archive.destination.directory' "$config_path")
+dest_user=$(yq e '.archive.destination.user' "$config_path")
+dest_host=$(yq e '.archive.destination.host' "$config_path")
+
+mqtt_broker=$(yq e '.mqtt.connection.host' "$config_path")
+mqtt_port=$(yq e '.mqtt.connection.port' "$config_path")
+mqtt_topic=$(yq e '.mqtt.topic.name' "$config_path")
 
 # Archive the downloaded files
-$current_dir/archive_data.sh "$source_dir" "$destination_dir" | while IFS= read -r event_id; do
+$current_dir/archive_data.sh "$src_dir" "$dest_dir" "$dest_user" "$dest_host" | while IFS= read -r event_id; do
     # Publish the event ID to the MQTT broker
     "$current_dir/mqtt_pub.sh" "$mqtt_broker" "$mqtt_port" "$mqtt_topic" "$event_id"
 done

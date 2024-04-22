@@ -3,38 +3,38 @@
 # Use rsync to move data from local machine to DAS (Data Acquisition System)
 
 # Check command line arguments
-if [ $# -ne 2 ]; then
-    fail "Usage: $0 <source_dir> <destination_dir>"
+if [ $# -ne 4 ]; then
+    fail "Usage: $0 <src_dir> <dest_dir> <dest_user> <dest_host>"
 fi
 
-# MQTT Broker settings
-source_dir="$1"
-destination_dir="$2"
+src_dir="$1"
+dest_dir="$2"
+dest_user="$3"
+dest_host="$4"
 
 # Define source and destination directories
 current_dir=$(dirname "$(readlink -f "$0")")
-MIN_BYTES_SENT=259
+MIN_BYTES_SENT=666
 
 # Source the commons.sh file
 source "$current_dir/commons.sh"
 
 # Create source and destination directories if they don't exist
-mkdir -p "$destination_dir"
+mkdir -p "$dest_dir"
 
 # Populate the source directory with sample files if it's empty
-if [ -d "$source_dir" ] && [ -n "$(ls -A $source_dir)" ]; then
-    log "rsync moving data from $source_dir to $destination_dir"
+if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
+    log "Attempting to transfer data from: $src_dir to $dest_dir on $dest_host as $dest_user"
 
     # -a : Archive mode to preserve attributes and copy directories recursively
     # -v : Verbose mode to see what rsync is doing
     # --delete : Deletes extraneous files from destination to make it exactly match the source
-    rsync_output=$(rsync -av --delete --ignore-existing "$source_dir" "$destination_dir")
+    rsync_output=$(rsync -av --delete --ignore-existing "$src_dir" "$dest_dir")
 
     # Check the status of the rsync command
     if [ $? -eq 0 ]; then
         # Parse and display the number of sent bytes
         sent_bytes=$(echo "$rsync_output" | grep -oP 'sent \K[0-9,]+' | tr -d ',')
-
         if [ "$sent_bytes" -gt "$MIN_BYTES_SENT" ]; then
             # Parse output to extract filenames or just the numeric part before .zip
             echo "$rsync_output" | grep -E '\.zip$' | while IFS= read -r line; do
@@ -42,6 +42,8 @@ if [ -d "$source_dir" ] && [ -n "$(ls -A $source_dir)" ]; then
                 # Extract the filename & event_id
                 filename=$(echo "$line" | awk -F/ '{print $NF}')
                 event_id=$(echo "$filename" | sed 's/\.zip$//')
+
+                # echo's to archive_pipeline.sh to parse and publish to MQTT
                 echo $event_id
 
             done
