@@ -4,37 +4,39 @@
 
 # Check command line arguments
 if [ $# -ne 4 ]; then
-    fail "Usage: $0 <src_dir> <dest_dir> <dest_user> <dest_host>"
+    fail "Usage: $0 <src_dir> <dest_dir> <dest_host> <dest_user>"
 fi
 
-src_dir="$1"
-dest_dir="$2"
-dest_user="$3"
-dest_host="$4"
+src_dir=$1
+dest_dir=$2
+dest_host=$3
+dest_user=$4
 
 # Define source and destination directories
 current_dir=$(dirname "$(readlink -f "$0")")
-MIN_BYTES_SENT=666
+MIN_BYTES_SENT=670
 
 # Source the commons.sh file
 source "$current_dir/commons.sh"
 
-# Create source and destination directories if they don't exist
-# Ensure remote directory exists using SSH
-ssh "$dest_user@$dest_host" "mkdir -p '$dest_dir'" || { fail "Failed to create remote directory"; }
-#mkdir -p "$dest_dir"
-
 # Populate the source directory with sample files if it's empty
 if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
-    log "Attempting to transfer data from: $src_dir to $dest_dir"
-    # on $dest_host as $dest_user"
+    log "Attempting to transfer data from: $src_dir to $dest_dir on $dest_host as $dest_user"
 
     # -a : Archive mode to preserve attributes and copy directories recursively
     # -v : Verbose mode to see what rsync is doing
+    # -e : Allows you to specify the SSH command that rsync should use for data transport.
+    #      Here, you include all the necessary SSH options to ensure sshpass handles the password.
     # --delete : Deletes extraneous files from destination to make it exactly match the source
     # --ignore-existing : Skip updating files that exist on the destination
-    rsync_output=$(rsync -av --delete --ignore-existing "$src_dir" "$dest_user@$dest_host:$dest_dir")
 
+    if [[ -z "$SSHPASS" ]]; then
+        fail "SSHPASS environment variable is not set."
+    fi
+
+    # Sync files from local to remote server using sshpass
+    rsync_output=$(sshpass -e rsync -av --delete --ignore-existing -e "ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password" $src_dir $dest_user@$dest_host:$dest_dir)
+    
     # Check the status of the rsync command
     if [ $? -eq 0 ]; then
         # Parse and display the number of sent bytes

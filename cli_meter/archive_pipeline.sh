@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Use rsync to move data from local machine to DAS (Data Acquisition System) and publish message to MQTT broker
+# Use rsync to move data from local machine to DAS (Data Acquisition System)
+# and publish message to MQTT broker
 
 # Define the current directory
 current_dir=$(dirname "$(readlink -f "$0")")
@@ -51,8 +52,9 @@ fi
 # Parse configuration using yq
 src_dir=$(yq e '.archive.source.directory' "$config_path")
 dest_dir=$(yq e '.archive.destination.directory' "$config_path")
-dest_user=$(yq e '.archive.destination.user' "$config_path")
 dest_host=$(yq e '.archive.destination.host' "$config_path")
+dest_user=$(yq e '.archive.destination.credentials.user' "$config_path")
+dest_pwd=$(yq e '.archive.destination.credentials.password' "$config_path")
 
 mqtt_broker=$(yq e '.mqtt.connection.host' "$config_path")
 mqtt_port=$(yq e '.mqtt.connection.port' "$config_path")
@@ -67,8 +69,11 @@ mqtt_topic=$(yq e '.mqtt.topic.name' "$config_path")
 [[ -z "$mqtt_port" || ! "$mqtt_port" =~ ^[0-9]+$ ]] && fail "Config: MQTT port must be a valid number."
 [[ -z "$mqtt_topic" ]] && fail "Config: MQTT topic cannot be null or empty."
 
+# Set environment variables
+export SSHPASS=$dest_pwd
+
 # Archive the downloaded files
-$current_dir/archive_data.sh "$src_dir" "$dest_dir" "$dest_user" "$dest_host" | while IFS= read -r event_id; do
+"$current_dir/archive_data.sh" "$src_dir" "$dest_dir" "$dest_host" "$dest_user" | while IFS= read -r event_id; do
     # Publish the event ID to the MQTT broker
     "$current_dir/mqtt_pub.sh" "$mqtt_broker" "$mqtt_port" "$mqtt_topic" "$event_id"
 done

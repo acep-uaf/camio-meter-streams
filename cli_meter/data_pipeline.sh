@@ -11,7 +11,10 @@ trap "fail 'Operation interupted by SIGINT'" SIGINT
 config_path=""
 download_dir=""
 
-# Function to display help
+# Check if no command line arguments were provided
+if [ "$#" -eq 0 ]; then
+    show_help_flag "-d"
+fi
 
 # Parse command line arguments for --config/-c and --download_dir/-d flags
 while [[ "$#" -gt 0 ]]; do
