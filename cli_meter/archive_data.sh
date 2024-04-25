@@ -14,12 +14,11 @@ dest_user=$4
 
 # Define source and destination directories
 current_dir=$(dirname "$(readlink -f "$0")")
-MIN_BYTES_SENT=670
 
 # Source the commons.sh file
 source "$current_dir/commons.sh"
 
-# Populate the source directory with sample files if it's empty
+# Check if the source directory exists and is not empty
 if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
     log "Attempting to transfer data from: $src_dir to $dest_dir on $dest_host as $dest_user"
 
@@ -27,37 +26,29 @@ if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
     # -v : Verbose mode to see what rsync is doing
     # -e : Allows you to specify the SSH command that rsync should use for data transport.
     #      Here, you include all the necessary SSH options to ensure sshpass handles the password.
-    # --delete : Deletes extraneous files from destination to make it exactly match the source
-    # --ignore-existing : Skip updating files that exist on the destination
 
     if [[ -z "$SSHPASS" ]]; then
         fail "SSHPASS environment variable is not set."
     fi
 
     # Sync files from local to remote server using sshpass
-    rsync_output=$(sshpass -e rsync -av --delete --ignore-existing -e "ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password" $src_dir $dest_user@$dest_host:$dest_dir)
-    
+    rsync_output=$(sshpass -e rsync -av --exclude 'working' -e "ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password" $src_dir $dest_user@$dest_host:$dest_dir)
+    log "$rsync_output"
     # Check the status of the rsync command
     if [ $? -eq 0 ]; then
-        # Parse and display the number of sent bytes
-        sent_bytes=$(echo "$rsync_output" | grep -oP 'sent \K[0-9,]+' | tr -d ',')
-        if [ "$sent_bytes" -gt "$MIN_BYTES_SENT" ]; then
-            # Parse output to extract filenames or just the numeric part before .zip
-            echo "$rsync_output" | grep -E '\.zip$' | while IFS= read -r line; do
+        echo "$rsync_output" | grep -E '\.zip$' | while IFS= read -r line; do
 
-                # Extract the filename & event_id
-                filename=$(echo "$line" | awk -F/ '{print $NF}')
-                event_id=$(echo "$filename" | sed 's/\.zip$//')
+            # Extract the filename & event_id
+            filename=$(echo "$line" | awk -F/ '{print $NF}')
+            event_id=$(echo "$filename" | sed 's/\.zip$//')
 
-                # echo's to archive_pipeline.sh to parse and publish to MQTT
-                echo $event_id
+            # echo's to archive_pipeline.sh to parse and publish to MQTT
+            echo $event_id
 
-            done
+        done
 
-            log "Data synchronization completed successfully"
-        else
-            log "No files to transfer - directories are already in sync"
-        fi
+        log "Data synchronization completed successfully"
+
     else
         fail "Data synchronization failed"
     fi
