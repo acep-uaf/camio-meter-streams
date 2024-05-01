@@ -10,14 +10,10 @@ archive:
   destination:
     # Remote destination directory to archive files to
     directory: ""  
-    # Username for SSH access to the destination host
-    user: ""
     # Hostname or IP address of the destination server           
     host: ""
     credentials:
       user: ""
-      password: ""
-
 
 # MQTT Broker Configuration
 mqtt:
