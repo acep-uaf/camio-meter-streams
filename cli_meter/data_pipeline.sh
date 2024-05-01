@@ -6,28 +6,14 @@ current_dir=$(dirname "$(readlink -f "$0")")
 source "$current_dir/commons.sh"
 
 LOCKFILE="/var/lock/`basename $0`" # Define the lock file path using scripts basename
-LOCKFD=99 # Assign a high file descriptor number for locking 
-
-# PRIVATE
-_lock()             { flock -$1 $LOCKFD; } # Lock function: apply flock with given arg to LOCKFD
-_no_more_locking()  { _lock u; _lock xn && rm -f $LOCKFILE; } # Cleanup function: unlock, remove lockfile
-_prepare_locking()  { eval "exec $LOCKFD>\"$LOCKFILE\""; trap _no_more_locking EXIT; } # Ensure lock cleanup runs on script exit
-_failed_locking()   { echo "Another instance is already running!"; exit 1; } # Error message for failed locking
 
 # ON START
 _prepare_locking 
-
-# PUBLIC
-exlock_now()        { _lock xn; }  # obtain an exclusive lock immediately or fail
-exlock()            { _lock x; }   # obtain an exclusive lock
-shlock()            { _lock s; }   # obtain a shared lock
-unlock()            { _lock u; }   # drop a lock
 
 ### BEGINING OF SCRIPT ###
  
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
-
 
 # To be optionally be overriden by flags
 config_path=""

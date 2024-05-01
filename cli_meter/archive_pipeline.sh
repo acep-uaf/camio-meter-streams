@@ -7,6 +7,16 @@
 current_dir=$(dirname "$(readlink -f "$0")")
 source "$current_dir/commons.sh"
 
+LOCKFILE="/var/lock/`basename $0`" # Define the lock file path using scripts basename
+
+# ON START
+_prepare_locking 
+
+### BEGINING OF SCRIPT ###
+ 
+# Try to lock exclusively without waiting; exit if another instance is running
+exlock_now || _failed_locking
+
 # To be optionally be overriden by flags
 config_path=""
 
