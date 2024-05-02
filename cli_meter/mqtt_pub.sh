@@ -17,7 +17,7 @@ message="$4"
 mosquitto_pub -h "$host" -p "$port" -t "$topic" -m "$message"
 
 if [ $? -eq 0 ]; then
-    log "Published message: '$message' to topic: '$topic' to host: $host on port: $port"
+    log "Published message to MQTT broker. | Topic: '$topic' | Host: '$host' | Port: '$port' | Payload: '$message'"
 else
-    log "Failed to published message: $message to topic: $topic to host: $host on port: $port"
+    log "Failed to publish message. | Topic: '$topic' | Host: '$host' | Port: '$port' | Payload: '$message'"
 fi

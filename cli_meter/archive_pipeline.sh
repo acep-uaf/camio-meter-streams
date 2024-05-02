@@ -7,13 +7,10 @@
 current_dir=$(dirname "$(readlink -f "$0")")
 source "$current_dir/commons.sh"
 
-LOCKFILE="/var/lock/`basename $0`" # Define the lock file path using scripts basename
+# Define the lock file path
+LOCKFILE="/var/lock/$(basename $0)" # Define the lock file path using scripts basename
+_prepare_locking
 
-# ON START
-_prepare_locking 
-
-### BEGINING OF SCRIPT ###
- 
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
 
@@ -79,8 +76,21 @@ mqtt_topic=$(yq e '.mqtt.topic.name' "$config_path")
 [[ -z "$mqtt_port" || ! "$mqtt_port" =~ ^[0-9]+$ ]] && fail "Config: MQTT port must be a valid number."
 [[ -z "$mqtt_topic" ]] && fail "Config: MQTT topic cannot be null or empty."
 
-# Archive the downloaded files
-"$current_dir/archive_data.sh" "$src_dir" "$dest_dir" "$dest_host" "$dest_user" "$bwlimit" | while IFS= read -r event_id; do
+# Archive the downloaded files and read output
+"$current_dir/archive_data.sh" "$src_dir" "$dest_dir" "$dest_host" "$dest_user" "$bwlimit" | while IFS=, read -r event_id filename path; do
+
+    # Check if variables are empty and log a warning if so
+    if [ -z "$event_id" ] || [ -z "$filename" ] || [ -z "$path" ]; then
+        log "Warning: One of the variables is empty. Event ID: '$event_id', Filename: '$filename', Path: '$path'"
+    fi
+
+    # Use jq to create a JSON payload
+    json_payload=$(jq -n \
+        --arg eid "$event_id" \
+        --arg fn "$filename" \
+        --arg pth "$path" \
+        '{event_id: $eid, filename: $fn, path: $pth}')
+
     # Publish the event ID to the MQTT broker
-    "$current_dir/mqtt_pub.sh" "$mqtt_broker" "$mqtt_port" "$mqtt_topic" "$event_id"
+    "$current_dir/mqtt_pub.sh" "$mqtt_broker" "$mqtt_port" "$mqtt_topic" "$json_payload"
 done

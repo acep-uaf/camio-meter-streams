@@ -36,14 +36,13 @@ if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
     if [ $? -eq 0 ]; then
         echo "$rsync_output" | grep '.zip$' | while IFS= read -r line; do
 
-            # Extract the filename
+            # Extract the filename, event_id and path
             filename=$(basename "$line")
-            # Extract the path without the filename
             path=$(dirname "$line")
-            event_id=$(echo $filename | cut -d'_' -f1)
+            event_id="${filename%.zip}"
 
-            # echo's to archive_pipeline.sh to parse and publish to MQTT
-            echo $event_id,$filename,$path
+            # echo to archive_pipeline.sh to parse and publish to MQTT
+            echo "$event_id,$filename,$path"
 
         done
 
