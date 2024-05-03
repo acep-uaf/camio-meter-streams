@@ -9,7 +9,9 @@ archive:
 
   destination:
     # Remote destination directory to archive files to
-    directory: ""  
+    directory: ""
+    # Optional bandwidth limit in KBPS
+    bandwidth_limit: ""
     # Hostname or IP address of the destination server           
     host: ""
     credentials:
