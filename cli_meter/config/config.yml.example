@@ -1,11 +1,12 @@
-# This file contains the configuration settings for SEL735 meters.
+# This file contains the configuration settings for SEL735 meters 
+# and download location.
 
 # General settings for the application
 application:
   name: "Event Data Collection"
-  version: 1.0
+  version: 
 
-# Optional: if not specified, will download to current directory, give absolute path 
+# If not specified, will download to current directory and can be overriden by the -d/--download_dir flag
 download_directory: ""
 
 # Configuration Settings

@@ -10,7 +10,7 @@ archive:
   destination:
     # Remote destination directory to archive files to
     directory: ""
-    # Optional bandwidth limit in KBPS
+    # Optional bandwidth limit in KB/s
     bandwidth_limit: ""
     # Hostname or IP address of the destination server           
     host: ""
@@ -22,7 +22,6 @@ mqtt:
   connection:
     host: "" 
     port:                    
-
   topic:
     name: ""
 
