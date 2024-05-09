@@ -1,42 +1,57 @@
-# SEL-735 Meter Event Data Pipeline (IN PROGRESS 03/13/24)
+# SEL-735 Meter Event Data Pipeline
 
-This repository contains a set of Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline **currently** handles:
-- Connecting to the meter via FTP
-- Checking for new event files
-- Downloading event files
-- Organizing and creating metadata
+This repository contains a set of Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline is divided into two main executable scripts:
+
+1. **`data_pipeline.sh`**: Handles the first five steps:
+    1. Connecting to the meter via FTP
+    2. Checking for new event files
+    3. Downloading event files
+    4. Organizing and creating metadata
+    5. Compressing event data
+
+2. **`archive_pipeline.sh`**: Handles the final step:
+    - Archiving and transferring event data to the Data Acquisition System (DAS)
+
 
 ## Prerequisites
 Ensure you have the following before running the pipeline:
-
 - Unix-like environment (Linux, macOS, or a Unix-like Windows terminal)
-- Access to the `ot-dev` server with **admin priveledges**, FTP credentials, and meter details.
-- Installed on `ot-dev`:
+- Able to `ssh` to the **ot-dev** and **das.lab.acep.uaf.edu** servers
+- FTP credentials for the meter
+- MQTT Configuration
+- Meter Configuration
+- Installed on `camio-ot-dev`:
     - `lftp` — FTP operations
-    - `jq` — JSON metadata
     - `yq` - YAML config files
-    - `sudo apt-get install zip`
-    - `sudo apt-get install unzip`
+    - `zip` - Compressing data
+    - `rsync` — Transfering data
+    - `mosquitto-clients` - MQTT client
+    - `jq` — JSON for MQTT payload
+    
 
 ## Installation
-1. You must be connected to the `ot-dev` server. See **OT-dev(SSH)** in the [ACEP Wiki](https://wiki.acep.uaf.edu/en/teams/data-ducts/aetb).
- 
+1. You must be connected to the `camio-ot-dev` server. See **camio-ot-dev(SSH)** in the [ACEP Wiki](https://wiki.acep.uaf.edu/en/teams/data-ducts/aetb).
+
 2. Clone the repository:
 
     ```bash
     git clone git@github.com:acep-uaf/camio-meter-streams.git
     cd camio-meter-streams/cli_meter
     ```
+
     **Note**: You can check your SSH connection with `ssh -T git@github.com`
 
 ## Configuration
-1. Navigate and copy the `config.yml.example` file to a new `config.yml` file:
+
+### Data Pipeline Configuration
+1. Navigate to the `config` directory and copy the `config.yml.example` file to a new `config.yml` file:
 
     ```bash
+    cd config
     cp config.yml.example config.yml
     ```
 
-2. **Update** the config file with the FTP credentials and meter details.
+2. **Update** the `config.yml` file with the FTP credentials and meter configuration data.
 
 3. Secure the `config.yml` file so that only the owner can read and write:
 
@@ -44,84 +59,58 @@ Ensure you have the following before running the pipeline:
     chmod 600 config.yml
     ```
 
-## Usage
-To run the data pipeline, you must have admin privileges and execute the script from the cli_meter directory. By default, the script uses predefined paths for the configuration file and download directory. However, you can customize these paths using optional flags.
+### Archive Pipeline Configuration
+1. Navigate to the `config` directory and copy the `archive_config.yml.example` file to a new `archive_config.yml` file:
 
-### Basic Command
-```bash
- ./data_pipeline.sh
-```
-This command runs the script with default settings, where it looks for the configuration file at /etc/acep-data-streams/config.yml and determines the download directory based on the settings within the config file.
+    ```bash
+    cd config
+    cp archive_config.yml.example archive_config.yml
+    ```
 
-### Optional Flags
+2. **Update** the `archive_config.yml` file with the necessary broker information, as well as source and destination details.
 
-#### Config File
-`--config or -c`
+3. Secure the `archive_config.yml` file so that only the owner can read and write:
 
-Use the --config (or -c for short) flag to specify a custom path to the configuration file.
+    ```bash
+    chmod 600 archive_config.yml
+    ```
 
-```bash
-./data_pipeline.sh --config /path/to/config.yml
-```
-Or using the short form:
+## Execution
+To run the data pipeline and then transfer data to the Data Acquisition System (DAS):
 
-```bash
-./data_pipeline.sh -c /path/to/config.yml
-```
-#### Download Directory
-`--download_dir or -d`
+1. **Run the Data Pipeline First**
 
-Use the --download_dir (or -d for short) flag to specify a custom download directory. This directory will be used to store the downloaded data, overriding the directory specified in the configuration file.
+    Execute the `data_pipeline` script from the `cli_meter` directory. The script requires a configuration file specified via the `-c/--config` flag. If this is your first time running the pipeline, the initial download may take a few hours. To pause the download safely, see: [How to Stop the Pipeline](#how-to-stop-the-pipeline)
 
-```bash
-./data_pipeline.sh --download_dir /path/to/download_directory
-```
-Or using the short form:
+    ### Command
 
-```bash
-./data_pipeline.sh -d /path/to/download_directory
-```
-### Combining Flags
-You can combine both flags to customize both the configuration file path and the download directory:
+    ```bash
+    ./data_pipeline.sh -c /path/to/config.yml
+    ```
 
-```bash
-./data_pipeline.sh --config /path/to/config.yml --download_dir /path/to/download_directory
-```
-Or using short forms:
+    ### Optional Flag 
+    Optionally, you can use the `-d/--download_dir` flag to override the download directory from the config file.
 
-```bash
-./data_pipeline.sh -c /path/to/config.yml -d /path/to/download_directory
-```
+    ```bash
+    ./data_pipeline.sh -c /path/to/config.yml -d /path/to/download/dir/
+    ```
 
-**Note:** Order of flags does not matter and you can use short and long form together.
-# rsync Service
+2. **Run the Archive Pipeline**
 
-Manage file transfers with rsync_stream.service. Use `systemctl` to start, stop, enable, disable, or check the service:
+    After the `data_pipeline` script completes, execute the `archive_pipeline` script from the `cli_meter` directory. The script requires a configuration file specified via the `-c/--config` flag.
 
-**Service**: `rsync_stream.service` (see `stream.sh`)
+    ### Command
 
-**Start**
-```bash
-sudo systemctl start your-service-name.service
-```
+    ```bash
+    ./archive_pipeline.sh -c /path/to/archive_config.yml
+    ```
 
-**Stop**
-```bash
-sudo systemctl stop your-service-name.service
-```
+## How to Stop the Pipeline
 
-**Enable on Boot**
-```bash
-sudo systemctl enable your-service-name.service
-```
+When you need to stop the pipeline:
 
-**Disable on Boot**
-```bash
-sudo systemctl disable your-service-name.service
-```
-
-**Status**
-```bash
-sudo systemctl status your-service-name.service
-```
-
+- **To Stop Safely/Pause Download**: 
+  - Use `Ctrl+C` to interrupt the process. 
+  - If you would like to resume the download, rerun the `data_pipeline`command.The download will resume from where it left off, provided the same config file (`-c`)and download path (`-d`) are used.
+- **Avoid Using `Ctrl+Z`**: 
+  - **Do not** use `Ctrl+Z` to suspend the process, as it may cause the pipeline to end without properly closing the FTP connection.

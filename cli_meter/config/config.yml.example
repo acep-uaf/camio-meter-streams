@@ -1,29 +1,31 @@
-# This file contains the configuration settings for SEL735 meters 
-# and download location.
+# ==============================================================================
+# Configuration File for SEL735 Event Data Collection
+# Contains settings for application, download location, credentials, and meters.
+# ==============================================================================
 
 # General settings for the application
 application:
   name: "Event Data Collection"
-  version: 
+  version: ""  # Version number of the application
 
-# If not specified, will download to current directory and can be overriden by the -d/--download_dir flag
+# Default download directory (overridden by -d/--download_dir flag if specified)
 download_directory: ""
 
-# Configuration Settings
-location: ""
-data_type: ""
+# Configuration settings
+location: ""    # Geographic location of the data collection
+data_type: ""   # Type of data being collected
 
-# Default credentials for FTP server
+# Default FTP credentials (overridden by meter-specific credentials)
 credentials:
-  username: ""
-  password: ""
+  username: ""  # Default FTP username
+  password: ""  # Default FTP password
 
-# Configuration for the meter and optional username/password override
+# Meter configurations with optional username/password overrides
 meters:
-# Meter 1
-  - ip: ""
-    id: ""
-    type: ""
+  # Meter 1
+  - ip: ""       # IP address of the meter
+    id: ""       # Unique identifier for the meter
+    type: ""     # Type of the meter (e.g., "SEL735")
     credentials:
-      username: "" # Optional override
-      password: "" # Optional override
+      username: ""  # Optional FTP username override for this meter
+      password: ""  # Optional FTP password override for this meter

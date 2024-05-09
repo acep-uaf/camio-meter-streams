@@ -1,4 +1,20 @@
 #!/bin/bash
+# ==============================================================================
+# Script Name:        download_event.sh
+# Description:        This script downloads event files from the meter
+#                     via FTP and saves them in the specified output directory.
+#
+# Usage:              ./download_event.sh <meter_ip> <event_id> <output_dir>
+# Called by:          download.sh
+#
+# Arguments:
+#   meter_ip          Meter IP address
+#   event_id          ID of the event to download
+#   output_dir        Directory where the event files will be saved
+#
+# Requirements:       lftp
+#                     commons.sh
+# ==============================================================================
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 3 ]; then

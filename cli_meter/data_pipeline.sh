@@ -1,6 +1,21 @@
 #!/bin/bash
+# ==============================================================================
+# Script Name:        data_pipeline.sh
+# Description:        This script is a wrapper for the download process. It
+#                     loops through the meters listed in the configuration file
+#                     and downloads event files using the appropriate credentials.
+#
+# Usage:              ./data_pipeline.sh -c <config_path> [-d <download_dir>]
+#
+# Arguments:
+#   -c, --config       Path to the configuration file
+#   -d, --download_dir Optional: Override the download directory from the config
+#   -h, --help         Show usage information
+#
+# Requirements:       yq
+#                     commons.sh
+# ==============================================================================
 
-### HEADER ###
 current_dir=$(dirname "$(readlink -f "$0")")
 # Source the commons.sh file
 source "$current_dir/commons.sh"

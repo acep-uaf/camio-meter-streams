@@ -1,7 +1,21 @@
 #!/bin/bash
-
-# Use rsync to move data from local machine to DAS (Data Acquisition System)
-# and publish message to MQTT broker
+# ==============================================================================
+# Script Name:        archive_pipeline.sh
+# Description:        This script is a wrapper for the archive process. It uses
+#                     rsync to move data from the local machine to the Data
+#                     Acquisition System (DAS) and uses mosquitto-clients publishes messages to an MQTT broker.
+#
+# Usage:              ./archive_pipeline.sh -c <config_path>
+#
+# Arguments:
+#   -c, --config      Path to the configuration file
+#   -h, --help        Show usage information
+#
+# Called by:          User (direct execution)
+#
+# Requirements:       yq, jq, mosquitto-clients
+#                     commons.sh, archive_data.sh, mqtt_pub.sh
+# ==============================================================================
 
 # Define the current directory
 current_dir=$(dirname "$(readlink -f "$0")")

@@ -9,6 +9,28 @@
 # - calls create_metadata_txt.sh and create_metadata_json.sh
 ###############################################################
 
+#!/bin/bash
+# ==============================================================================
+# Script Name:        generate_event_metadata.sh
+# Description:        This script creates metadata for the specified event files
+#                     using environment variables and calls create_metadata_yml to 
+#                     output it in YML format.
+#
+# Usage:              ./generate_event_metadata.sh <event_id> <event_dir> <meter_id>
+#                     <meter_type> <event_timestamp> <download_timestamp>
+# Called by:          download.sh
+#
+# Arguments:
+#   event_id          Event ID
+#   event_dir         Directory where the event files are stored
+#   meter_id          Meter ID
+#   meter_type        Meter type
+#   event_timestamp   Original timestamp of the event
+#   download_timestamp Timestamp of when the files were downloaded
+#
+# Requirements:       create_metadata_yml.sh
+# ==============================================================================
+
 log "Creating metadata for event: $event_id"
 
 # Check if the correct number of arguments are passed
@@ -23,7 +45,7 @@ meter_type=$4
 event_timestamp=$5
 download_timestamp=$6
 
-# Directory where this script is located (not the same as pwd because data_pipeline.sh is in another dir)
+# Directory where this script is located
 current_dir=$(dirname "${0}")
 
 # Loop through each file in the event directory

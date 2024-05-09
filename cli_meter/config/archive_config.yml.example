@@ -1,28 +1,29 @@
-# This YAML file configures file archiving from a local source to a remote 
-# destination and details the MQTT broker settings for message publication.
+# ==============================================================================
+# Archive and MQTT Configuration File
+# Configures file archiving from a local source to a remote destination and
+# provides MQTT broker settings for message publication.
+# ==============================================================================
 
 # Archive Configuration
 archive:
   source:
     # Local source directory to archive files from
-    directory: ""  
+    directory: ""
 
   destination:
     # Remote destination directory to archive files to
     directory: ""
     # Optional bandwidth limit in KB/s
     bandwidth_limit: ""
-    # Hostname or IP address of the destination server           
+    # Hostname or IP address of the destination server
     host: ""
     credentials:
-      user: ""
+      user: ""  # Username for accessing the destination server
 
 # MQTT Broker Configuration
 mqtt:
   connection:
-    host: "" 
-    port:                    
+    host: ""  # Hostname or IP address of the MQTT broker
+    port:      # Port number of the MQTT broker
   topic:
-    name: ""
-
-
+    name: ""  # Name of the MQTT topic for message publication

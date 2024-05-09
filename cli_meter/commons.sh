@@ -1,9 +1,28 @@
 #!/bin/bash
-
-# This sourced by data_pipeline.sh and contains common functions used by other scripts
+# ==============================================================================
+# Script Name:        commons.sh
+# Description:        This file contains common functions used by all scripts in
+#                     the Meter Event Data/Archive Pipeline.
+#
+# Functions:
+#   _lock()                 - Apply a specified flock option to the lock file descriptor
+#   _no_more_locking()      - Cleanup function: unlock and remove the lock file
+#   _prepare_locking()      - Prepare the lock file and ensure cleanup runs on script exit
+#   _failed_locking()       - Log message and exit if another instance is already running
+#   exlock_now()            - Obtain an exclusive lock immediately or fail
+#   exlock()                - Obtain an exclusive lock
+#   shlock()                - Obtain a shared lock
+#   unlock()                - Drop a lock
+#   fail()                  - Output an error message and exit
+#   log()                   - Output a message to stderr
+#   show_help_flag()        - Display usage information
+#
+# Requirements:       flock
+# ==============================================================================
 
 LOCKFD=99 # Assign a high file descriptor number for locking 
 
+# Lock Functions
 _lock()             { flock -$1 $LOCKFD; } # Lock function: apply flock with given arg to LOCKFD
 _no_more_locking()  { _lock u; _lock xn && rm -f $LOCKFILE; } # Cleanup function: unlock, remove lockfile
 _prepare_locking()  { eval "exec $LOCKFD>\"$LOCKFILE\""; trap _no_more_locking EXIT; } # Ensure lock cleanup runs on script exit
@@ -22,12 +41,12 @@ exlock()            { _lock x; }   # obtain an exclusive lock
 shlock()            { _lock s; }   # obtain a shared lock
 unlock()            { _lock u; }   # drop a lock
 
+# Utility functions
 fail() {
   echo "[ERROR] $1" >&2
   exit 1
 }
 
-# Output message to stdout & stderr
 log() {
   echo "$1" >&2
 }
@@ -60,6 +79,7 @@ show_help_flag() {
 
 }
 
+# Export functions for use in other scripts
 export -f log
 export -f fail
 export -f show_help_flag

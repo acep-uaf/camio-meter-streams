@@ -1,11 +1,19 @@
 #!/bin/bash
-
-#################################
-# This script:
-# - returns a list of event_id's that need to be downloaded
-# - is called from download.sh
-# - accepts 2 arguments: $meter_ip and $output_dir
-#################################
+# ==============================================================================
+# Script Name:        get_events.sh
+# Description:        This script returns a list of event IDs that need to be
+#                     downloaded by checking the CHISTORY.TXT file on the meter.
+#
+# Usage:              ./get_events.sh <meter_ip> <meter_id> <output_dir>
+# Called by:          download.sh
+#
+# Arguments:
+#   meter_ip          Meter IP address
+#   meter_id          Meter ID
+#   output_dir        Base directory where the event data will be stored
+#
+# Requirements:       lftp
+# ==============================================================================
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 3 ]; then
@@ -61,7 +69,7 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
     IFS=, read -r _ event_id month day year hour min sec _ <<<"$clean_line"
 
     if [[ $event_id =~ ^[0-9]+$ ]]; then
-        # Format event timestamp, pad month for date directory, and construct event directory path.
+        # Format event timestamp, pad month for date directory, and construct event directory path
         event_timestamp=$(printf '%04d-%02d-%02dT%02d:%02d:%02d' "$year" "$month" "$day" "$hour" "$min" "$sec")
         formatted_month=$(printf '%02d' "$month")
         date_dir="$year-$formatted_month"

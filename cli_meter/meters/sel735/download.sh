@@ -1,8 +1,22 @@
 #!/bin/bash
-#################################
+# ==============================================================================
+# Script Name:        download.sh
+# Description:        This script orchestrates the process of downloading event
+#                     files from the SEL-735 meter, validating them, generating
+#                     metadata, and zipping the files.
 #
+# Usage:              ./download.sh <meter_ip> <output_dir> <meter_id> <meter_type>
+# Called by:          data_pipeline.sh
 #
-#################################
+# Arguments:
+#   meter_ip          Meter IP address
+#   output_dir        Base directory where the event data will be stored
+#   meter_id          Meter ID
+#   meter_type        Meter Type (ex. sel735)
+#
+# Requirements:       commons.sh, test_meter_connection.sh, get_events.sh,
+#                     download_event.sh, generate_event_metadata.sh, zip_event.sh
+# ==============================================================================
 current_dir=$(dirname "$(readlink -f "$0")")
 source "$current_dir/commons.sh"
 export current_event_id=""

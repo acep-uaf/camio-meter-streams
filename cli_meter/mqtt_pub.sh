@@ -1,4 +1,22 @@
 #!/bin/bash
+# ==============================================================================
+# Script Name:        mqtt_pub.sh
+# Description:        This script publishes a message to an MQTT broker using
+#                     the `mosquitto_pub` command.
+#
+# Usage:              ./mqtt_pub.sh <host> <port> <topic> <message>
+#
+# Arguments:
+#   host              MQTT broker hostname or IP address
+#   port              MQTT broker port
+#   topic             MQTT topic to publish to
+#   message           Message payload to publish
+#
+# Called by:          archive_pipeline.sh
+#
+# Requirements:       mosquitto-clients
+#                     commons.sh
+# ==============================================================================
 
 # Publish message to MQTT broker
 

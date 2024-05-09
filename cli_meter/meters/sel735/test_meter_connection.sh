@@ -1,11 +1,18 @@
 #!/bin/bash
-
-#################################
-# This script:
-# - checks the connection to the meter
-# - is called from data_pipeline.sh
-# - uses environment variables
-#################################
+# ==============================================================================
+# Script Name:        test_meter_connection.sh
+# Description:        This script checks the connection to the meter
+#                     via FTP using provided environment variables.
+#
+# Usage:              ./test_meter_connection.sh <meter_ip>
+# Called by:          download.sh
+#
+# Arguments:
+#   meter_ip          IP address of the meter
+#
+# Requirements:       lftp
+#                     commons.sh
+# ==============================================================================
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 1 ]; then
@@ -13,7 +20,6 @@ if [ "$#" -ne 1 ]; then
 fi
 
 # Logging in to the FTP server and checking the connection using lftp
-
 lftp_output=$(lftp -u $USERNAME,$PASSWORD -e "pwd; bye" $meter_ip)
 
 if [ "$?" -eq 0 ]; then
