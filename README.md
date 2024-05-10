@@ -27,7 +27,7 @@ Ensure you have the following before running the pipeline:
     - `rsync` — Transfering data
     - `mosquitto-clients` - MQTT client
     - `jq` — JSON for MQTT payload
-    
+    - `flock` - To ensure the script can only run one instance at a time
 
 ## Installation
 1. You must be connected to the `camio-ot-dev` server. See **camio-ot-dev(SSH)** in the [ACEP Wiki](https://wiki.acep.uaf.edu/en/teams/data-ducts/aetb).
