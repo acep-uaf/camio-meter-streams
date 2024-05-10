@@ -1,15 +1,4 @@
 #!/bin/bash
-
-##############################################################
-# This script:
-# - creates metadata
-# - is called from download.sh
-# - uses environment variables
-# - accepts 2 arguments: event_id and event_dir
-# - calls create_metadata_txt.sh and create_metadata_json.sh
-###############################################################
-
-#!/bin/bash
 # ==============================================================================
 # Script Name:        generate_event_metadata.sh
 # Description:        This script creates metadata for the specified event files
