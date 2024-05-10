@@ -1,14 +1,24 @@
 #!/bin/bash
-
-##########################################################
-# This file creates metadata
-# for meter event files in YAML
+# ==============================================================================
+# Script Name:        create_metadata_yml.sh
+# Description:        This script creates metadata for meter event files in YAML
+#                     format and appends the file's checksum to a checksum.md5 file.
 #
-# This script is called from organize_data.sh &
-# download_missing_file.sh and accepts 2 arguments:
-# 1. The name of the file
-# 2. The full path to the local event directory
-##########################################################
+# Usage:              ./create_metadata_yml.sh <file> <event_dir> <meter_id> <meter_type>
+#                     <event_timestamp> <download_timestamp>
+# Called by:          generate_event_metadata.sh
+#
+# Arguments:
+#   file              The name of the event file
+#   event_dir         The full path to the local event directory
+#   meter_id          Meter ID
+#   meter_type        Meter Type
+#   event_timestamp   Original timestamp of the event
+#   download_timestamp Timestamp of when the files were downloaded
+#
+# Requirements:       commons.sh
+#
+# ==============================================================================
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 6 ]; then
@@ -47,8 +57,8 @@ if {
     echo "  Checksum: \"$checksum\""
 } >> "$metadata_path"; then
     log "Metadata generated for: $filename"
-    return 0 # Exit with success code
+    return 0 # Return with success code
 else
     log "Error generating metadata for: $filename"
-    return 1 # Exit with error code
+    return 1 # Return with error code 
 fi

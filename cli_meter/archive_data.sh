@@ -1,6 +1,24 @@
 #!/bin/bash
-
-# Use rsync to move data from local machine to DAS (Data Acquisition System)
+# ==============================================================================
+# Script Name:        archive_data.sh
+# Description:        This script uses rsync to move data from the local machine
+#                     to the Data Acquisition System (DAS) and returns event data
+#                     for publishing to an MQTT broker.
+#
+# Usage:              ./archive_data.sh <src_dir> <dest_dir> <dest_host> <dest_user> <bwlimit>
+#
+# Arguments:
+#   src_dir           Source directory containing the data to be archived
+#   dest_dir          Destination directory on the DAS
+#   dest_host         Hostname or IP address of the DAS
+#   dest_user         Username to connect to the DAS
+#   bwlimit           Bandwidth limit for rsync (in kbps)
+#
+# Called by:          archive_pipeline.sh
+#
+# Requirements:       rsync
+#                     commons.sh
+# ==============================================================================
 
 # Check command line arguments
 if [ $# -ne 5 ]; then

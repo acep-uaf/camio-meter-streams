@@ -1,3 +1,17 @@
+#!/bin/bash
+# ==============================================================================
+# Script Name:        commons.sh
+# Description:        Common utility functions used across various scripts in
+#                     the SEL-735 Meter Event Data Pipeline.
+#
+# Functions:
+#   handle_sigint()       - Handles SIGINT signal and marks the current event as incomplete
+#   mark_event_incomplete - Marks an event as incomplete and rotates older incomplete directories
+#   validate_download()   - Validates if all files for an event have been downloaded
+#
+# ==============================================================================
+
+# Function to handle SIGINT (Ctrl+C) and mark event as incomplete
 handle_sigint() {
     # Mark event incomplete if event_id is set
     if [ -n "$current_event_id" ]; then
@@ -9,7 +23,7 @@ handle_sigint() {
 
 }
 
-# Mark event as incomplete
+# Function to mark an event as incomplete and rotate older incomplete directories
 mark_event_incomplete() {
   local event_id="$1"
   local original_dir="$2/$event_id"
