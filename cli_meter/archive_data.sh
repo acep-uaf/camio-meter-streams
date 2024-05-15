@@ -5,7 +5,7 @@
 #                     to the Data Acquisition System (DAS) and returns event data
 #                     for publishing to an MQTT broker.
 #
-# Usage:              ./archive_data.sh <src_dir> <dest_dir> <dest_host> <dest_user> <bwlimit>
+# Usage:              ./archive_data.sh <src_dir> <dest_dir> <dest_host> <dest_user> <bwlimit> <ssh_key_path>
 #
 # Arguments:
 #   src_dir           Source directory containing the data to be archived
@@ -13,6 +13,7 @@
 #   dest_host         Hostname or IP address of the DAS
 #   dest_user         Username to connect to the DAS
 #   bwlimit           Bandwidth limit for rsync (in kbps)
+#   ssh_key_path      Path to the SSH key for authentication
 #
 # Called by:          archive_pipeline.sh
 #
@@ -21,8 +22,8 @@
 # ==============================================================================
 
 # Check command line arguments
-if [ $# -ne 5 ]; then
-    fail "Usage: $0 <src_dir> <dest_dir> <dest_host> <dest_user> <bwlimit>"
+if [ $# -ne 6 ]; then
+    fail "Usage: $0 <src_dir> <dest_dir> <dest_host> <dest_user> <bwlimit> <ssh_key_path>"
 fi
 
 src_dir=$1
@@ -30,6 +31,7 @@ dest_dir=$2
 dest_host=$3
 dest_user=$4
 bwlimit=$5
+ssh_key_path=$6
 
 # Define source and destination directories
 current_dir=$(dirname "$(readlink -f "$0")")
@@ -47,7 +49,7 @@ if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
     #   --bwlimit : Limit I/O bandwidth (kbps)
     #   --exclude : Exclude the 'working' directory
 
-    rsync_output=$(rsync -av --bwlimit=$bwlimit --exclude 'working' $src_dir $dest_user@$dest_host:$dest_dir)
+    rsync_output=$(rsync -av --bwlimit=$bwlimit -e "ssh -i $ssh_key_path" --exclude 'working' $src_dir $dest_user@$dest_host:$dest_dir)
     log "$rsync_output"
 
     # Check the status of the rsync command
