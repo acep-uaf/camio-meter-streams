@@ -30,7 +30,7 @@ remote_dir="EVENTS"
 temp_dir_path="temp_dir.XXXXXX"
 
 # Create a temporary directory to store the CHISTORY.TXT file
-temp_dir=$(mktemp -d $temp_dir_path)
+temp_dir=$(mktemp --tmpdir -d $temp_dir_path)
 
 # Remove temporary directory on exit
 trap 'rm -rf "$temp_dir"' EXIT
