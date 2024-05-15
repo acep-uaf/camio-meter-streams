@@ -26,7 +26,9 @@ dest_dir="$2"
 event_id="$3"
 
 # Zip the files in the source directory
-zip -r -q "${dest_dir}/${event_id}.zip" "$source_dir"/*
+pushd "$source_dir" > /dev/null
+zip -r -q "${dest_dir}/${event_id}.zip" $event_id
+popd > /dev/null
 
 if [ $? -eq 0 ]; then
     echo "Files validated and zipped for event: $event_id"
