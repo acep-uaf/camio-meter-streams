@@ -75,7 +75,7 @@ src_dir=$(yq e '.archive.source.directory' "$config_path")
 dest_dir=$(yq e '.archive.destination.directory' "$config_path")
 bwlimit=$(yq e '.archive.destination.bandwidth_limit' "$config_path")
 dest_host=$(yq e '.archive.destination.host' "$config_path")
-dest_user=$(yq e '.archive.destination.user' "$config_path")
+dest_user=$(yq e '.archive.destination.credentials.user' "$config_path")
 
 mqtt_broker=$(yq e '.mqtt.connection.host' "$config_path")
 mqtt_port=$(yq e '.mqtt.connection.port' "$config_path")
