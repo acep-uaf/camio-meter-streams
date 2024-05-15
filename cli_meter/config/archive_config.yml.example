@@ -19,6 +19,7 @@ archive:
     host: ""
     credentials:
       user: ""  # Username for accessing the destination server
+      ssh_key_path: ""
 
 # MQTT Broker Configuration
 mqtt:
