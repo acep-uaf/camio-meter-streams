@@ -3,14 +3,15 @@
 This repository contains a set of Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline is divided into two main executable scripts:
 
 1. **`data_pipeline.sh`**: Handles the first five steps:
-    1. Connecting to the meter via FTP
-    2. Checking for new event files
-    3. Downloading event files
-    4. Organizing and creating metadata
-    5. Compressing event data
+    - Connecting to the meter via FTP
+    - Checking for new event files
+    - Downloading event files
+    - Organizing and creating metadata
+    - Compressing event data
 
 2. **`archive_pipeline.sh`**: Handles the final step:
     - Archiving and transferring event data to the Data Acquisition System (DAS)
+    - Notify new data transfers via MQTT
 
 
 ## Prerequisites
