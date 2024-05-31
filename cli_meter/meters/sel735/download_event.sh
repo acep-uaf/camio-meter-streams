@@ -17,7 +17,7 @@
 # ==============================================================================
 
 # Check if the correct number of arguments are passed
-if [ "$#" -ne 3 ]; then
+if [ "$#" -ne 4 ]; then
     fail "Usage: $0 <meter_ip> <event_id> <output_dir>"
 fi
 
@@ -25,6 +25,7 @@ fi
 meter_ip=$1
 event_id=$2
 download_dir="$3/$event_id" # Assumes $3 = /../location/data_type/YYYY-MM/METER_ID/working
+bandwidth_limit=$4
 remote_dir="EVENTS"
 
 # Create the local directory for this event if it doesn't exist
@@ -38,6 +39,7 @@ fi
 # Single lftp session
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<END_FTP_SESSION
 set xfer:clobber on
+set net:limit-rate $bandwidth_limit
 cd $remote_dir
 lcd $download_dir
 mget *$event_id*.*

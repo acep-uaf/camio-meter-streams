@@ -24,8 +24,8 @@ export current_event_id=""
 trap handle_sigint SIGINT
 
 # Check for exactly 4 arguments
-if [ "$#" -ne 4 ]; then
-  fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type>"
+if [ "$#" -ne 5 ]; then
+  fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bandwidth_limit>"
 fi
 
 # Simple CLI flag parsing
@@ -34,12 +34,13 @@ base_output_dir="$2/working"
 base_zipped_output_dir="$2/level0"
 meter_id="$3"
 meter_type="$4"
+bandwidth_limit="$5"
 
 # Make dir if it doesn't exist
 mkdir -p "$base_output_dir"
 
 # Test connection to meter
-source "$current_dir/test_meter_connection.sh" "$meter_ip"
+source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bandwidth_limit"
 
 # Initialize a flag to indicate the success of the entire loop process
 loop_success=true
@@ -57,7 +58,7 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
   output_dir="$base_output_dir/$date_dir/$meter_id"
 
   # Download event directory (5 files)
-  source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir"
+  source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit"
 
   # Check if download_event.sh was successful before creating metadata
   if [ $? -eq 0 ]; then

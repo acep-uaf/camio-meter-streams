@@ -14,6 +14,8 @@ download_directory: ""
 # Configuration settings
 location: ""    # Geographic location of the data collection
 data_type: ""   # Type of data being collected
+# bytes/s, 0 means unlimited, Suffixes are supported, e.g. 100K means 102400.
+bandwidth_limit: "0"
 
 # Default FTP credentials (overridden by meter-specific credentials)
 credentials:

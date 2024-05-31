@@ -87,6 +87,7 @@ default_password=$(yq '.credentials.password' "$config_path")
 num_meters=$(yq '.meters | length' "$config_path")
 location=$(yq '.location' "$config_path")
 data_type=$(yq '.data_type' "$config_path")
+bandwidth_limit=$(yq '.bandwidth_limit' "$config_path")
 
 # Check for null or empty values
 [[ -z "$default_username" ]] && fail "Config: Default username cannot be null or empty."
@@ -94,6 +95,8 @@ data_type=$(yq '.data_type' "$config_path")
 [[ -z "$num_meters" || "$num_meters" -eq 0 ]] && fail "Config: Must have at least 1 meter in the config file."
 [[ -z "$location" ]] && fail "Config: Location cannot be null or empty."
 [[ -z "$data_type" ]] && fail "Config: Data type cannot be null or empty."
+[[ -z "$bandwidth_limit" ]] && fail "Config: Bandwith limit cannot be null or empty."
+
 
 output_dir="$download_dir/$location/$data_type"
 
@@ -120,7 +123,7 @@ for ((i = 0; i < num_meters; i++)); do
     export PASSWORD=${meter_password:-$default_password}
 
     # Execute download script and check its success in one step
-    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type"; then
+    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit"; then
         log "Download complete for meter: $meter_id"
     else
         log "Download failed for meter: $meter_id. Moving to next meter."
