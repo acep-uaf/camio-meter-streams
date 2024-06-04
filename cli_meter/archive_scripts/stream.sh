@@ -25,7 +25,7 @@ else
 fi
 
 # Rsync command with logging
-rsync -a "$LOCAL_PATH" "$REMOTE_USER"@"$REMOTE_HOST":"$REMOTE_PATH" | tee -a "$LOG_FILE"
+rsync -a -e "ssh -o StrictHostKeyChecking=accept-new" "$LOCAL_PATH" "$REMOTE_USER"@"$REMOTE_HOST":"$REMOTE_PATH" | tee -a "$LOG_FILE"
 
 # Log the date and time of operation
 echo "Sync completed at: $(date --iso-8601=seconds)" | tee -a "$LOG_FILE"
