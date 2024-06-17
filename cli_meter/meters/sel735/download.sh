@@ -5,7 +5,7 @@
 #                     files from the SEL-735 meter, validating them, generating
 #                     metadata, and zipping the files.
 #
-# Usage:              ./download.sh <meter_ip> <output_dir> <meter_id> <meter_type>
+# Usage:              ./download.sh <meter_ip> <output_dir> <meter_id> <meter_type> <bandwidth_limit>
 # Called by:          data_pipeline.sh
 #
 # Arguments:
@@ -13,6 +13,7 @@
 #   output_dir        Base directory where the event data will be stored
 #   meter_id          Meter ID
 #   meter_type        Meter Type (ex. sel735)
+#   bandwidth_limit   Bandwidth limit for the download process
 #
 # Requirements:       commons.sh, test_meter_connection.sh, get_events.sh,
 #                     download_event.sh, generate_event_metadata.sh, zip_event.sh
@@ -23,9 +24,10 @@ export current_event_id=""
 
 trap handle_sigint SIGINT
 
-# Check for exactly 4 arguments
+# Check for exactly 5 arguments
 if [ "$#" -ne 5 ]; then
   fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bandwidth_limit>"
+  exit 1
 fi
 
 # Simple CLI flag parsing
@@ -40,48 +42,64 @@ bandwidth_limit="$5"
 mkdir -p "$base_output_dir"
 
 # Test connection to meter
-source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bandwidth_limit"
+if ! source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bandwidth_limit"; then
+  fail "Connection to meter $meter_ip failed"
+  exit 1
+fi
 
 # Initialize a flag to indicate the success of the entire loop process
 loop_success=true
 
-# output_dir is the location where the data will be stored
-for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_output_dir"); do
+# Call get_events.sh and check its exit status
+events_list=$($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_output_dir")
+if [ $? -ne 0 ]; then
+  fail "Failed to retrieve events for meter: $meter_id"
+  exit 1
+fi
 
-  # Split the output into variables
-  IFS=',' read -r event_id date_dir event_timestamp <<<"$event_info"
+# output_dir is the location where the data will be stored
+echo "$events_list" | while IFS=, read -r event_id date_dir event_timestamp; do
+  log "Processing event info: $event_id, $date_dir, $event_timestamp"
 
   # Update current_event_id for mark_event_incomplete()
   current_event_id=$event_id
 
   # Update output_dir
   output_dir="$base_output_dir/$date_dir/$meter_id"
+  log "Output directory for event: $output_dir"
 
   # Download event directory (5 files)
-  source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit"
+  if ! source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit"; then
+    log "Download failed for event_id: $event_id, skipping metadata creation."
+    loop_success=false
+    continue
+  fi
 
   # Check if download_event.sh was successful before creating metadata
-  if [ $? -eq 0 ]; then
+  if validate_download "$output_dir" "$event_id"; then
+    log "Download validated successfully for event_id: $event_id"
+
     # Timestamp is time this script is run.
     download_timestamp=$(date --iso-8601=seconds)
+    log "Download timestamp: $download_timestamp"
 
     # If all files are downloaded successfully generate metadata/checksum then zip
-    if validate_download "$output_dir" "$event_id"; then
-      # Generate metadata and checksums of files for the event
-      source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"
+    if source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"; then
+      log "Metadata generated successfully for event_id: $event_id"
 
       # Zip the event directory, including all files and the checksum.md5 file
       event_zipped_output_dir="$base_zipped_output_dir/$date_dir/$meter_id"
       mkdir -p "$event_zipped_output_dir"
-      source "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id"
-
+      if ! source "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id"; then
+        log "Zipping failed for event: $event_id"
+        loop_success=false
+      fi
     else
-      #TODO: handle this case
-      log "Not all files downloaded for event: $event_id"
+      log "Metadata generation failed for event: $event_id"
       loop_success=false
     fi
   else
-    log "Download failed for event_id: $event_id, skipping metadata creation."
+    log "Not all files downloaded for event: $event_id"
     loop_success=false
   fi
 done
@@ -89,6 +107,8 @@ done
 # After the loop, check the flag and log accordingly
 if [ "$loop_success" = true ]; then
   log "Successfully downloaded all events."
+  exit 0
 else
-  log "Finished downloaded with some errors."
+  log "Finished downloading with some errors."
+  exit 1
 fi
