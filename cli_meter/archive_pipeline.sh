@@ -3,7 +3,7 @@
 # Script Name:        archive_pipeline.sh
 # Description:        This script is a wrapper for the archive process. It uses
 #                     rsync to move data from the local machine to the Data
-#                     Acquisition System (DAS) and uses mosquitto-clients publishes messages to an MQTT broker.
+#                     Acquisition System (DAS).
 #
 # Usage:              ./archive_pipeline.sh -c <config_path>
 #
@@ -13,8 +13,8 @@
 #
 # Called by:          User (direct execution)
 #
-# Requirements:       yq, jq, mosquitto-clients
-#                     commons.sh, archive_data.sh, mqtt_pub.sh
+# Requirements:       yq, jq
+#                     commons.sh, archive_data.sh
 # ==============================================================================
 
 # Define the current directory
@@ -71,42 +71,35 @@ else
 fi
 
 # Parse configuration using yq
-src_dir=$(yq e '.archive.source.directory' "$config_path")
-dest_dir=$(yq e '.archive.destination.directory' "$config_path")
-bwlimit=$(yq e '.archive.destination.bandwidth_limit' "$config_path")
-dest_host=$(yq e '.archive.destination.host' "$config_path")
-dest_user=$(yq e '.archive.destination.credentials.user' "$config_path")
-ssh_key_path=$(yq e '.archive.destination.credentials.ssh_key_path' "$config_path")
-
-mqtt_broker=$(yq e '.mqtt.connection.host' "$config_path")
-mqtt_port=$(yq e '.mqtt.connection.port' "$config_path")
-mqtt_topic=$(yq e '.mqtt.topic.name' "$config_path")
+src_dir=$(yq e '.source.directory' "$config_path")
+dest_dir=$(yq e '.destination.directory' "$config_path")
+bwlimit=$(yq e '.destination.bandwidth_limit' "$config_path")
+dest_host=$(yq e '.destination.host' "$config_path")
+dest_user=$(yq e '.destination.credentials.user' "$config_path")
+ssh_key_path=$(yq e '.destination.credentials.ssh_key_path' "$config_path")
 
 # Check for null or empty values
 [[ -z "$src_dir" ]] && fail "Config: Source directory cannot be null or empty."
 [[ -z "$dest_dir" ]] && fail "Config: Destination directory cannot be null or empty."
 [[ -z "$dest_user" ]] && fail "Config: Destination user cannot be null or empty."
 [[ -z "$dest_host" ]] && fail "Config: Destination host cannot be null or empty."
-[[ -z "$mqtt_broker" ]] && fail "Config: MQTT broker cannot be null or empty."
-[[ -z "$mqtt_port" || ! "$mqtt_port" =~ ^[0-9]+$ ]] && fail "Config: MQTT port must be a valid number."
-[[ -z "$mqtt_topic" ]] && fail "Config: MQTT topic cannot be null or empty."
 [[ -z "$ssh_key_path" ]] && fail "Config: ssh_key_path topic cannot be null or empty."
 
 # Archive the downloaded files and read output
-"$current_dir/archive_data.sh" "$src_dir" "$dest_dir" "$dest_host" "$dest_user" "$bwlimit" "$ssh_key_path" | while IFS=, read -r event_id filename path; do
+"$current_dir/archive_data.sh" "$src_dir" "$dest_dir" "$dest_host" "$dest_user" "$bwlimit" "$ssh_key_path" | while IFS=, read -r id filename path; do
 
     # Check if variables are empty and log a warning if so
-    if [ -z "$event_id" ] || [ -z "$filename" ] || [ -z "$path" ]; then
-        log "Warning: One of the variables is empty. Event ID: '$event_id', Filename: '$filename', Path: '$path'"
+    if [ -z "$id" ] || [ -z "$filename" ] || [ -z "$path" ]; then
+        log "Warning: One of the variables is empty. Event ID: '$id', Filename: '$filename', Path: '$path'"
     fi
 
     # Use jq to create a JSON payload
     json_payload=$(jq -n \
-        --arg eid "$event_id" \
+        --arg id "$id" \
         --arg fn "$filename" \
         --arg pth "$path" \
-        '{event_id: $eid, filename: $fn, path: $pth}')
+        '{id: $id, filename: $fn, path: $pth}')
 
-    # Publish the event ID to the MQTT broker
-    "$current_dir/mqtt_pub.sh" "$mqtt_broker" "$mqtt_port" "$mqtt_topic" "$json_payload"
+    # Create a .message file with the JSON payload
+
 done

@@ -28,3 +28,23 @@ mqtt:
     port:      # Port number of the MQTT broker
   topic:
     name: ""  # Name of the MQTT topic for message publication
+
+# ==============================================================================
+# Archive Configuration File
+# Configures file archiving from a local source to a remote destination.
+# ==============================================================================
+
+source:
+# Local source directory to archive files from
+  directory: "/home/mnmah/camio-meter-streams/kea"
+
+destination:
+  # Remote destination directory to archive files to
+  directory: ""
+  # Optional bandwidth limit in KB/s
+  bandwidth_limit: ""
+  credentials:
+    user: ""
+    ssh_key_path: ""
+  # Hostname or IP address of the destination server
+  host: ""
