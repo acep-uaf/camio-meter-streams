@@ -123,7 +123,7 @@ for ((i = 0; i < num_meters; i++)); do
     export PASSWORD=${meter_password:-$default_password}
 
     # Execute download script and check its success in one step
-    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit"; then
+    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location"; then
         log "Download complete for meter: $meter_id"
     else
         log "Download failed for meter: $meter_id. Moving to next meter."

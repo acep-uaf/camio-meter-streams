@@ -6,6 +6,7 @@
 #                     metadata, and zipping the files.
 #
 # Usage:              ./download.sh <meter_ip> <output_dir> <meter_id> <meter_type>
+#                     <bandwidth_limit> <data_type> <location>
 # Called by:          data_pipeline.sh
 #
 # Arguments:
@@ -24,8 +25,8 @@ export current_event_id=""
 trap handle_sigint SIGINT
 
 # Check for exactly 4 arguments
-if [ "$#" -ne 5 ]; then
-  fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bandwidth_limit>"
+if [ "$#" -ne 7 ]; then
+  fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bandwidth_limit> <data_type> <location>"
 fi
 
 # Simple CLI flag parsing
@@ -35,6 +36,8 @@ base_zipped_output_dir="$2/level0"
 meter_id="$3"
 meter_type="$4"
 bandwidth_limit="$5"
+data_type="$6"
+location="$7"
 
 # Make dir if it doesn't exist
 mkdir -p "$base_output_dir"
@@ -56,6 +59,7 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
 
   # Update output_dir
   output_dir="$base_output_dir/$date_dir/$meter_id"
+  path="$location/$data_type/$date_dir/$meter_id"
 
   # Download event directory (5 files)
   source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit"
@@ -72,8 +76,23 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
 
       # Zip the event directory, including all files and the checksum.md5 file
       event_zipped_output_dir="$base_zipped_output_dir/$date_dir/$meter_id"
+
       mkdir -p "$event_zipped_output_dir"
       source "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id"
+
+      zip_filename="${event_id}.zip"
+      message_file="$event_zipped_output_dir/${event_id}.zip.message"
+      log "Output directory: $output_dir"
+      log "Creating message file: $message_file"
+      json_payload=$(jq -n \
+        --arg id "$event_id" \
+        --arg fn "$zip_filename" \
+        --arg pth "$path" \
+        --arg dt "$data_type" \
+        '{id: $id, filename: $fn, path: $pth, data_type: $dt}')
+
+      echo "$json_payload" > "$message_file"
+      log "Created message file: $message_file with payload: $json_payload"
 
     else
       #TODO: handle this case
