@@ -2,16 +2,14 @@
 
 This repository contains a set of Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline is divided into two main executable scripts:
 
-1. **`data_pipeline.sh`**: Handles the first five steps:
+1. **`data_pipeline.sh`**: Handles the first four steps:
     - Connecting to the meter via FTP
-    - Checking for new event files
-    - Downloading event files
+    - Downloading new files
     - Organizing and creating metadata
-    - Compressing event data
+    - Compressing data
 
 2. **`archive_pipeline.sh`**: Handles the final step:
     - Archiving and transferring event data to the Data Acquisition System (DAS)
-    - Notify new data transfers via MQTT
 
 
 ## Prerequisites
@@ -19,15 +17,13 @@ Ensure you have the following before running the pipeline:
 - Unix-like environment (Linux, macOS, or a Unix-like Windows terminal)
 - Able to `ssh` to the **ot-dev** and **das.lab.acep.uaf.edu** servers
 - FTP credentials for the meter
-- MQTT Configuration
 - Meter Configuration
 - Installed on `camio-ot-dev`:
-    - `lftp` — FTP operations
-    - `yq` - YAML config files
-    - `zip` - Compressing data
-    - `rsync` — Transfering data
-    - `mosquitto-clients` - MQTT client
-    - `jq` — JSON for MQTT payload
+    - `lftp` — FTP Operations
+    - `yq` - YAML Parsing
+    - `zip` - Compressing Data
+    - `rsync` — Transfering Data
+    - `jq` — JSON Parsing
 
 ## Installation
 1. You must be connected to the `camio-ot-dev` server. See **camio-ot-dev(SSH)** in the [ACEP Wiki](https://wiki.acep.uaf.edu/en/teams/data-ducts/aetb).

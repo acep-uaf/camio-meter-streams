@@ -71,12 +71,12 @@ else
 fi
 
 # Parse configuration using yq
-src_dir=$(yq e '.source.directory' "$config_path")
-dest_dir=$(yq e '.destination.directory' "$config_path")
-bwlimit=$(yq e '.destination.bandwidth_limit' "$config_path")
-dest_host=$(yq e '.destination.host' "$config_path")
-dest_user=$(yq e '.destination.credentials.user' "$config_path")
-ssh_key_path=$(yq e '.destination.credentials.ssh_key_path' "$config_path")
+src_dir=$(yq e '.source_dir' "$config_path")
+dest_dir=$(yq e '.dest_dir' "$config_path")
+bwlimit=$(yq e '.bandwidth_limit' "$config_path")
+dest_host=$(yq e '.host' "$config_path")
+dest_user=$(yq e '.credentials.user' "$config_path")
+ssh_key_path=$(yq e '.credentials.ssh_key_path' "$config_path")
 
 # Check for null or empty values
 [[ -z "$src_dir" ]] && fail "Config: Source directory cannot be null or empty."
