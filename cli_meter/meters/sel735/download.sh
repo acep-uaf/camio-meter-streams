@@ -81,18 +81,9 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
       source "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id"
 
       zip_filename="${event_id}.zip"
-      message_file="$event_zipped_output_dir/${event_id}.zip.message"
-      log "Output directory: $output_dir"
-      log "Creating message file: $message_file"
-      json_payload=$(jq -n \
-        --arg id "$event_id" \
-        --arg fn "$zip_filename" \
-        --arg pth "$path" \
-        --arg dt "$data_type" \
-        '{id: $id, filename: $fn, path: $pth, data_type: $dt}')
-
-      echo "$json_payload" > "$message_file"
-      log "Created message file: $message_file with payload: $json_payload"
+      
+      # Call the create_message.sh script
+      source "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir"
 
     else
       #TODO: handle this case
