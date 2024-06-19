@@ -1,9 +1,10 @@
 #!/bin/bash
 # ==============================================================================
 # Script Name:        archive_pipeline.sh
-# Description:        This script is a wrapper for the archive process. It uses
-#                     rsync to move data from the local machine to the Data
-#                     Acquisition System (DAS).
+# Description:        This script handles the archive process, moving data from 
+#                     the local machine to the Data Acquisition System (DAS).
+#                     It includes functionality to parse configuration, lock 
+#                     the process, and transfer files using rsync.
 #
 # Usage:              ./archive_pipeline.sh -c <config_path>
 #
@@ -11,10 +12,8 @@
 #   -c, --config      Path to the configuration file
 #   -h, --help        Show usage information
 #
-# Called by:          User (direct execution)
-#
-# Requirements:       yq, jq
-#                     commons.sh, archive_data.sh
+# Requirements:       yq, jq, rsync
+#                     commons.sh
 # ==============================================================================
 
 # Define the current directory
@@ -22,13 +21,13 @@ current_dir=$(dirname "$(readlink -f "$0")")
 source "$current_dir/commons.sh"
 
 # Define the lock file path
-LOCKFILE="/var/lock/$(basename $0)" # Define the lock file path using scripts basename
+LOCKFILE="/var/lock/$(basename $0)"
 _prepare_locking
 
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
 
-# To be optionally be overriden by flags
+# Initialize config path variable
 config_path=""
 
 # Check if no command line arguments were provided
@@ -63,7 +62,7 @@ if [[ -z "$config_path" ]]; then
     show_help_flag
 fi
 
-# Make sure the output config file exists
+# Make sure the config file exists
 if [ -f "$config_path" ]; then
     log "Config file exists at: $config_path"
 else
@@ -83,23 +82,22 @@ ssh_key_path=$(yq e '.credentials.ssh_key_path' "$config_path")
 [[ -z "$dest_dir" ]] && fail "Config: Destination directory cannot be null or empty."
 [[ -z "$dest_user" ]] && fail "Config: Destination user cannot be null or empty."
 [[ -z "$dest_host" ]] && fail "Config: Destination host cannot be null or empty."
-[[ -z "$ssh_key_path" ]] && fail "Config: ssh_key_path topic cannot be null or empty."
+[[ -z "$ssh_key_path" ]] && fail "Config: SSH key path cannot be null or empty."
 
-# Archive the downloaded files and read output
-"$current_dir/archive_data.sh" "$src_dir" "$dest_dir" "$dest_host" "$dest_user" "$bwlimit" "$ssh_key_path" | while IFS=, read -r id filename path; do
+# Check if the source directory exists and is not empty
+if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
+    log "Attempting to transfer data from: $src_dir to $dest_dir on $dest_host as $dest_user"
 
-    # Check if variables are empty and log a warning if so
-    if [ -z "$id" ] || [ -z "$filename" ] || [ -z "$path" ]; then
-        log "Warning: One of the variables is empty. Event ID: '$id', Filename: '$filename', Path: '$path'"
+    # Sync files from local to remote server using rsync
+    rsync_output=$(rsync -av --bwlimit=$bwlimit -e "ssh -i $ssh_key_path" --exclude 'working' "$src_dir" "$dest_user@$dest_host:$dest_dir")
+    log "$rsync_output"
+
+    # Check the status of the rsync command
+    if [ $? -eq 0 ]; then
+        log "Data synchronization completed successfully"
+    else
+        fail "Data synchronization failed"
     fi
-
-    # Use jq to create a JSON payload
-    json_payload=$(jq -n \
-        --arg id "$id" \
-        --arg fn "$filename" \
-        --arg pth "$path" \
-        '{id: $id, filename: $fn, path: $pth}')
-
-    # Create a .message file with the JSON payload
-
-done
+else
+    fail "Source directory doesn't exist or is empty"
+fi

@@ -100,6 +100,8 @@ To run the data pipeline and then transfer data to the Data Acquisition System (
     ```bash
     ./archive_pipeline.sh -c /path/to/archive_config.yml
     ```
+    #### Notes
+    The **rsync** uses the `--exclude` flag to exclude the `working` directory to ensure only complete files are transfered. 
 
 ## How to Stop the Pipeline
 
