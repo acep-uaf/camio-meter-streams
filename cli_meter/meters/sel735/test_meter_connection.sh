@@ -20,7 +20,7 @@ if [ "$#" -ne 2 ]; then
 fi
 
 # Logging in to the FTP server and checking the connection using lftp
-lftp_output=$(lftp -u $USERNAME,$PASSWORD -e "set net:limit-rate $bandwidth_limit; pwd; bye" $meter_ip)
+lftp_output=$(lftp -u $USERNAME,$PASSWORD -e "set net:limit-rate $bandwidth_limit; ls; bye" $meter_ip)
 
 if [ "$?" -eq 0 ]; then
     log "Successful connection test to meter: $meter_ip"
