@@ -26,7 +26,7 @@ trap handle_sigint SIGINT
 
 # Check for exactly 4 arguments
 if [ "$#" -ne 7 ]; then
-  fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bandwidth_limit> <data_type> <location>"
+  fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
 fi
 
 # Simple CLI flag parsing
