@@ -1,14 +1,20 @@
 # ==============================================================================
 # Archive Configuration File
-# Configures file archiving from a local source to a remote destination.
+# Configures file archiving from multiple local sources to their respective remote destinations.
 # ==============================================================================
-
-source_dir: ""
-dest_dir: ""
-# Optional bandwidth limit in Kb/s
-bandwidth_limit: ""
 # Hostname or IP address of the destination server
-host: ""
+host: "das.lab.acep.uaf.edu"
 credentials:
   user: ""
   ssh_key_path: ""
+
+# Optional bandwidth limit in Kb/s
+bandwidth_limit: ""
+
+# Full path to directories
+directories:
+  - source: ""
+    destination: ""
+
+  - source: ""
+    destination: ""

@@ -63,7 +63,7 @@ Ensure you have the following before running the pipeline:
     cp archive_config.yml.example archive_config.yml
     ```
 
-2. **Update** the `archive_config.yml` file with the necessary broker information, as well as source and destination details.
+2. **Update** the `archive_config.yml` file with the source and destination directories and details.
 
 3. Secure the `archive_config.yml` file so that only the owner can read and write:
 

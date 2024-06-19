@@ -2,7 +2,7 @@
 # ==============================================================================
 # Script Name:        archive_pipeline.sh
 # Description:        This script handles the archive process, moving data from 
-#                     the local machine to the Data Acquisition System (DAS).
+#                     multiple local sources to their respective remote destinations.
 #                     It includes functionality to parse configuration, lock 
 #                     the process, and transfer files using rsync.
 #
@@ -69,35 +69,46 @@ else
     fail "Config: Config file does not exist."
 fi
 
-# Parse configuration using yq
-src_dir=$(yq e '.source_dir' "$config_path")
-dest_dir=$(yq e '.dest_dir' "$config_path")
-bwlimit=$(yq e '.bandwidth_limit' "$config_path")
-dest_host=$(yq e '.host' "$config_path")
-dest_user=$(yq e '.credentials.user' "$config_path")
-ssh_key_path=$(yq e '.credentials.ssh_key_path' "$config_path")
+# Parse general configuration using yq
+bwlimit=$(yq e '.bandwidth_limit // "0"' "$config_path")
+dest_host=$(yq e '.host' "$config_path") 
+dest_user=$(yq e '.credentials.user' "$config_path") 
+ssh_key_path=$(yq e '.credentials.ssh_key_path' "$config_path") 
 
-# Check for null or empty values
-[[ -z "$src_dir" ]] && fail "Config: Source directory cannot be null or empty."
-[[ -z "$dest_dir" ]] && fail "Config: Destination directory cannot be null or empty."
-[[ -z "$dest_user" ]] && fail "Config: Destination user cannot be null or empty."
 [[ -z "$dest_host" ]] && fail "Config: Destination host cannot be null or empty."
+[[ -z "$dest_user" ]] && fail "Config: Destination user cannot be null or empty."
 [[ -z "$ssh_key_path" ]] && fail "Config: SSH key path cannot be null or empty."
 
-# Check if the source directory exists and is not empty
-if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
-    log "Attempting to transfer data from: $src_dir to $dest_dir on $dest_host as $dest_user"
+# Parse and process each directory pair using yq
+num_dirs=$(yq e '.directories | length' "$config_path") # Get the number of directory pairs
+for i in $(seq 0 $((num_dirs - 1))); do
+    src_dir=$(yq e ".directories[$i].source" "$config_path") # Extract source directory for current pair
+    dest_dir=$(yq e ".directories[$i].destination" "$config_path") # Extract destination directory for current pair
 
-    # Sync files from local to remote server using rsync
-    rsync_output=$(rsync -av --bwlimit=$bwlimit -e "ssh -i $ssh_key_path" --exclude 'working' "$src_dir" "$dest_user@$dest_host:$dest_dir")
-    log "$rsync_output"
+    # Check for null or empty values in directory configuration
+    [[ -z "$src_dir" ]] && fail "Config: Source directory cannot be null or empty."
+    [[ -z "$dest_dir" ]] && fail "Config: Destination directory cannot be null or empty."
 
-    # Check the status of the rsync command
-    if [ $? -eq 0 ]; then
-        log "Data synchronization completed successfully"
+    # Check if the source directory exists and is not empty
+    if [ -d "$src_dir" ] && [ -n "$(ls -A "$src_dir")" ]; then
+        log "Attempting to transfer data from: $src_dir to $dest_dir on $dest_host as $dest_user"
+
+        # Construct rsync command
+        rsync_command="rsync -av -e 'ssh -i $ssh_key_path' --bwlimit=$bwlimit --exclude 'working' \"$src_dir\" \"$dest_user@$dest_host:$dest_dir\"" # Basic rsync command with bandwidth limit
+
+        # Execute rsync command
+        rsync_output=$(eval $rsync_command) # Use eval to execute the constructed command
+        log "$rsync_output"
+
+        # Check the status of the rsync command
+        if [ $? -eq 0 ]; then
+            log "Data synchronization from $src_dir to $dest_dir completed successfully"
+        else
+            fail "Data synchronization from $src_dir to $dest_dir failed"
+        fi
     else
-        fail "Data synchronization failed"
+        fail "Source directory $src_dir doesn't exist or is empty"
     fi
-else
-    fail "Source directory doesn't exist or is empty"
-fi
+done
+
+log "All specified directories have been processed."
