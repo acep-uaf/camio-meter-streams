@@ -1,9 +1,10 @@
 #!/bin/bash
 # ==============================================================================
 # Script Name:        archive_pipeline.sh
-# Description:        This script is a wrapper for the archive process. It uses
-#                     rsync to move data from the local machine to the Data
-#                     Acquisition System (DAS) and uses mosquitto-clients publishes messages to an MQTT broker.
+# Description:        This script handles the archive process, moving data from 
+#                     multiple local sources to their respective remote destinations.
+#                     It includes functionality to parse configuration, lock 
+#                     the process, and transfer files using rsync.
 #
 # Usage:              ./archive_pipeline.sh -c <config_path>
 #
@@ -11,10 +12,8 @@
 #   -c, --config      Path to the configuration file
 #   -h, --help        Show usage information
 #
-# Called by:          User (direct execution)
-#
-# Requirements:       yq, jq, mosquitto-clients
-#                     commons.sh, archive_data.sh, mqtt_pub.sh
+# Requirements:       yq, jq, rsync
+#                     commons.sh
 # ==============================================================================
 
 # Define the current directory
@@ -22,13 +21,13 @@ current_dir=$(dirname "$(readlink -f "$0")")
 source "$current_dir/commons.sh"
 
 # Define the lock file path
-LOCKFILE="/var/lock/$(basename $0)" # Define the lock file path using scripts basename
+LOCKFILE="/var/lock/$(basename $0)"
 _prepare_locking
 
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
 
-# To be optionally be overriden by flags
+# Initialize config path variable
 config_path=""
 
 # Check if no command line arguments were provided
@@ -63,50 +62,53 @@ if [[ -z "$config_path" ]]; then
     show_help_flag
 fi
 
-# Make sure the output config file exists
+# Make sure the config file exists
 if [ -f "$config_path" ]; then
     log "Config file exists at: $config_path"
 else
     fail "Config: Config file does not exist."
 fi
 
-# Parse configuration using yq
-src_dir=$(yq e '.archive.source.directory' "$config_path")
-dest_dir=$(yq e '.archive.destination.directory' "$config_path")
-bwlimit=$(yq e '.archive.destination.bandwidth_limit' "$config_path")
-dest_host=$(yq e '.archive.destination.host' "$config_path")
-dest_user=$(yq e '.archive.destination.credentials.user' "$config_path")
-ssh_key_path=$(yq e '.archive.destination.credentials.ssh_key_path' "$config_path")
+# Parse general configuration using yq
+bwlimit=$(yq e '.bandwidth_limit // "0"' "$config_path")
+dest_host=$(yq e '.host' "$config_path") 
+dest_user=$(yq e '.credentials.user' "$config_path") 
+ssh_key_path=$(yq e '.credentials.ssh_key_path' "$config_path") 
 
-mqtt_broker=$(yq e '.mqtt.connection.host' "$config_path")
-mqtt_port=$(yq e '.mqtt.connection.port' "$config_path")
-mqtt_topic=$(yq e '.mqtt.topic.name' "$config_path")
-
-# Check for null or empty values
-[[ -z "$src_dir" ]] && fail "Config: Source directory cannot be null or empty."
-[[ -z "$dest_dir" ]] && fail "Config: Destination directory cannot be null or empty."
-[[ -z "$dest_user" ]] && fail "Config: Destination user cannot be null or empty."
 [[ -z "$dest_host" ]] && fail "Config: Destination host cannot be null or empty."
-[[ -z "$mqtt_broker" ]] && fail "Config: MQTT broker cannot be null or empty."
-[[ -z "$mqtt_port" || ! "$mqtt_port" =~ ^[0-9]+$ ]] && fail "Config: MQTT port must be a valid number."
-[[ -z "$mqtt_topic" ]] && fail "Config: MQTT topic cannot be null or empty."
-[[ -z "$ssh_key_path" ]] && fail "Config: ssh_key_path topic cannot be null or empty."
+[[ -z "$dest_user" ]] && fail "Config: Destination user cannot be null or empty."
+[[ -z "$ssh_key_path" ]] && fail "Config: SSH key path cannot be null or empty."
 
-# Archive the downloaded files and read output
-"$current_dir/archive_data.sh" "$src_dir" "$dest_dir" "$dest_host" "$dest_user" "$bwlimit" "$ssh_key_path" | while IFS=, read -r event_id filename path; do
+# Parse and process each directory pair using yq
+num_dirs=$(yq e '.directories | length' "$config_path") # Get the number of directory pairs
+for i in $(seq 0 $((num_dirs - 1))); do
+    src_dir=$(yq e ".directories[$i].source" "$config_path") # Extract source directory for current pair
+    dest_dir=$(yq e ".directories[$i].destination" "$config_path") # Extract destination directory for current pair
 
-    # Check if variables are empty and log a warning if so
-    if [ -z "$event_id" ] || [ -z "$filename" ] || [ -z "$path" ]; then
-        log "Warning: One of the variables is empty. Event ID: '$event_id', Filename: '$filename', Path: '$path'"
+    # Check for null or empty values in directory configuration
+    [[ -z "$src_dir" ]] && fail "Config: Source directory cannot be null or empty."
+    [[ -z "$dest_dir" ]] && fail "Config: Destination directory cannot be null or empty."
+
+    # Check if the source directory exists and is not empty
+    if [ -d "$src_dir" ] && [ -n "$(ls -A "$src_dir")" ]; then
+        log "Attempting to transfer data from: $src_dir to $dest_dir on $dest_host as $dest_user"
+
+        # Construct rsync command
+        rsync_command="rsync -av -e 'ssh -i $ssh_key_path' --bwlimit=$bwlimit --exclude 'working' \"$src_dir\" \"$dest_user@$dest_host:$dest_dir\"" # Basic rsync command with bandwidth limit
+
+        # Execute rsync command
+        rsync_output=$(eval $rsync_command) # Use eval to execute the constructed command
+        log "$rsync_output"
+
+        # Check the status of the rsync command
+        if [ $? -eq 0 ]; then
+            log "Data synchronization from $src_dir to $dest_dir completed successfully"
+        else
+            fail "Data synchronization from $src_dir to $dest_dir failed"
+        fi
+    else
+        fail "Source directory $src_dir doesn't exist or is empty"
     fi
-
-    # Use jq to create a JSON payload
-    json_payload=$(jq -n \
-        --arg eid "$event_id" \
-        --arg fn "$filename" \
-        --arg pth "$path" \
-        '{event_id: $eid, filename: $fn, path: $pth}')
-
-    # Publish the event ID to the MQTT broker
-    "$current_dir/mqtt_pub.sh" "$mqtt_broker" "$mqtt_port" "$mqtt_topic" "$json_payload"
 done
+
+log "All specified directories have been processed."

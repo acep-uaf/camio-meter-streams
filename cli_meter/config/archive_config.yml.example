@@ -1,30 +1,20 @@
 # ==============================================================================
-# Archive and MQTT Configuration File
-# Configures file archiving from a local source to a remote destination and
-# provides MQTT broker settings for message publication.
+# Archive Configuration File
+# Configures file archiving from multiple local sources to their respective remote destinations.
 # ==============================================================================
+# Hostname or IP address of the destination server
+host: "das.lab.acep.uaf.edu"
+credentials:
+  user: ""
+  ssh_key_path: ""
 
-# Archive Configuration
-archive:
-  source:
-    # Local source directory to archive files from
-    directory: ""
+# Optional bandwidth limit in Kb/s
+bandwidth_limit: ""
 
-  destination:
-    # Remote destination directory to archive files to
-    directory: ""
-    # Optional bandwidth limit in KB/s
-    bandwidth_limit: ""
-    # Hostname or IP address of the destination server
-    host: ""
-    credentials:
-      user: ""  # Username for accessing the destination server
-      ssh_key_path: ""
+# Full path to directories
+directories:
+  - source: ""
+    destination: ""
 
-# MQTT Broker Configuration
-mqtt:
-  connection:
-    host: ""  # Hostname or IP address of the MQTT broker
-    port:      # Port number of the MQTT broker
-  topic:
-    name: ""  # Name of the MQTT topic for message publication
+  - source: ""
+    destination: ""

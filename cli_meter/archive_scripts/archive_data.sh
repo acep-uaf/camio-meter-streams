@@ -2,8 +2,8 @@
 # ==============================================================================
 # Script Name:        archive_data.sh
 # Description:        This script uses rsync to move data from the local machine
-#                     to the Data Acquisition System (DAS) and returns event data
-#                     for publishing to an MQTT broker.
+#                     to the Data Acquisition System (DAS) and returns metadata
+#                     to the calling script to create a .message file.
 #
 # Usage:              ./archive_data.sh <src_dir> <dest_dir> <dest_host> <dest_user> <bwlimit> <ssh_key_path>
 #
@@ -56,13 +56,13 @@ if [ -d "$src_dir" ] && [ -n "$(ls -A $src_dir)" ]; then
     if [ $? -eq 0 ]; then
         echo "$rsync_output" | grep '.zip$' | while IFS= read -r line; do
 
-            # Extract the filename, event_id and path
+            # Extract the filename, id and path
             filename=$(basename "$line")
             path=$(dirname "$line")
-            event_id="${filename%.zip}"
+            id="${filename%.zip}"
 
-            # echo to archive_pipeline.sh to parse and publish to MQTT
-            echo "$event_id,$filename,$path"
+            # echo to archive_pipeline.sh to parse create .message file
+            echo "$id,$filename,$path"
 
         done
 
