@@ -99,7 +99,7 @@ echo "$events_list" | while IFS=, read -r event_id date_dir event_timestamp; do
       loop_success=false
     fi
   else
-    log "Not all files downloaded for event: $event_id"
+    log "Download failed for event_id: $event_id, skipping metadata creation."
     loop_success=false
   fi
 done
