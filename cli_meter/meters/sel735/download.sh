@@ -6,7 +6,7 @@
 #                     metadata, and zipping the files.
 #
 # Usage:              ./download.sh <meter_ip> <output_dir> <meter_id> <meter_type>
-#                     <bandwidth_limit> <data_type> <location>
+#                     <bw_limit> <data_type> <location>
 # Called by:          data_pipeline.sh
 #
 # Arguments:
@@ -14,6 +14,7 @@
 #   output_dir        Base directory where the event data will be stored
 #   meter_id          Meter ID
 #   meter_type        Meter Type (ex. sel735)
+#   bw_limit          Bandwidth limit for the download process
 #
 # Requirements:       commons.sh, test_meter_connection.sh, get_events.sh,
 #                     download_event.sh, generate_event_metadata.sh, zip_event.sh
@@ -24,9 +25,9 @@ export current_event_id=""
 
 trap handle_sigint SIGINT
 
-# Check for exactly 4 arguments
+# Check for exactly 7 arguments
 if [ "$#" -ne 7 ]; then
-  fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
+  fail $EXIT_INVALID_ARGS "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
 fi
 
 # Simple CLI flag parsing
@@ -35,7 +36,7 @@ base_output_dir="$2/working"
 base_zipped_output_dir="$2/level0"
 meter_id="$3"
 meter_type="$4"
-bandwidth_limit="$5"
+bw_limit="$5"
 data_type="$6"
 location="$7"
 
@@ -86,19 +87,9 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
       source "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir"
 
     else
-      #TODO: handle this case
-      log "Not all files downloaded for event: $event_id"
-      loop_success=false
+      log $EXIT_UNKNOWN "Not all files downloaded for event: $event_id"
     fi
   else
-    log "Download failed for event_id: $event_id, skipping metadata creation."
-    loop_success=false
+    log $EXIT_LFTP_FAIL "Download failed for event_id: $event_id, skipping metadata creation."
   fi
 done
-
-# After the loop, check the flag and log accordingly
-if [ "$loop_success" = true ]; then
-  log "Successfully downloaded all events."
-else
-  log "Finished downloaded with some errors."
-fi

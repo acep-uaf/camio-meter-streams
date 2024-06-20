@@ -17,8 +17,7 @@
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 3 ]; then
-    fail "Usage: $0 <meter_ip> <meter_id> <output_dir>"
-    exit 1
+    fail $EXIT_INVALID_ARGS "Usage: $0 <meter_ip> <meter_id> <output_dir>"
 fi
 
 meter_ip=$1
@@ -49,8 +48,7 @@ END_FTP_SESSION
 if [ $? -eq 0 ]; then
     log "lftp session successful for: $(basename "$0")"
 else
-    fail "lftp session failed for: $(basename "$0")"
-    exit 1
+    fail $EXIT_LFTP_FAIL "lftp session failed for: $(basename "$0")"
 fi
 
 # Path to CHISTORY.TXT in the temporary directory
@@ -58,12 +56,8 @@ temp_file_path="$temp_dir/$remote_filename"
 
 # Check if CHISTORY.TXT exists and is not empty
 if [ ! -f "$temp_file_path" ] || [ ! -s "$temp_file_path" ]; then
-    fail "Download failed: $remote_filename. Could not find file: $temp_file_path"
-    exit 1
+    fail $EXIT_LFTP_FAIL "Download failed: $remote_filename. Could not find file: $temp_file_path"
 fi
-
-# Initialize a flag to indicate the success of the entire loop process
-loop_success=true
 
 # Parse CHISTORY.TXT starting from line 4
 awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
@@ -98,15 +92,7 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
         fi
 
     else
-        fail "Skipping line: $line, not entirely numeric. Check parsing."
-        loop_success=false
+        fail $EXIT_PARSE_FAIL "Skipping line: $line, not entirely numeric. Check parsing"
     fi
 
 done
-
-# After the loop, check the flag and log accordingly
-if [ "$loop_success" = true ]; then
-    log "Successfully processed all events."
-else
-    log "Finished processing with some errors."
-fi

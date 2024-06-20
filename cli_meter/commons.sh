@@ -13,12 +13,40 @@
 #   exlock()                - Obtain an exclusive lock
 #   shlock()                - Obtain a shared lock
 #   unlock()                - Drop a lock
-#   fail()                  - Output an error message and exit
+#   fail()                  - Output an error message and exit with the provided or default exit code
 #   log()                   - Output a message to stderr
 #   show_help_flag()        - Display usage information
 #
 # Requirements:       flock
 # ==============================================================================
+
+# Custom Exit Codes (using 1000+ to avoid conflicts)
+EXIT_SUCCESS=0                # Successful completion
+EXIT_NO_ARGS=1000             # No arguments provided
+EXIT_INVALID_ARGS=1001        # Invalid arguments provided
+EXIT_CONFIG_NOT_FOUND=1002    # Configuration file not found
+EXIT_CONFIG_NULL_VALUES=1003      # Missing mandatory configuration
+EXIT_DIR_NOT_EXIST=1004       # Source directory does not exist or is empty
+EXIT_RSYNC_FAIL=1005          # Rsync command failed
+EXIT_LFTP_FAIL=1006           # LFTP command failed
+EXIT_LOCK_FAIL=1007           # Failed to acquire lock
+EXIT_PARSE_FAIL=1008          # Failed to parse configuration
+EXIT_MISSING_FILE=1009        # Missing file
+EXIT_UNKNOWN=1099             # Unknown error
+
+# Export exit codes for use in other scripts
+export EXIT_SUCCESS
+export EXIT_NO_ARGS
+export EXIT_INVALID_ARGS
+export EXIT_CONFIG_NOT_FOUND
+export EXIT_CONFIG_NULL_VALUES
+export EXIT_DIR_NOT_EXIST
+export EXIT_RSYNC_FAIL
+export EXIT_LFTP_FAIL
+export EXIT_LOCK_FAIL
+export EXIT_PARSE_FAIL
+export EXIT_MISSING_FILES
+export EXIT_UNKNOWN
 
 LOCKFD=99 # Assign a high file descriptor number for locking 
 
@@ -33,7 +61,7 @@ _failed_locking() {
     pgrep -af "$(basename $0)" | grep -v $$ | while read pid cmd; do
         log "PID: $pid, Command: $cmd"
     done
-    exit 1
+    exit $EXIT_LOCK_FAIL
 }
 
 exlock_now()        { _lock xn; }  # obtain an exclusive lock immediately or fail
@@ -43,8 +71,10 @@ unlock()            { _lock u; }   # drop a lock
 
 # Utility functions
 fail() {
-  echo "[ERROR] $1" >&2
-  exit 1
+  local exit_code="${1:-$EXIT_UNKNOWN}" # default to EXIT_UNKNOWN if not provided
+  local message="$2"
+  echo "[ERROR] $message. Exiting with code $exit_code." >&2
+  exit "$exit_code"
 }
 
 log() {
@@ -75,8 +105,7 @@ show_help_flag() {
     log "  $0 -c /path/to/config.yml"
     log "  $0 --config /path/to/config.yml"
   fi
-  exit 0
-
+  fail $EXIT_INVALID_ARGS
 }
 
 # Export functions for use in other scripts

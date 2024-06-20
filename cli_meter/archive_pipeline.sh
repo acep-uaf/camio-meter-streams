@@ -58,7 +58,7 @@ done
 
 # Make sure a config path was set
 if [[ -z "$config_path" ]]; then
-    log "Config path must be specified."
+    log "Config path must be specified"
     show_help_flag
 fi
 
@@ -66,7 +66,7 @@ fi
 if [ -f "$config_path" ]; then
     log "Config file exists at: $config_path"
 else
-    fail "Config: Config file does not exist."
+    fail $EXIT_CONFIG_NOT_FOUND "Config file does not exist"
 fi
 
 # Parse general configuration using yq
@@ -75,9 +75,9 @@ dest_host=$(yq e '.host' "$config_path")
 dest_user=$(yq e '.credentials.user' "$config_path") 
 ssh_key_path=$(yq e '.credentials.ssh_key_path' "$config_path") 
 
-[[ -z "$dest_host" ]] && fail "Config: Destination host cannot be null or empty."
-[[ -z "$dest_user" ]] && fail "Config: Destination user cannot be null or empty."
-[[ -z "$ssh_key_path" ]] && fail "Config: SSH key path cannot be null or empty."
+[[ -z "$dest_host" ]] && fail $EXIT_CONFIG_NULL_VALUES "Destination host cannot be null or empty"
+[[ -z "$dest_user" ]] && fail $EXIT_CONFIG_NULL_VALUES "Destination user cannot be null or empty"
+[[ -z "$ssh_key_path" ]] && fail $EXIT_CONFIG_NULL_VALUES "SSH key path cannot be null or empty"
 
 # Parse and process each directory pair using yq
 num_dirs=$(yq e '.directories | length' "$config_path") # Get the number of directory pairs
@@ -86,8 +86,9 @@ for i in $(seq 0 $((num_dirs - 1))); do
     dest_dir=$(yq e ".directories[$i].destination" "$config_path") # Extract destination directory for current pair
 
     # Check for null or empty values in directory configuration
-    [[ -z "$src_dir" ]] && fail "Config: Source directory cannot be null or empty."
-    [[ -z "$dest_dir" ]] && fail "Config: Destination directory cannot be null or empty."
+    if [[ -z "$src_dir" || -z "$dest_dir" ]]; then
+        fail $EXIT_CONFIG_NULL_VALUES "Source or destination directory cannot be null or empty. Source: '$src_dir', Destination: '$dest_dir'"
+    fi
 
     # Check if the source directory exists and is not empty
     if [ -d "$src_dir" ] && [ -n "$(ls -A "$src_dir")" ]; then
@@ -97,18 +98,18 @@ for i in $(seq 0 $((num_dirs - 1))); do
         rsync_command="rsync -av -e 'ssh -i $ssh_key_path' --bwlimit=$bwlimit --exclude 'working' \"$src_dir\" \"$dest_user@$dest_host:$dest_dir\"" # Basic rsync command with bandwidth limit
 
         # Execute rsync command
-        rsync_output=$(eval $rsync_command) # Use eval to execute the constructed command
+        rsync_output=$(eval $rsync_command)
         log "$rsync_output"
 
         # Check the status of the rsync command
         if [ $? -eq 0 ]; then
             log "Data synchronization from $src_dir to $dest_dir completed successfully"
         else
-            fail "Data synchronization from $src_dir to $dest_dir failed"
+            fail $EXIT_RSYNC_FAIL "Data synchronization from $src_dir to $dest_dir failed"
         fi
     else
-        fail "Source directory $src_dir doesn't exist or is empty"
+        fail $EXIT_DIR_NOT_EXIST "Source directory $src_dir doesn't exist or is empty"
     fi
 done
 
-log "All specified directories have been processed."
+log "All specified directories have been processed"

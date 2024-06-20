@@ -14,6 +14,7 @@
 # Function to handle SIGINT (Ctrl+C) and mark event as incomplete
 handle_sigint() {
     # Mark event incomplete if event_id is set
+
     if [ -n "$current_event_id" ]; then
         local output_dir="$base_output_dir/$date_dir/$meter_id"
         mark_event_incomplete "$current_event_id" "$output_dir"
