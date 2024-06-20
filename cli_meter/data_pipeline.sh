@@ -36,32 +36,26 @@ download_dir=""
 
 # Check if no command line arguments were provided
 if [ "$#" -eq 0 ]; then
-    show_help_flag "-d"
+    show_help_flag
 fi
 
-# Parse command line arguments for --config/-c and --download_dir/-d flags
+# Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -c | --config)
         if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
-            show_help_flag "-d"
+            log "Missing value for the configuration path after '$1'."
+            show_help_flag
         fi
         config_path="$2"
         shift 2
         ;;
-    -d | --download_dir)
-        if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
-            show_help_flag "-d"
-        fi
-        download_dir="$2"
-        shift 2
-        ;;
     -h | --help)
-        show_help_flag "-d"
+        show_help_flag
         ;;
     *)
         log "Unknown parameter passed: $1"
-        show_help_flag "-d"
+        show_help_flag
         ;;
     esac
 done
@@ -73,15 +67,8 @@ else
     fail $EXIT_CONFIG_NOT_FOUND "Config file does not exist"
 fi
 
-# Read values from the config file if not overridden by command-line args
-if [ -z "$download_dir" ]; then
-    download_dir=$(yq '.download_directory' "$config_path")
-    if [ -z "$download_dir" ]; then
-        fail $EXIT_CONFIG_NOT_FOUND "Download directory cannot be null or empty, check config or add the download flag -d"
-    fi
-fi
-
 # Read the config file
+download_dir=$(yq '.download_directory' "$config_path")
 default_username=$(yq '.credentials.username' "$config_path")
 default_password=$(yq '.credentials.password' "$config_path")
 num_meters=$(yq '.meters | length' "$config_path")
@@ -90,6 +77,7 @@ data_type=$(yq '.data_type' "$config_path")
 bw_limit=$(yq '.bandwidth_limit' "$config_path")
 
 # Check for null or empty values
+[[ -z "$download_dir" ]] && fail $EXIT_CONFIG_NULL_VALUES "Download directory cannot be null or empty"
 [[ -z "$default_username" ]] && fail $EXIT_CONFIG_NULL_VALUES "Default username cannot be null or empty"
 [[ -z "$default_password" ]] && fail $EXIT_CONFIG_NULL_VALUES "Default password cannot be null or empty"
 [[ -z "$num_meters" || "$num_meters" -eq 0 ]] && fail $EXIT_CONFIG_NULL_VALUES "Must have at least 1 meter in the config file"
