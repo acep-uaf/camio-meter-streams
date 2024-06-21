@@ -66,7 +66,7 @@ fi
 if [ -f "$config_path" ]; then
     log "Config file exists at: $config_path"
 else
-    fail $EXIT_UNKNOWN "Config file does not exist"
+    fail $EXIT_FILE_NOT_FOUND "Config file not found at: $config_path"
 fi
 
 # Parse general configuration using yq
@@ -75,9 +75,9 @@ dest_host=$(yq e '.host' "$config_path")
 dest_user=$(yq e '.credentials.user' "$config_path") 
 ssh_key_path=$(yq e '.credentials.ssh_key_path' "$config_path") 
 
-[[ -z "$dest_host" ]] && fail $EXIT_UNKNOWN "Destination host cannot be null or empty"
-[[ -z "$dest_user" ]] && fail $EXIT_UNKNOWN "Destination user cannot be null or empty"
-[[ -z "$ssh_key_path" ]] && fail $EXIT_UNKNOWN "SSH key path cannot be null or empty"
+[[ -z "$dest_host" ]] && fail $EXIT_INVALID_CONFIG "Destination host cannot be null or empty"
+[[ -z "$dest_user" ]] && fail $EXIT_INVALID_CONFIG "Destination user cannot be null or empty"
+[[ -z "$ssh_key_path" ]] && fail $EXIT_INVALID_CONFIG "SSH key path cannot be null or empty"
 
 # Parse and process each directory pair using yq
 num_dirs=$(yq e '.directories | length' "$config_path") # Get the number of directory pairs
@@ -87,7 +87,7 @@ for i in $(seq 0 $((num_dirs - 1))); do
 
     # Check for null or empty values in directory configuration
     if [[ -z "$src_dir" || -z "$dest_dir" ]]; then
-        fail $EXIT_UNKNOWN "Source or destination directory cannot be null or empty. Source: '$src_dir', Destination: '$dest_dir'"
+        fail $EXIT_INVALID_CONFIG "Source or destination directory cannot be null or empty. Source: '$src_dir', Destination: '$dest_dir'"
     fi
 
     # Check if the source directory exists and is not empty
@@ -105,11 +105,11 @@ for i in $(seq 0 $((num_dirs - 1))); do
         if [ $? -eq 0 ]; then
             log "Data synchronization from $src_dir to $dest_dir completed successfully"
         else
-            fail $EXIT_UNKNOWN "Data synchronization from $src_dir to $dest_dir failed"
+            fail $EXIT_RSYNC_FAIL "Data synchronization from $src_dir to $dest_dir failed"
         fi
     else
-        fail $EXIT_UNKNOWN "Source directory $src_dir doesn't exist or is empty"
+        fail $EXIT_DIR_NOT_FOUND "Source directory $src_dir doesn't exist or is empty"
     fi
 done
 
-log "All specified directories have been processed"
+log "All directories have been processed"

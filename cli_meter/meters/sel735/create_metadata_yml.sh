@@ -22,7 +22,8 @@
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 6 ]; then
-    fail "Usage: $0 <file> <event_dir> <meter_id> <meter_type> <event_timestamp> <download_timestamp>"
+    log "Usage: $0 <file> <event_dir> <meter_id> <meter_type> <event_timestamp> <download_timestamp>"
+    exit $EXIT_INVALID_ARGS
 fi
 
 file=$1
@@ -57,8 +58,8 @@ if {
     echo "  Checksum: \"$checksum\""
 } >> "$metadata_path"; then
     log "Metadata generated for: $filename"
-    return 0 # Return with success code
+    exit $EXIT_SUCCESS # Return with success code
 else
     log "Error generating metadata for: $filename"
-    return 1 # Return with error code 
+    exit $EXIT_METADATA_FAIL
 fi

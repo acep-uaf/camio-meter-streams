@@ -57,7 +57,7 @@ done
 if [ -f "$config_path" ]; then
     log "Config file exists at: $config_path"
 else
-    fail $EXIT_UNKNOWN "Config file not found at: $config_path"    
+    fail $EXIT_FILE_NOT_FOUND "Config file not found at: $config_path"    
 fi
 
 # Read the config file into individual variables
@@ -70,12 +70,12 @@ data_type=$(yq '.data_type' "$config_path")
 bw_limit=$(yq '.bandwidth_limit // 0' "$config_path")  # Default to 0 if empty
 
 # Validate configuration values
-[[ -z "$base_download_dir" ]] && fail $EXIT_UNKNOWN "Download directory cannot be null or empty"
-[[ -z "$default_username" ]] && fail $EXIT_UNKNOWN "Default username cannot be null or empty"
-[[ -z "$default_password" ]] && fail $EXIT_UNKNOWN "Default password cannot be null or empty"
-[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && fail $EXIT_UNKNOWN "Must have at least 1 meter in the config file"
-[[ -z "$location" ]] && fail $EXIT_UNKNOWN "Location cannot be null or empty"
-[[ -z "$data_type" ]] && fail $EXIT_UNKNOWN "Data type cannot be null or empty"
+[[ -z "$base_download_dir" ]] && fail $EXIT_INVALID_CONFIG "Download directory cannot be null or empty"
+[[ -z "$default_username" ]] && fail $EXIT_INVALID_CONFIG "Default username cannot be null or empty"
+[[ -z "$default_password" ]] && fail $EXIT_INVALID_CONFIG "Default password cannot be null or empty"
+[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && fail $EXIT_INVALID_CONFIG "Must have at least 1 meter in the config file"
+[[ -z "$location" ]] && fail $EXIT_INVALID_CONFIG "Location cannot be null or empty"
+[[ -z "$data_type" ]] && fail $EXIT_INVALID_CONFIG "Data type cannot be null or empty"
 
 output_dir="$base_download_dir/$location/$data_type"
 
@@ -84,7 +84,7 @@ mkdir -p "$output_dir"
 if [ $? -eq 0 ]; then
     log "Directory created: $output_dir"
 else
-    fail $EXIT_UNKNOWN "Failed to create directory: $output_dir"
+    fail $EXIT_DIR_CREATION_FAIL "Failed to create directory: $output_dir"
 fi
 
 # Loop through the meters and download the event files

@@ -18,7 +18,8 @@
 
 # Check for exactly 3 arguments
 if [ "$#" -ne 3 ]; then
-    fail "Usage: $0 <source_dir> <dest_dir> <event_id>"
+    log "Usage: $0 <source_dir> <dest_dir> <event_id>"
+    exit $EXIT_INVALID_ARGS
 fi
 
 source_dir="$1"
@@ -31,8 +32,9 @@ zip -r -q "${dest_dir}/${event_id}.zip" $event_id
 popd > /dev/null
 
 if [ $? -eq 0 ]; then
-    echo "Files validated and zipped for event: $event_id"
+    log "Files validated and zipped for event: $event_id"
 else
-    fail "Error zipping files for $event_id"
+    log "Error zipping files for $event_id"
+    exit $EXIT_ZIP_FAIL
 fi
 

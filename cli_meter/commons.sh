@@ -37,7 +37,7 @@ EXIT_DIR_CREATION_FAIL=1016   # Failed to create directory
 EXIT_FILE_ACCESS_FAIL=1017    # File system permission or access issue
 
 # Network and Connection Errors
-EXIT_CONN_FAIL=1010           # Connection to meter failed
+EXIT_CONNECT_FAIL=1010           # Connection to meter failed
 EXIT_LFTP_FAIL=1006           # LFTP command failed
 
 # Command Execution Errors
@@ -48,6 +48,7 @@ EXIT_LOCK_FAIL=1007           # Failed to acquire lock
 EXIT_DOWNLOAD_FAIL=1011       # File download failure
 EXIT_VALIDATION_FAIL=1012     # Data validation failure
 EXIT_ZIP_FAIL=1013            # Compression/zipping failure
+EXIT_METADATA_FAIL=1018       # Metadata creation failure
 
 # Export exit codes for use in other scripts
 export EXIT_SUCCESS
@@ -67,6 +68,7 @@ export EXIT_LOCK_FAIL
 export EXIT_DOWNLOAD_FAIL
 export EXIT_VALIDATION_FAIL
 export EXIT_ZIP_FAIL
+export EXIT_METADATA_FAIL
 
 LOCKFD=99 # Assign a high file descriptor number for locking 
 
