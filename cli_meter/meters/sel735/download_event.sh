@@ -33,7 +33,7 @@ mkdir -p "$download_dir"
 if [ $? -eq 0 ]; then
     log "Created local directory for event: $event_id"
 else
-    fail $EXIT_DIR_NOT_EXIST "Failed to create local directory for event: $event_id"
+    fail $EXIT_UNKNOWN "Failed to create local directory for event: $event_id"
 fi
 
 # Single lftp session
@@ -50,5 +50,5 @@ END_FTP_SESSION
 if [ $? -eq 0 ]; then
     log "Download complete for event: $event_id"
 else
-    fail $EXIT_RSYNC_FAIL "Failed to download files for event: $event_id"
+    fail $EXIT_UNKNOWN "Failed to download files for event: $event_id"
 fi

@@ -20,33 +20,53 @@
 # Requirements:       flock
 # ==============================================================================
 
-# Custom Exit Codes (using 1000+ to avoid conflicts)
+# General Execution Codes
 EXIT_SUCCESS=0                # Successful completion
+EXIT_UNKNOWN=1099             # Unknown error
+
+# Argument and Configuration Errors
 EXIT_NO_ARGS=1000             # No arguments provided
 EXIT_INVALID_ARGS=1001        # Invalid arguments provided
 EXIT_CONFIG_NOT_FOUND=1002    # Configuration file not found
-EXIT_CONFIG_NULL_VALUES=1003      # Missing mandatory configuration
-EXIT_DIR_NOT_EXIST=1004       # Source directory does not exist or is empty
-EXIT_RSYNC_FAIL=1005          # Rsync command failed
+EXIT_INVALID_CONFIG=1003      # Invalid or missing critical configuration values
+
+# File and Directory Errors
+EXIT_FILE_NOT_FOUND=1014      # Required file not found
+EXIT_DIR_NOT_FOUND=1015       # Directory does not exist
+EXIT_DIR_CREATION_FAIL=1016   # Failed to create directory
+EXIT_FILE_ACCESS_FAIL=1017    # File system permission or access issue
+
+# Network and Connection Errors
+EXIT_CONN_FAIL=1010           # Connection to meter failed
 EXIT_LFTP_FAIL=1006           # LFTP command failed
+
+# Command Execution Errors
+EXIT_RSYNC_FAIL=1005          # Rsync command failed
 EXIT_LOCK_FAIL=1007           # Failed to acquire lock
-EXIT_PARSE_FAIL=1008          # Failed to parse configuration
-EXIT_MISSING_FILE=1009        # Missing file
-EXIT_UNKNOWN=1099             # Unknown error
+
+# Specific Operation Errors
+EXIT_DOWNLOAD_FAIL=1011       # File download failure
+EXIT_VALIDATION_FAIL=1012     # Data validation failure
+EXIT_ZIP_FAIL=1013            # Compression/zipping failure
 
 # Export exit codes for use in other scripts
 export EXIT_SUCCESS
+export EXIT_UNKNOWN
 export EXIT_NO_ARGS
 export EXIT_INVALID_ARGS
 export EXIT_CONFIG_NOT_FOUND
-export EXIT_CONFIG_NULL_VALUES
-export EXIT_DIR_NOT_EXIST
-export EXIT_RSYNC_FAIL
+export EXIT_INVALID_CONFIG
+export EXIT_FILE_NOT_FOUND
+export EXIT_DIR_NOT_FOUND
+export EXIT_DIR_CREATION_FAIL
+export EXIT_FILE_ACCESS_FAIL
+export EXIT_CONN_FAIL
 export EXIT_LFTP_FAIL
+export EXIT_RSYNC_FAIL
 export EXIT_LOCK_FAIL
-export EXIT_PARSE_FAIL
-export EXIT_MISSING_FILES
-export EXIT_UNKNOWN
+export EXIT_DOWNLOAD_FAIL
+export EXIT_VALIDATION_FAIL
+export EXIT_ZIP_FAIL
 
 LOCKFD=99 # Assign a high file descriptor number for locking 
 

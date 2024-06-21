@@ -54,7 +54,10 @@ Ensure you have the following before running the pipeline:
     ```bash
     chmod 600 config.yml
     ```
-
+#### Bandwidth Limit Configuration:
+- **Units**: The bandwidth limit is specified in bytes per second (bytes/s).
+- **Default Value**: If the bandwidth limit is not specified, it defaults to 0, meaning there is no limit (unlimited bandwidth).
+- **Suffix Support**: You can use suffixes to denote larger units, (e.g. K for kilobytes, 100K means 102400 bytes per second).
 ### Archive Pipeline Configuration
 1. Navigate to the `config` directory and copy the `archive_config.yml.example` file to a new `archive_config.yml` file:
 
@@ -82,13 +85,6 @@ To run the data pipeline and then transfer data to the Data Acquisition System (
 
     ```bash
     ./data_pipeline.sh -c /path/to/config.yml
-    ```
-
-    ### Optional Flag 
-    Optionally, you can use the `-d/--download_dir` flag to override the download directory from the config file.
-
-    ```bash
-    ./data_pipeline.sh -c /path/to/config.yml -d /path/to/download/dir/
     ```
 
 2. **Run the Archive Pipeline**
