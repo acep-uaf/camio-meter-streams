@@ -115,7 +115,7 @@ for ((i = 0; i < num_meters; i++)); do
         log "Download complete for meter: $meter_id"
     else
         exit_code=$?
-        fail $exit_code "Download failed for meter: $meter_id - Exit code: $exit_code - Error: $error_message"
+        fail $exit_code "Download failed for meter: $meter_id - $error_message"
     fi
 done
 

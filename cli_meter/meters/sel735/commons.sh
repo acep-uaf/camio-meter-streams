@@ -21,6 +21,7 @@ handle_sigint() {
     else
         log "current_event_id is not set, no event to move to .incomplete."
     fi
+    exit $EXIT_SIGINT
 
 }
 

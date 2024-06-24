@@ -49,6 +49,7 @@ EXIT_DOWNLOAD_FAIL=1011       # File download failure
 EXIT_VALIDATION_FAIL=1012     # Data validation failure
 EXIT_ZIP_FAIL=1013            # Compression/zipping failure
 EXIT_METADATA_FAIL=1018       # Metadata creation failure
+EXIT_SIGINT=130               # Script interrupted by SIGINT
 
 # Export exit codes for use in other scripts
 export EXIT_SUCCESS
@@ -69,6 +70,7 @@ export EXIT_DOWNLOAD_FAIL
 export EXIT_VALIDATION_FAIL
 export EXIT_ZIP_FAIL
 export EXIT_METADATA_FAIL
+export EXIT_SIGINT
 
 LOCKFD=99 # Assign a high file descriptor number for locking 
 
@@ -95,7 +97,7 @@ unlock()            { _lock u; }   # drop a lock
 fail() {
   local exit_code="${1:-$EXIT_UNKNOWN}" # default to EXIT_UNKNOWN if not provided
   local message="$2"
-  echo "[ERROR] $message. Exiting with code $exit_code." >&2
+  echo "[ERROR] Exit code $exit_code - $message" >&2
   exit "$exit_code"
 }
 

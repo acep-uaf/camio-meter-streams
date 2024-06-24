@@ -58,7 +58,6 @@ if {
     echo "  Checksum: \"$checksum\""
 } >> "$metadata_path"; then
     log "Metadata generated for: $filename"
-    exit $EXIT_SUCCESS # Return with success code
 else
     log "Error generating metadata for: $filename"
     exit $EXIT_METADATA_FAIL
