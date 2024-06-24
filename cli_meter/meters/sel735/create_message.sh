@@ -16,8 +16,8 @@
 
 # Check for exactly 5 arguments
 if [ "$#" -ne 5 ]; then
-  echo "Usage: $0 <event_id> <zip_filename> <path> <data_type> <output_dir>"
-  exit 1
+  log "Usage: $0 <event_id> <zip_filename> <path> <data_type> <output_dir>"
+  exit $EXIT_INVALID_ARGS
 fi
 
 event_id="$1"
@@ -38,8 +38,8 @@ json_payload=$(jq -n \
 # Write the JSON payload to the .message file
 echo "$json_payload" > "$message_file"
 if [ $? -eq 0 ]; then
-    echo "Created message file: $message_file with payload: $json_payload"
+    log "Created message file: $message_file with payload: $json_payload"
 else
-    echo "Failed to write to message file: $message_file" >&2
-    exit 1
+    log "Failed to write to message file: $message_file"
+    exit $EXIT_UNKNOWN
 fi

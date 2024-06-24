@@ -18,7 +18,8 @@
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 4 ]; then
-    fail $"Usage: $0 <meter_ip> <event_id> <output_dir> <bw_limit>"
+    log "Usage: $0 <meter_ip> <event_id> <output_dir> <bw_limit>"
+    exit $EXIT_INVALID_ARGS 
 fi
 
 # Extracting arguments into variables
@@ -33,7 +34,8 @@ mkdir -p "$download_dir"
 if [ $? -eq 0 ]; then
     log "Created local directory for event: $event_id"
 else
-    fail $EXIT_UNKNOWN "Failed to create local directory for event: $event_id"
+    log "Failed to create local directory for event: $event_id"
+    exit $EXIT_DIR_CREATION_FAIL
 fi
 
 # Single lftp session
@@ -50,5 +52,6 @@ END_FTP_SESSION
 if [ $? -eq 0 ]; then
     log "Download complete for event: $event_id"
 else
-    fail $EXIT_UNKNOWN "Failed to download files for event: $event_id"
+    log "Failed to download files for event: $event_id"
+    exit $EXIT_DOWNLOAD_FAIL 
 fi

@@ -24,7 +24,8 @@ log "Creating metadata for event: $event_id"
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 6 ]; then
-    fail "Usage: $0 <event_id> <event_dir> <meter_id> <meter_type> <event_timestamp> <download_timestamp>"
+    log "Usage: $0 <event_id> <event_dir> <meter_id> <meter_type> <event_timestamp> <download_timestamp>"
+    exit $EXIT_INVALID_ARGS
 fi
 
 event_id=$1
@@ -40,14 +41,18 @@ current_dir=$(dirname "${0}")
 # Loop through each file in the event directory
 for file in "$event_dir"/*; do
     if [ -f "$file" ] && [ -s "$file" ]; then
+        log "Processing file: $file"
+        
         # Source and check create_metadata_yml.sh
-        source "$current_dir/create_metadata_yml.sh" "$file" "$event_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"
-
-        if [ $? -ne 0 ]; then
-            fail "create_metadata_yml.sh failed for: $file"
+        if source "$current_dir/create_metadata_yml.sh" "$file" "$event_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"; then
+            log "Successfully processed metadata for: $file"
+        else
+            log "Metadata creation script failed for: $file"
+            exit $EXIT_METADATA_FAIL
         fi
 
     else
-        fail "No file found for $file"
+        log "File not found: $event_dir/$file"
+        exit $EXIT_FILE_NOT_FOUND
     fi
 done

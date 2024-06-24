@@ -27,7 +27,8 @@ trap handle_sigint SIGINT
 
 # Check for exactly 7 arguments
 if [ "$#" -ne 7 ]; then
-  fail $EXIT_UNKNOWN "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
+  log "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
+  exit $EXIT_INVALID_ARGS
 fi
 
 # Simple CLI flag parsing
@@ -45,7 +46,8 @@ mkdir -p "$base_output_dir"
 
 # Test connection to meter
 if ! source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bw_limit"; then
-  fail $EXIT_UNKNOWN "Failed to connect to meter: $meter_ip"
+  log "Failed to connect to meter: $meter_ip"
+  exit $EXIT_CONNECT_FAIL
 fi
 
 # output_dir is the location where the data will be stored
@@ -63,7 +65,8 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
 
   # Download event directory (5 files)
   if ! source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bw_limit"; then
-    fail $EXIT_UNKNOWN "Download failed for event_id: $event_id"
+    log "Download failed for event_id: $event_id"
+    exit $EXIT_DOWNLOAD_FAIL
   fi
 
    # If all files are downloaded successfully generate metadata/checksum then zip
@@ -73,7 +76,8 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
     
     # If all files are downloaded successfully, generate metadata/checksum then zip
     if ! source "$current_dir/generate_event_metadata.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"; then
-      fail $EXIT_UNKNOWN "Metadata generation failed for event: $event_id"
+      log "Metadata generation failed for event: $event_id"
+      exit $EXIT_METADATA_FAIL
     fi
     
     # Zip the event directory, including all files and the checksum.md5 file
@@ -81,7 +85,8 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
     mkdir -p "$event_zipped_output_dir"
 
     if ! source "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id"; then
-      fail $EXIT_UNKNOWN "Zipping failed for event: $event_id"
+      log "Zipping failed for event: $event_id"
+      exit $EXIT_ZIP_FAIL
     fi
 
     zip_filename="${event_id}.zip"
@@ -92,7 +97,8 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
     fi
 
   else
-    fail $EXIT_UNKNOWN "Not all files downloaded for event: $event_id"
+    log "Not all files downloaded for event: $event_id"
+    exit $EXIT_DOWNLOAD_FAIL
   fi
 done
 

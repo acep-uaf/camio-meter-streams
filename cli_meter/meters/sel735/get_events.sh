@@ -17,7 +17,8 @@
 
 # Check if the correct number of arguments are passed
 if [ "$#" -ne 3 ]; then
-    fail $EXIT_INVALID_ARGS "Usage: $0 <meter_ip> <meter_id> <output_dir>"
+    log $EXIT_INVALID_ARGS "Usage: $0 <meter_ip> <meter_id> <output_dir>"
+    exit $EXIT_INVALID_ARGS
 fi
 
 meter_ip=$1
@@ -48,7 +49,8 @@ END_FTP_SESSION
 if [ $? -eq 0 ]; then
     log "lftp session successful for: $(basename "$0")"
 else
-    fail $EXIT_UNKNOWN "lftp session failed for: $(basename "$0")"
+    log "lftp session failed for: $(basename "$0")"
+    exit $EXIT_LFTP_FAIL
 fi
 
 # Path to CHISTORY.TXT in the temporary directory
@@ -56,7 +58,8 @@ temp_file_path="$temp_dir/$remote_filename"
 
 # Check if CHISTORY.TXT exists and is not empty
 if [ ! -f "$temp_file_path" ] || [ ! -s "$temp_file_path" ]; then
-    fail $EXIT_UNKNOWN "Download failed: $remote_filename. Could not find file: $temp_file_path"
+    log "Download failed: $remote_filename. Could not find file: $temp_file_path"
+    exit $EXIT_FILE_NOT_FOUND 
 fi
 
 # Parse CHISTORY.TXT starting from line 4
@@ -92,7 +95,8 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
         fi
 
     else
-        fail $EXIT_UNKNOWN "Skipping line: $line, not entirely numeric. Check parsing"
+        log "Skipping line: $line, not entirely numeric. Check parsing"
+        exit $EXIT_UNKNOWN
     fi
 
 done
