@@ -28,20 +28,10 @@ _prepare_locking
 exlock_now || _failed_locking
 
 # Parse the config path argument
-config_path=$(parse_config_arg "$@")
+config_path=$(parse_config_arg "$@") || exit 1
 
-# Make sure a config path was set
-if [[ -z "$config_path" ]]; then
-    log "Config path must be specified."
-    show_help_flag
-fi
-
-# Make sure the config file exists
-if [ -f "$config_path" ]; then
-    log "Config file exists at: $config_path"
-else
-    fail "Config: Config file does not exist."
-fi
+# Make sure the output config file exists
+[ -f "$config_path" ] && log "Config file exists at: $config_path" || fail "Config: Config file does not exist."
 
 # Parse general configuration using yq
 bwlimit=$(yq e '.bandwidth_limit // "0"' "$config_path")
