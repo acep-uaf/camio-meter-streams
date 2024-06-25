@@ -60,19 +60,24 @@ parse_config_arg() {
       -c | --config)
         if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
           show_help_flag
+          fail "Config path not provided or invalid after -c/--config"
         fi
         config_path="$2"
         shift 2
         ;;
       -h | --help)
         show_help_flag
+        exit 1
         ;;
       *)
-        log "Unknown parameter passed: $1"
         show_help_flag
+        fail "Unknown parameter: $1"
         ;;
     esac
   done
+
+  [ -z "$config_path" ] && { show_help_flag; fail "Config path is required but not provided"; }
+
   echo "$config_path"
 }
 
@@ -87,6 +92,7 @@ show_help_flag() {
   log "  $0 -c /path/to/config.yml"
   log "  $0 --config /path/to/config.yml"
 }
+
 
 # Export functions for use in other scripts
 export -f log
