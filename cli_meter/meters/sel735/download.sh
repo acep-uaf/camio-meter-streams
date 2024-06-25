@@ -32,7 +32,7 @@ fi
 # Simple CLI flag parsing
 meter_ip="$1"
 base_output_dir="$2/working"
-base_zipped_output_dir="$2/level0"
+base_zipped_output_dir="$2/level0" #TODO: Pass this into get_events?
 meter_id="$3"
 meter_type="$4"
 bandwidth_limit="$5"

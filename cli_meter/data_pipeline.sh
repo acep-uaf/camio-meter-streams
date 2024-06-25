@@ -22,10 +22,8 @@ source "$current_dir/commons.sh"
 
 LOCKFILE="/var/lock/`basename $0`" # Define the lock file path using script's basename
 
-# ON START
+# On start
 _prepare_locking 
-
-### BEGINNING OF SCRIPT ###
  
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
