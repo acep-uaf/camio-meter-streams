@@ -51,32 +51,41 @@ log() {
   echo "$1" >&2
 }
 
+parse_config_arg() {
+  local config_path=""
+
+  # Parse command line arguments for --config/-c flags
+  while [[ "$#" -gt 0 ]]; do
+    case $1 in
+      -c | --config)
+        if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
+          show_help_flag
+        fi
+        config_path="$2"
+        shift 2
+        ;;
+      -h | --help)
+        show_help_flag
+        ;;
+      *)
+        log "Unknown parameter passed: $1"
+        show_help_flag
+        ;;
+    esac
+  done
+  echo "$config_path"
+}
+
 show_help_flag() {
-  download_flag=false
-
-  if [[ "$1" == "-d" ]]; then
-    download_flag=true
-  fi
-
   log "Usage: $0 [options]"
   log ""
   log "Options:"
   log "  -c, --config <path>          Specify the path to the YML config file."
-  if [[ "$download_flag" == true ]]; then
-    log "  -d, --download_dir <path>    Specify the path to the download directory."
-  fi
   log "  -h, --help                   Display this help message and exit."
   log ""
   log "Examples:"
-  if [[ "$download_flag" == true ]]; then
-    log "  $0 -c /path/to/config.yml -d /path/to/download_dir"
-    log "  $0 --config /path/to/config.yml --download_dir /path/to/download_dir"
-  else
-    log "  $0 -c /path/to/config.yml"
-    log "  $0 --config /path/to/config.yml"
-  fi
-  exit 0
-
+  log "  $0 -c /path/to/config.yml"
+  log "  $0 --config /path/to/config.yml"
 }
 
 # Export functions for use in other scripts

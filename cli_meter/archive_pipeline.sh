@@ -27,34 +27,8 @@ _prepare_locking
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
 
-# Initialize config path variable
-config_path=""
-
-# Check if no command line arguments were provided
-if [ "$#" -eq 0 ]; then
-    show_help_flag
-fi
-
-# Parse command line arguments
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-    -c | --config)
-        if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
-            log "Error: Missing value for the configuration path after '$1'."
-            show_help_flag
-        fi
-        config_path="$2"
-        shift 2
-        ;;
-    -h | --help)
-        show_help_flag
-        ;;
-    *)
-        log "Unknown parameter passed: $1"
-        show_help_flag
-        ;;
-    esac
-done
+# Parse the config path argument
+config_path=$(parse_config_arg "$@")
 
 # Make sure a config path was set
 if [[ -z "$config_path" ]]; then
