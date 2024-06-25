@@ -84,13 +84,6 @@ To run the data pipeline and then transfer data to the Data Acquisition System (
     ./data_pipeline.sh -c /path/to/config.yml
     ```
 
-    ### Optional Flag 
-    Optionally, you can use the `-d/--download_dir` flag to override the download directory from the config file.
-
-    ```bash
-    ./data_pipeline.sh -c /path/to/config.yml -d /path/to/download/dir/
-    ```
-
 2. **Run the Archive Pipeline**
 
     After the `data_pipeline` script completes, execute the `archive_pipeline` script from the `cli_meter` directory. The script requires a configuration file specified via the `-c/--config` flag.
@@ -109,6 +102,6 @@ When you need to stop the pipeline:
 
 - **To Stop Safely/Pause Download**: 
   - Use `Ctrl+C` to interrupt the process. 
-  - If you would like to resume the download, rerun the `data_pipeline`command.The download will resume from where it left off, provided the same config file (`-c`)and download path (`-d`) are used.
+  - If you would like to resume the download, rerun the `data_pipeline`command.The download will resume from where it left off, provided the same config file (`-c`)is used.
 - **Avoid Using `Ctrl+Z`**: 
   - **Do not** use `Ctrl+Z` to suspend the process, as it may cause the pipeline to end without properly closing the FTP connection.

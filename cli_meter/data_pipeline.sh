@@ -30,41 +30,8 @@ _prepare_locking
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
 
-# To be optionally be overriden by flags
-config_path=""
-download_dir=""
-
-# Check if no command line arguments were provided
-if [ "$#" -eq 0 ]; then
-    show_help_flag "-d"
-fi
-
-# Parse command line arguments for --config/-c and --download_dir/-d flags
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-    -c | --config)
-        if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
-            show_help_flag "-d"
-        fi
-        config_path="$2"
-        shift 2
-        ;;
-    -d | --download_dir)
-        if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
-            show_help_flag "-d"
-        fi
-        download_dir="$2"
-        shift 2
-        ;;
-    -h | --help)
-        show_help_flag "-d"
-        ;;
-    *)
-        log "Unknown parameter passed: $1"
-        show_help_flag "-d"
-        ;;
-    esac
-done
+# Parse the config path argument
+config_path=$(parse_config_arg "$@")
 
 # Make sure the output config file exists
 if [ -f "$config_path" ]; then
