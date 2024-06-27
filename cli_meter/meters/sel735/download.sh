@@ -72,7 +72,7 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
     # If all files are downloaded successfully generate metadata/checksum then zip
     if validate_download "$output_dir" "$event_id"; then
       # Generate metadata and checksums of files for the event
-      source "$current_dir/generate_event_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"
+      source "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"
 
       # Zip the event directory, including all files and the checksum.md5 file
       event_zipped_output_dir="$base_zipped_output_dir/$date_dir/$meter_id"
