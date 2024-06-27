@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 # Source the helpers.bash file
-source "$BATS_TEST_DIRNAME/helpers.bash"
+source "$BATS_TEST_DIRNAME/helpers.sh"
 
 setup() {
   # Create a temporary directory for testing
