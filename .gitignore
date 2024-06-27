@@ -21,7 +21,8 @@
 CHISTORY.TXT
 *.zip
 *.ZIP
-*.yml
+archive_config.yml
+config.yml
 *.yaml
 
 >>>>>>> ot-dev-ftp-meter-download
