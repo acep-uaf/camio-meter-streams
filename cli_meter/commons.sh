@@ -82,15 +82,16 @@ parse_config_arg() {
 }
 
 show_help_flag() {
-  log "Usage: $0 [options]"
+  script_name=$(basename "$0")
+  log "Usage: ./$script_name [options]"
   log ""
   log "Options:"
   log "  -c, --config <path>          Specify the path to the YML config file."
   log "  -h, --help                   Display this help message and exit."
   log ""
   log "Examples:"
-  log "  $0 -c /path/to/config.yml"
-  log "  $0 --config /path/to/config.yml"
+  log "  ./$script_name -c /path/to/config.yml"
+  log "  ./$script_name --config /path/to/config.yml"
 }
 
 

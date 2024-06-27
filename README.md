@@ -105,3 +105,47 @@ When you need to stop the pipeline:
   - If you would like to resume the download, rerun the `data_pipeline`command.The download will resume from where it left off, provided the same config file (`-c`)is used.
 - **Avoid Using `Ctrl+Z`**: 
   - **Do not** use `Ctrl+Z` to suspend the process, as it may cause the pipeline to end without properly closing the FTP connection.
+
+
+## Testing
+
+This repository includes automated tests for the scripts using [Bats (Bash Automated Testing System)](https://github.com/bats-core/bats-core). The tests are located in the `test` directory. 
+
+[Bats Documentation](https://bats-core.readthedocs.io/en/stable/index.html)
+### Prerequisites
+
+Ensure you have `bats-core` installed. You can install it using the following steps:
+
+1. **On Ubuntu/Debian**:
+
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y bats
+    ```
+
+2. **On macOS (using Homebrew)**:
+
+    ```bash
+    brew install bats-core
+    ```
+
+### Running the Tests
+
+1. **Navigate to the project directory**:
+
+    ```bash
+    cd /path/to/camio-meter-streams/cli_meter
+    ```
+
+2. **Run all the tests**:
+
+    ```bash
+    bats test/
+    ```
+
+3. **Run specific test files**:
+
+    ```bash
+    bats test/test_data_pipeline.bats
+    bats test/test_commons.bats
+    ```
