@@ -2,6 +2,7 @@
 
 # Source the helpers.bash file
 source "$BATS_TEST_DIRNAME/helpers.sh"
+script_name="bash"
 
 setup() {
   # Create a temporary directory for testing
@@ -32,6 +33,7 @@ teardown() {
   echo "$output"
   echo "$expected_help_msg"
   [[ "$output" =~ "$expected_help_msg" ]]
+  [[ "${lines[-1]}" =~ "[ERROR] Config path is required but not provided" ]]
 }
 
 # Other tests can be added here following the same pattern
