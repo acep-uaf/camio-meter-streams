@@ -25,12 +25,7 @@ log "Starting cleanup process in directory: $base_directory"
 
 # Find and delete all directories matching the pattern *.incomplete_<digit>
 find "$base_directory" -type d -regex '.*/.*\.incomplete_[0-9]+' -print0 | while IFS= read -r -d '' dir; do
-  rm -rf "$dir"
-  if [ ! -d "$dir" ]; then
-    log "Successfully deleted $dir"
-  else
-    log "Failed to delete $dir"
-  fi
+  rm -rf "$dir" && log "Successfully deleted $dir" || log "Failed to delete $dir"
 done
 
 echo "Cleanup process completed."

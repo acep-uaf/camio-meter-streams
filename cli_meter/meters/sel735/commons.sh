@@ -21,7 +21,7 @@ handle_sigint() {
     else
         log "current_event_id is not set, no event to move to .incomplete."
     fi
-    
+
     source "$current_dir/cleanup_incomplete.sh" "$base_output_dir"
 }
 
@@ -35,11 +35,10 @@ mark_event_incomplete() {
 
   # Check if the original directory exists
   if [ -d "$original_dir" ]; then
-    # Find an available suffix or the one to rotate
     local suffix=1
     while [ -d "${base_incomplete_dir}_${suffix}" ]; do
-      let suffix++
-      # If reaching the 6th iteration, start rotation from 1
+      ((suffix++))
+      # If we reach 5, we need to rotate the directories
       if [ "$suffix" -gt 5 ]; then
         suffix=5
         break
@@ -71,9 +70,7 @@ validate_download() {
     # Files expect to have downloaded
     local expected_files=("CEV_${event_id}.CEV" "HR_${event_id}.CFG" "HR_${event_id}.DAT" "HR_${event_id}.HDR" "HR_${event_id}.ZDAT")
     for file in "${expected_files[@]}"; do
-        if [ ! -f "${event_dir}/${file}" ]; then
-            return 0 # File is missing
-        fi
+        [ ! -f "${event_dir}/${file}" ] && return 0 # File is missing
     done
     return 1 # All files are present
 }

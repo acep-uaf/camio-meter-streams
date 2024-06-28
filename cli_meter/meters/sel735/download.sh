@@ -85,7 +85,7 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
     else
       #TODO: handle this case
       log "Not all files downloaded for event: $event_id"
-      #mark_event_incomplete "$event_id" "$output_dir"
+      mark_event_incomplete "$event_id" "$output_dir"
     fi
   else
     log "Download failed for event_id: $event_id, skipping metadata creation."
