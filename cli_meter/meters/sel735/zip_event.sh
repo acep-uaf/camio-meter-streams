@@ -17,9 +17,7 @@
 # ==============================================================================
 
 # Check for exactly 3 arguments
-if [ "$#" -ne 3 ]; then
-    fail "Usage: $0 <source_dir> <dest_dir> <event_id>"
-fi
+[ "$#" -ne 3 ] && fail "Usage: $0 <source_dir> <dest_dir> <event_id>"
 
 source_dir="$1"
 dest_dir="$2"
@@ -27,12 +25,5 @@ event_id="$3"
 
 # Zip the files in the source directory
 pushd "$source_dir" > /dev/null
-zip -r -q "${dest_dir}/${event_id}.zip" $event_id
+zip -r -q "${dest_dir}/${event_id}.zip" $event_id && log "Zipped files for event: $event_id" || fail "Error zipping files for $event_id"
 popd > /dev/null
-
-if [ $? -eq 0 ]; then
-    echo "Files validated and zipped for event: $event_id"
-else
-    fail "Error zipping files for $event_id"
-fi
-

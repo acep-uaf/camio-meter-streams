@@ -23,6 +23,7 @@ handle_sigint() {
     fi
 
     source "$current_dir/cleanup_incomplete.sh" "$base_output_dir"
+    exit 1
 }
 
 # Function to mark an event as incomplete and rotate older incomplete directories
@@ -70,7 +71,7 @@ validate_download() {
     # Files expect to have downloaded
     local expected_files=("CEV_${event_id}.CEV" "HR_${event_id}.CFG" "HR_${event_id}.DAT" "HR_${event_id}.HDR" "HR_${event_id}.ZDAT")
     for file in "${expected_files[@]}"; do
-        [ ! -f "${event_dir}/${file}" ] && return 0 # File is missing
+        [ ! -f "${event_dir}/${file}" ] && return 0 # False File is missing
     done
-    return 1 # All files are present
+    return 1 # True All files are present
 }

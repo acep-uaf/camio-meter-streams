@@ -21,10 +21,7 @@
 log "Creating metadata for event: $event_id"
 
 # Check if the correct number of arguments are passed
-if [ "$#" -ne 6 ]; then
-    log "Usage: $0 <event_id> <event_dir> <meter_id> <meter_type> <event_timestamp> <download_timestamp>"
-    exit $EXIT_INVALID_ARGS
-fi
+[ "$#" -ne 6 ] && fail "Usage: $0 <event_id> <event_dir> <meter_id> <meter_type> <event_timestamp> <download_timestamp>"
 
 event_id=$1
 event_dir="$2/$event_id" # Assumes location/data_type/working/YYYY-MM/meter_id/event_id
@@ -62,19 +59,15 @@ create_metadata_yml() {
         echo "  EventID: \"$event_id\""
         echo "  DataLevel: \"level0\""
         echo "  Checksum: \"$checksum\""
-    } >> "$metadata_path" && log "Metadata generated for: $filename" || {
-        log "Error generating metadata for: $filename"
-        exit $EXIT_METADATA_FAIL
-    }
+    } >> "$metadata_path" && log "Metadata generated for: $filename" || fail "Failed to generate metadata for: $filename"
 }
 
 # Loop through each file in the event directory
 for file in "$event_dir"/*; do
     [ -f "$file" ] && [ -s "$file" ] && {
         log "Processing file: $file"
-        create_metadata_yml "$file" "$event_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp" || exit $EXIT_METADATA_FAIL
+        create_metadata_yml "$file" "$event_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp" || fail "Failed to create metadata file for: $file"
     } || {
-        log "File not found or is empty: $event_dir/$file"
-        exit $EXIT_FILE_NOT_FOUND
+        fail "File not found or is empty: $file"
     }
 done

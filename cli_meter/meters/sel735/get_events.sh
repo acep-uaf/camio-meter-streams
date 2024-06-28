@@ -16,10 +16,7 @@
 # ==============================================================================
 
 # Check if the correct number of arguments are passed
-if [ "$#" -ne 3 ]; then
-    fail "Usage: $0 <meter_ip> <meter_id> <output_dir>"
-    exit 1
-fi
+[ "$#" -ne 3 ] && fail "Usage: $0 <meter_ip> <meter_id> <output_dir>"
 
 meter_ip=$1
 meter_id=$2
@@ -45,25 +42,16 @@ mget $remote_filename
 bye
 END_FTP_SESSION
 
+lftp_exit_code=$?
+
 # Check the exit status of lftp command
-if [ $? -eq 0 ]; then
-    log "lftp session successful for: $(basename "$0")"
-else
-    fail "lftp session failed for: $(basename "$0")"
-    exit 1
-fi
+[ $lftp_exit_code -eq 0 ] && log "lftp session successful for: $(basename "$0")" || fail "lftp session failed for: $(basename "$0")"
 
 # Path to CHISTORY.TXT in the temporary directory
 temp_file_path="$temp_dir/$remote_filename"
 
 # Check if CHISTORY.TXT exists and is not empty
-if [ ! -f "$temp_file_path" ] || [ ! -s "$temp_file_path" ]; then
-    fail "Download failed: $remote_filename. Could not find file: $temp_file_path"
-    exit 1
-fi
-
-# Initialize a flag to indicate the success of the entire loop process
-loop_success=true
+[ ! -s "$temp_file_path" ] && fail "Download failed: $remote_filename. File is empty: $temp_file_path"
 
 # Parse CHISTORY.TXT starting from line 4
 awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
@@ -86,27 +74,16 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
                 log "Complete directory for event: $event_id"
 
             elif [ "$non_empty_files_count" -ne 0 ]; then
-                #TODO: Handle this case
+                # Echo the event information to add it to be downloaded
                 log "Incomplete directory for event: $event_id"
+                echo "$event_id,$date_dir,$event_timestamp"
             fi
-
         else
+            # Echo the event information to add it to be downloaded
             log "No event directory found, proceeding to download event: $event_id"
-
-            # Output the event_id and date_dir back to download.sh to parse through
             echo "$event_id,$date_dir,$event_timestamp"
         fi
-
     else
-        fail "Skipping line: $line, not entirely numeric. Check parsing."
-        loop_success=false
+        fail "Parsing error, skipping line: $line."
     fi
-
 done
-
-# After the loop, check the flag and log accordingly
-if [ "$loop_success" = true ]; then
-    log "Successfully processed all events."
-else
-    log "Finished processing with some errors."
-fi

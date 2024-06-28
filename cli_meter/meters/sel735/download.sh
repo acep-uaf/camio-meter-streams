@@ -24,15 +24,13 @@ export current_event_id=""
 
 trap handle_sigint SIGINT
 
-# Check for exactly 4 arguments
-if [ "$#" -ne 7 ]; then
-  fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
-fi
+# Check for exactly 7 arguments
+[ "$#" -ne 7 ] && fail "Usage: $0 <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
 
 # Simple CLI flag parsing
 meter_ip="$1"
 base_output_dir="$2/working"
-base_zipped_output_dir="$2/level0" #TODO: Pass this into get_events?
+base_zipped_output_dir="$2/level0"
 meter_id="$3"
 meter_type="$4"
 bandwidth_limit="$5"
@@ -59,28 +57,31 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
   path="$location/$data_type/$date_dir/$meter_id"
 
   # Download event directory (5 files)
-  source "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit"
-
+  "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit"
+  download_event_exit_code=$?
   # Check if download_event.sh was successful before creating metadata
-  if [ $? -eq 0 ]; then
+  if [ $download_event_exit_code -eq 0 ]; then
     # Timestamp is time this script is run.
     download_timestamp=$(date --iso-8601=seconds)
 
-    # If all files are downloaded successfully generate metadata/checksum then zip
+    # If all files are downloaded successfully generate metadata/checksum then zip and create message
     if validate_download "$output_dir" "$event_id"; then
-      # Generate metadata and checksums of files for the event
-      source "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp"
+
+      # Execute generate_metadata_yml.sh
+      "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp" || fail "Failed to generate metadata."
 
       # Zip the event directory, including all files and the checksum.md5 file
       event_zipped_output_dir="$base_zipped_output_dir/$date_dir/$meter_id"
 
-      mkdir -p "$event_zipped_output_dir"
-      source "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id"
+      mkdir -p "$event_zipped_output_dir" 
+
+      # Execute zip_event.sh
+      "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" || fail "Failed to zip event directory."
 
       zip_filename="${event_id}.zip"
       
-      # Call the create_message.sh script
-      source "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir"
+      # Execute create_message.sh
+      "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir" || fail "Failed to create message file."
 
     else
       log "Not all files downloaded for event: $event_id"
@@ -88,5 +89,6 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
     fi
   else
     log "Download failed for event_id: $event_id, skipping metadata creation."
+    mark_event_incomplete "$event_id" "$output_dir"
   fi
 done

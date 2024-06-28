@@ -12,6 +12,7 @@
 # Requirements:       None
 # ==============================================================================
 source "$(dirname "$0")/../../commons.sh"
+
 # Check for exactly 1 argument
 [[ "$#" -ne 1 ]] && fail "Usage: $0 <directory>"
 
@@ -28,4 +29,4 @@ find "$base_directory" -type d -regex '.*/.*\.incomplete_[0-9]+' -print0 | while
   rm -rf "$dir" && log "Successfully deleted $dir" || log "Failed to delete $dir"
 done
 
-echo "Cleanup process completed."
+log "Cleanup process completed."

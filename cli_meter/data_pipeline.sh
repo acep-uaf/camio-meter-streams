@@ -52,15 +52,9 @@ bandwidth_limit=$(yq '.bandwidth_limit' "$config_path")
 [[ -z "$data_type" ]] && fail "Config: Data type cannot be null or empty."
 [[ -z "$bandwidth_limit" ]] && fail "Config: Bandwidth limit cannot be null or empty."
 
+# Create the base output directory
 output_dir="$download_dir/$location/$data_type"
-
-# Create the directory if it doesn't exist
-mkdir -p "$output_dir"
-if [ $? -eq 0 ]; then
-    log "Directory created successfully: $output_dir"
-else
-    fail "Failed to create directory: $output_dir"
-fi
+mkdir -p "$output_dir" && log "Directory created successfully: $output_dir" || fail "Failed to create directory: $output_dir"
 
 # Loop through the meters and download the event files
 for ((i = 0; i < num_meters; i++)); do
@@ -80,7 +74,7 @@ for ((i = 0; i < num_meters; i++)); do
     if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location"; then
         log "Download complete for meter: $meter_id"
     else
-        log "Download failed for meter: $meter_id. Move to next meter. Check the logs for details."
-        echo "" # Add a newline readability
+        log "[WARNING] Download not complete for meter: $meter_id. Moving to next meter."
+        log "" # Add a newline readability
     fi
 done
