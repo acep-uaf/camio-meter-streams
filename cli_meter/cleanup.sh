@@ -37,7 +37,7 @@ num_dirs=$(yq '.directories | length' "$config_path")
 
 # Check if cleanup is enabled
 if [ "$enable_cleanup" ]; then
-  log "Starting cleanup process..."
+  log "Cleanup enabled, starting cleanup process..."
   [[ -z "$num_dirs" || "$num_dirs" -eq 0 ]] && log "No directories to clean."
 
   for ((i = 0; i < num_dirs; i++)); do
@@ -59,11 +59,7 @@ if [ "$enable_cleanup" ]; then
         # Now check and remove empty directories
         find "$level0_dir" -depth -type d | while read -r dir; do
           if [ -z "$(ls -A "$dir")" ]; then
-            if rmdir "$dir"; then
-              log "Removing empty directory: $dir"
-            else
-              log "Failed to remove empty directory: $dir"
-            fi
+            rmdir "$dir" && log "Removing empty directory: $dir" || log "Failed to remove empty directory: $dir"
           fi
         done
 
