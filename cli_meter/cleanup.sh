@@ -17,7 +17,7 @@ current_dir=$(dirname "$(readlink -f "$0")")
 # Source the commons.sh file
 source "$current_dir/commons.sh"
 
-LOCKFILE="/var/lock/`basename $0`" # Define the lock file path using script's basename
+LOCKFILE="/var/lock/$(basename $0)" # Define the lock file path using script's basename
 
 # On start
 _prepare_locking 
@@ -41,21 +41,38 @@ if [ "$enable_cleanup" ]; then
   [[ -z "$num_dirs" || "$num_dirs" -eq 0 ]] && log "No directories to clean."
 
   for ((i = 0; i < num_dirs; i++)); do
-    dir=$(yq ".directories[$i].source" "$config_path")
-    retention_minutes=$(yq ".directories[$i].retention_minutes" "$config_path")
-    log "Cleaning directory: $dir"
-    log "retention_minutes: $retention_minutes"
+    base_dir=$(yq ".directories[$i].source" "$config_path")
+    retention_days=$(yq ".directories[$i].retention_days" "$config_path")
+    
+    if [ -d "$base_dir" ] && [ -n "$retention_days" ]; then
+      log "Cleaning level0 directories older than $retention_days days in $base_dir"
+      
+      # Find level0 directories
+      find "$base_dir" -type d -regex '.*/level0' | while read -r level0_dir; do
+        log "Cleaning level0 directory: $level0_dir"
+        
+        # Find and delete files older than retention_days, logging each deletion
+        find "$level0_dir" -type f -mmin +$retention_days | while read -r file; do
+          rm -f "$file" && log "Deleted file: $file" || log "Failed to delete file: $file"
+        done
 
-    if [ -d "$dir" ]; then
-      log "Deleting everything older than $retention_minutes minutes in directory $dir"
-      find "$dir" -mindepth 1 -mmin +$retention_minutes -ls
-      # Switch to days -mtime +$retention_days
+        # Now check and remove empty directories
+        find "$level0_dir" -depth -type d | while read -r dir; do
+          if [ -z "$(ls -A "$dir")" ]; then
+            if rmdir "$dir"; then
+              log "Removing empty directory: $dir"
+            else
+              log "Failed to remove empty directory: $dir"
+            fi
+          fi
+        done
+
+      done
     else
-      log "Directory $dir does not exist. Skipping..."
+      log "Directory $base_dir does not exist or retention_days not set. Skipping..."
     fi
   done
-
   log "Cleanup process completed."
 else
-  log "Cleanup is disabled. Check config."
+  log "Cleanup is disabled."
 fi
