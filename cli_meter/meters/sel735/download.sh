@@ -32,7 +32,7 @@ fi
 # Simple CLI flag parsing
 meter_ip="$1"
 base_output_dir="$2/working"
-base_zipped_output_dir="$2/level0"
+base_zipped_output_dir="$2/level0" #TODO: Pass this into get_events?
 meter_id="$3"
 meter_type="$4"
 bandwidth_limit="$5"
@@ -44,9 +44,6 @@ mkdir -p "$base_output_dir"
 
 # Test connection to meter
 source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bandwidth_limit"
-
-# Initialize a flag to indicate the success of the entire loop process
-loop_success=true
 
 # output_dir is the location where the data will be stored
 for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_output_dir"); do
@@ -86,19 +83,10 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
       source "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir"
 
     else
-      #TODO: handle this case
       log "Not all files downloaded for event: $event_id"
-      loop_success=false
+      mark_event_incomplete "$event_id" "$output_dir"
     fi
   else
     log "Download failed for event_id: $event_id, skipping metadata creation."
-    loop_success=false
   fi
 done
-
-# After the loop, check the flag and log accordingly
-if [ "$loop_success" = true ]; then
-  log "Successfully downloaded all events."
-else
-  log "Finished downloaded with some errors."
-fi

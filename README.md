@@ -96,6 +96,14 @@ To run the data pipeline and then transfer data to the Data Acquisition System (
     #### Notes
     The **rsync** uses the `--exclude` flag to exclude the `working` directory to ensure only complete files are transfered. 
 
+3. **Run the Cleanup Process (Conditional)**
+
+    If the `archive_pipeline` script completes successfully and the `enable_cleanup` flag is set to true in the archive configuration file, the `cleanup.sh` script will be executed automatically. This script removes outdated event files from level0 based on the retention period specified in the configuration file.
+
+    #### Notes
+    Ensure that the `cleanup.sh` script is configured correctly in the `archive_config.yml` file to specify the retention period for each directory set for the cleanup process.
+
+
 ## How to Stop the Pipeline
 
 When you need to stop the pipeline:
