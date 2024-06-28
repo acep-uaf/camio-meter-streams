@@ -10,6 +10,7 @@
 #   validate_download()   - Validates if all files for an event have been downloaded
 #
 # ==============================================================================
+current_dir=$(dirname "$(readlink -f "$0")")
 
 # Function to handle SIGINT (Ctrl+C) and mark event as incomplete
 handle_sigint() {
@@ -20,7 +21,8 @@ handle_sigint() {
     else
         log "current_event_id is not set, no event to move to .incomplete."
     fi
-
+    
+    source "$current_dir/cleanup_incomplete.sh" "$base_output_dir"
 }
 
 # Function to mark an event as incomplete and rotate older incomplete directories

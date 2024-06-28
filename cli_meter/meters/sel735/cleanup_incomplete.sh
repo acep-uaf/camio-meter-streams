@@ -18,7 +18,7 @@ source "$(dirname "$0")/../../commons.sh"
 base_directory="$1"
 
 # Check if base_directory exists
-[ -d "$base_directory" ] && log "Base directory exists at: $base_directory" || fail "Base directory does not exist."
+[ -d "$base_directory" ] || fail "Base directory does not exist."
 
 # Start cleanup process
 log "Starting cleanup process in directory: $base_directory"
