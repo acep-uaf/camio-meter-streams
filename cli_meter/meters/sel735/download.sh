@@ -57,7 +57,7 @@ for event_info in $($current_dir/get_events.sh "$meter_ip" "$meter_id" "$base_ou
   path="$location/$data_type/$date_dir/$meter_id"
 
   # Download event directory (5 files)
-  "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit"
+  "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit" || fail "Failed to download event files."
   download_event_exit_code=$?
   # Check if download_event.sh was successful before creating metadata
   if [ $download_event_exit_code -eq 0 ]; then

@@ -15,7 +15,6 @@
 # Requirements:       yq
 #                     commons.sh
 # ==============================================================================
-
 current_dir=$(dirname "$(readlink -f "$0")")
 # Source the commons.sh file
 source "$current_dir/commons.sh"
@@ -28,11 +27,9 @@ _prepare_locking
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
 
-# Parse the config path argument
-config_path=$(parse_config_arg "$@") || exit 1
-
-# Make sure the output config file exists
-[ -f "$config_path" ] && log "Config file exists at: $config_path" || fail "Config: Config file does not exist."
+# Configuration file path
+config_path=$(parse_config_arg "$@")
+[ -f "$config_path" ] && log "Config file exists at: $config_path" || fail "Config file does not exist."
 
 # Read the config file
 download_dir=$(yq '.download_directory' "$config_path")
@@ -44,13 +41,13 @@ data_type=$(yq '.data_type' "$config_path")
 bandwidth_limit=$(yq '.bandwidth_limit' "$config_path")
 
 # Check for null or empty values
-[ -z "$download_dir" ] && fail "Config: Download directory cannot be null or empty."
-[[ -z "$default_username" ]] && fail "Config: Default username cannot be null or empty."
-[[ -z "$default_password" ]] && fail "Config: Default password cannot be null or empty."
-[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && fail "Config: Must have at least 1 meter in the config file."
-[[ -z "$location" ]] && fail "Config: Location cannot be null or empty."
-[[ -z "$data_type" ]] && fail "Config: Data type cannot be null or empty."
-[[ -z "$bandwidth_limit" ]] && fail "Config: Bandwidth limit cannot be null or empty."
+[[ -z "$download_dir" || "$download_dir" == "null" ]] && fail "Download directory cannot be null or empty."
+[[ -z "$default_username" || "$default_username" == "null" ]] && fail "Default username cannot be null or empty."
+[[ -z "$default_password" || "$default_password" == "null" ]] && fail "Default password cannot be null or empty."
+[[ -z "$location" || "$location" == "null" ]] && fail "Location cannot be null or empty."
+[[ -z "$data_type" || "$data_type" == "null" ]] && fail "Data type cannot be null or empty."
+[[ -z "$bandwidth_limit" || "$bandwidth_limit" == "null" ]] && fail "Bandwidth limit cannot be null or empty."
+[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && fail "Must have at least 1 meter in the config file."
 
 # Create the base output directory
 output_dir="$download_dir/$location/$data_type"
@@ -74,7 +71,7 @@ for ((i = 0; i < num_meters; i++)); do
     if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location"; then
         log "Download complete for meter: $meter_id"
     else
-        log "[WARNING] Download not complete for meter: $meter_id. Moving to next meter."
-        log "" # Add a newline readability
+        # This will be changed to a warning in the future
+        fail "Download not complete for meter: $meter_id. Moving to next meter."
     fi
 done

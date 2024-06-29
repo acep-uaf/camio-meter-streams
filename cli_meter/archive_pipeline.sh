@@ -27,10 +27,8 @@ _prepare_locking
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
 
-# Parse the config path argument
-config_path=$(parse_config_arg "$@") || exit 1
-
-# Make sure the output config file exists
+# Configuration file path
+config_path=$(parse_config_arg "$@")
 [ -f "$config_path" ] && log "Config file exists at: $config_path" || fail "Config file does not exist."
 
 # Parse general configuration using yq
@@ -39,9 +37,9 @@ dest_host=$(yq e '.host' "$config_path")
 dest_user=$(yq e '.credentials.user' "$config_path") 
 ssh_key_path=$(yq e '.credentials.ssh_key_path' "$config_path") 
 
-[[ -z "$dest_host" ]] && fail "Destination host cannot be null or empty."
-[[ -z "$dest_user" ]] && fail "Destination user cannot be null or empty."
-[[ -z "$ssh_key_path" ]] && fail "SSH key path cannot be null or empty."
+[[ -z "$dest_host" || "$dest_host" == "null" ]] && fail "Destination host cannot be null or empty."
+[[ -z "$dest_user" || "$dest_user" == "null" ]] && fail "Destination user cannot be null or empty."
+[[ -z "$ssh_key_path" || "$ssh_key_path" == "null" ]] && fail "SSH key path cannot be null or empty."
 
 # Parse and process each directory pair using yq
 num_dirs=$(yq e '.directories | length' "$config_path") # Get the number of directory pairs

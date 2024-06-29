@@ -12,7 +12,6 @@
 # Requirements:       yq
 #                     commons.sh
 # ==============================================================================
-
 current_dir=$(dirname "$(readlink -f "$0")")
 # Source the commons.sh file
 source "$current_dir/commons.sh"
@@ -25,11 +24,9 @@ _prepare_locking
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
 
-# Parse the config path argument
-config_path=$(parse_config_arg "$@") || exit 1
-
-# Make sure the output config file exists
-[ -f "$config_path" ] && log "Config file exists at: $config_path" || fail "Config: Config file does not exist."
+# Configuration file path
+config_path=$(parse_config_arg "$@")
+[ -f "$config_path" ] && log "Config file exists at: $config_path" || fail "Config file does not exist."
 
 # Load configuration
 enable_cleanup=$(yq '.enable_cleanup' "$config_path")

@@ -52,6 +52,7 @@ log() {
 }
 
 parse_config_arg() {
+  [ "$#" -eq 0 ] && show_help_flag && fail "No arguments provided."
   local config_path=""
 
   # Parse command line arguments for --config/-c flags
@@ -75,8 +76,6 @@ parse_config_arg() {
         ;;
     esac
   done
-
-  [ -z "$config_path" ] && { show_help_flag; fail "Config path is required but not provided"; }
 
   echo "$config_path"
 }
