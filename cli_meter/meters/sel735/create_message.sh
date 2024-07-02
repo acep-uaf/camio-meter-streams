@@ -18,7 +18,7 @@
 # ==============================================================================
 current_dir=$(dirname "$(readlink -f "$0")")
 script_name=$(basename "$0")
-source "$current_dir/../../common_utils.sh"
+source "$current_dir/../../common_utils.sh" 
 
 # Check for exactly 5 arguments
 [ "$#" -ne 5 ] && fail $EXIT_INVALID_ARGS "Usage: $script_name <id> <zip_filename> <path> <data_type> <output_dir>"

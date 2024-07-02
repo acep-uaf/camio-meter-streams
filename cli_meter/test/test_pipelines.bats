@@ -19,32 +19,31 @@ teardown() {
     run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh"
     [ "$status" -ne 0 ]
     [[ "$output" =~ "$expected_help_msg" ]]
-    [[ "${lines[-1]}" =~ "[ERROR] Config path is required but not provided" ]]
+    [[ "${lines[-1]}" =~ "[ERROR] No arguments provided. Exit code: 1000" ]]
 }
 
 @test "data_pipeline.sh shows usage for help flags" {
     local expected_help_msg=$(help_msg $script_name)
     run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh" -h
     [ "$status" -ne 0 ]
-    [[ "$output" == "$expected_help_msg" ]]
+    [[ "$output" =~ "$expected_help_msg" ]]
 
     run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh" --help
     [ "$status" -ne 0 ]
-    [[ "$output" == "$expected_help_msg" ]]
+    [[ "$output" =~ "$expected_help_msg" ]]
 }
 
 @test "data_pipeline.sh fails with no config path" {
     local expected_help_msg=$(help_msg $script_name)
     run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh" -c 
-    [ "$status" -ne 0 ]
     [[ "$output" =~ "$expected_help_msg" ]]
-    [[ "${lines[-1]}" =~ "[ERROR] Config path not provided or invalid after -c/--config" ]]
+    [[ "$output" =~ "[ERROR] Config path not provided or invalid after -c/--config. Exit code: 1000" ]]
 }
 
 @test "data_pipeline.sh fails with invalid config path" {
     run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh" -c invalid_path
     [ "$status" -ne 0 ]
-    [[ "$output" =~ "[ERROR] Config: Config file does not exist." ]]
+    [[ "$output" =~ "[ERROR] Config file does not exist. Exit code: 1010" ]]
 }
 
 

@@ -21,7 +21,7 @@ source "$current_dir/../../common_utils.sh"
 base_directory="$1"
 
 # Check if base_directory exists
-[ -d "$base_directory" ] || fail $EXIT_DIR_NOT_FOUND "Base directory does not exist."
+[ -d "$base_directory" ] && log "Base directory exists" || fail $EXIT_DIR_NOT_FOUND "Base directory does not exist."
 
 log "Starting cleanup process in directory: $base_directory"
 
