@@ -10,23 +10,26 @@
 #   -h, --help         Show usage information
 #
 # Requirements:       yq
-#                     commons.sh
+#                     common_utils.sh
 # ==============================================================================
 current_dir=$(dirname "$(readlink -f "$0")")
-# Source the commons.sh file
-source "$current_dir/commons.sh"
+script_name=$(basename "$0")
+source "$current_dir/common_utils.sh"
 
-LOCKFILE="/var/lock/$(basename $0)" # Define the lock file path using script's basename
+LOCKFILE="/var/lock/$script_name" # Define the lock file path using script's basename
+
+# Check for at least 1 argument
+[ "$#" -lt 1 ] && show_help_flag && fail $EXIT_INVALID_ARGS "No arguments provided"
 
 # On start
-_prepare_locking 
+_prepare_locking
 
 # Try to lock exclusively without waiting; exit if another instance is running
 exlock_now || _failed_locking
 
 # Configuration file path
 config_path=$(parse_config_arg "$@")
-[ -f "$config_path" ] && log "Config file exists at: $config_path" || fail "Config file does not exist."
+[ -f "$config_path" ] && log "Config file exists at: $config_path" || fail $EXIT_FILE_NOT_FOUND "Config file does not exist"
 
 # Load configuration
 enable_cleanup=$(yq '.enable_cleanup' "$config_path")
