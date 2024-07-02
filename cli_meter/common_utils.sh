@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# Script Name:        commons.sh
+# Script Name:        common_utils.sh
 # Description:        This file contains common functions used by all scripts in
 #                     the Meter Event Data/Archive Pipeline.
 #
@@ -19,6 +19,54 @@
 #
 # Requirements:       flock
 # ==============================================================================
+# General Execution Codes
+EXIT_SUCCESS=0                # Successful completion
+EXIT_SIGINT=130               # Script interrupted by SIGINT (Ctrl+C)
+EXIT_UNKNOWN=1099             # Unknown error
+
+
+# Argument and Configuration Errors
+EXIT_INVALID_ARGS=1000        # Invalid arguments provided
+EXIT_INVALID_CONFIG=1001      # Invalid or missing critical configuration values
+
+# File and Directory Errors
+EXIT_FILE_NOT_FOUND=1010      # Required file not found
+EXIT_FILE_CREATION_FAIL=1011  # Failed to create file
+EXIT_DIR_NOT_FOUND=1012       # Directory does not exist
+EXIT_DIR_CREATION_FAIL=1013   # Failed to create directory
+
+# Command Errors
+EXIT_LFTP_FAIL=1020           # LFTP command failed
+EXIT_RSYNC_FAIL=1021          # Rsync command failed
+
+# Specific Operation Errors
+EXIT_DOWNLOAD_FAIL=1030       # File download failure
+EXIT_ZIP_FAIL=1031            # Compression/zipping failure
+EXIT_METADATA_FAIL=1032       # Metadata/Checksum creation or file generation failure
+EXIT_LOCK_FAIL=1033           # Failed to acquire lock
+
+export EXIT_SUCCESS
+export EXIT_SIGINT
+export EXIT_UNKNOWN
+export EXIT_LOCK_FAIL
+
+export EXIT_INVALID_ARGS
+export EXIT_CONFIG_NOT_FOUND
+export EXIT_INVALID_CONFIG
+
+export EXIT_FILE_NOT_FOUND
+export EXIT_DIR_NOT_FOUND
+export EXIT_DIR_CREATION_FAIL
+export EXIT_FILE_ACCESS_FAIL
+
+export EXIT_LFTP_FAIL
+export EXIT_RSYNC_FAIL
+
+
+export EXIT_DOWNLOAD_FAIL
+export EXIT_ZIP_FAIL
+export EXIT_METADATA_FAIL
+
 
 LOCKFD=99 # Assign a high file descriptor number for locking 
 
@@ -33,7 +81,7 @@ _failed_locking() {
     pgrep -af "$(basename $0)" | grep -v $$ | while read pid cmd; do
         log "PID: $pid, Command: $cmd"
     done
-    exit 1
+    fail $EXIT_LOCK_FAIL
 }
 
 exlock_now()        { _lock xn; }  # obtain an exclusive lock immediately or fail
@@ -43,8 +91,11 @@ unlock()            { _lock u; }   # drop a lock
 
 # Utility functions
 fail() {
-  echo "[ERROR] $1" >&2
-  exit 1
+  local exit_code="${1:-$EXIT_UNKNOWN}"
+  local message="${2:-""}"
+
+  log "[ERROR] $message. Exit code: $exit_code"
+  exit $exit_code
 }
 
 log() {
@@ -60,29 +111,27 @@ parse_config_arg() {
       -c | --config)
         if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
           show_help_flag
-          fail "Config path not provided or invalid after -c/--config"
+          fail $EXIT_INVALID_ARGS "Config path not provided or invalid after -c/--config"
         fi
         config_path="$2"
         shift 2
         ;;
       -h | --help)
         show_help_flag
-        exit 1
+        exit 0
         ;;
       *)
         show_help_flag
-        fail "Unknown parameter: $1"
+        fail $EXIT_INVALID_ARGS "Unknown parameter: $1"
         ;;
     esac
   done
-
-  [ -z "$config_path" ] && { show_help_flag; fail "Config path is required but not provided"; }
 
   echo "$config_path"
 }
 
 show_help_flag() {
-  script_name=$(basename "$0")
+  local script_name=$(basename "$0")
   log "Usage: ./$script_name [options]"
   log ""
   log "Options:"

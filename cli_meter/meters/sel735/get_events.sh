@@ -14,18 +14,30 @@
 #
 # Requirements:       lftp
 # ==============================================================================
+# Function to generate date directory name
+generate_date_dir() {
+    local year=$1
+    local month=$2
+    local base_output_dir=$3
+
+    formatted_month=$(printf '%02d' "$month")
+    date_dir="$year-$formatted_month"
+    echo "$date_dir"
+}
+# ==============================================================================
+
+current_dir=$(dirname "$(readlink -f "$0")")
+script_name=$(basename "$0")
+source "$current_dir/common_sel735.sh"
+source "$current_dir/../../common_utils.sh"
 
 # Check if the correct number of arguments are passed
-if [ "$#" -ne 3 ]; then
-    fail "Usage: $0 <meter_ip> <meter_id> <output_dir>"
-    exit 1
-fi
+[ "$#" -ne 3 ] && fail $EXIT_INVALID_ARGS "Usage: $script_name <meter_ip> <meter_id> <output_dir>"
 
 meter_ip=$1
 meter_id=$2
 output_dir=$3
 
-files_per_event=7
 remote_filename="CHISTORY.TXT"
 remote_dir="EVENTS"
 temp_dir_path="temp_dir.XXXXXX"
@@ -45,68 +57,38 @@ mget $remote_filename
 bye
 END_FTP_SESSION
 
+lftp_exit_code=$?
+
 # Check the exit status of lftp command
-if [ $? -eq 0 ]; then
-    log "lftp session successful for: $(basename "$0")"
-else
-    fail "lftp session failed for: $(basename "$0")"
-    exit 1
-fi
+[ $lftp_exit_code -eq 0 ] && log "Downloaded remote file: $remote_filename" || fail $EXIT_LFTP_FAIL "Failed to download remote file: $remote_filename"
 
 # Path to CHISTORY.TXT in the temporary directory
 temp_file_path="$temp_dir/$remote_filename"
 
 # Check if CHISTORY.TXT exists and is not empty
-if [ ! -f "$temp_file_path" ] || [ ! -s "$temp_file_path" ]; then
-    fail "Download failed: $remote_filename. Could not find file: $temp_file_path"
-    exit 1
-fi
-
-# Initialize a flag to indicate the success of the entire loop process
-loop_success=true
+[ -s "$temp_file_path" ] || fail $EXIT_FILE_NOT_FOUND "File does not exist or is empty: $remote_filename"
 
 # Parse CHISTORY.TXT starting from line 4
-awk 'NR > 3' "$temp_file_path" | while IFS= read -r line; do
+awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do
     # Remove quotes and then extract fields
-    clean_line=$(echo "$line" | sed 's/"//g')
+    clean_line=$(echo "$event_line" | sed 's/"//g')
     IFS=, read -r _ event_id month day year hour min sec _ <<<"$clean_line"
+    [[ ! $event_id =~ ^[0-9]+$ ]] && { log "Parsing error, skipping line: $event_line."; continue; }
 
-    if [[ $event_id =~ ^[0-9]+$ ]]; then
-        # Format event timestamp, pad month for date directory, and construct event directory path
-        event_timestamp=$(printf '%04d-%02d-%02dT%02d:%02d:%02d' "$year" "$month" "$day" "$hour" "$min" "$sec")
-        formatted_month=$(printf '%02d' "$month")
-        date_dir="$year-$formatted_month"
-        event_dir_path="$output_dir/$date_dir/$meter_id/$event_id"
+    # Format event timestamp, pad month for date directory, and construct event directory path
+    event_timestamp=$(printf '%04d-%02d-%02dT%02d:%02d:%02d' "$year" "$month" "$day" "$hour" "$min" "$sec")
+    date_dir=$(generate_date_dir "$year" "$month" "$output_dir")
+    event_dir_path="$output_dir/$date_dir/$meter_id/$event_id"
 
-        # Check if the event directory exists and has all the files
-        if [ -d "$event_dir_path" ]; then
-            non_empty_files_count=$(find "$event_dir_path" -type f ! -empty -print | wc -l)
-            
-            if [ "$non_empty_files_count" -eq $files_per_event ]; then
-                log "Complete directory for event: $event_id"
-
-            elif [ "$non_empty_files_count" -ne 0 ]; then
-                #TODO: Handle this case
-                log "Incomplete directory for event: $event_id"
-            fi
-
-        else
-            log "No event directory found, proceeding to download event: $event_id"
-
-            # Output the event_id and date_dir back to download.sh to parse through
-            echo "$event_id,$date_dir,$event_timestamp"
-        fi
-
+    # If the event directory does not exist, print the event ID else validate the directory
+    if [ ! -d "$event_dir_path" ]; then
+        log "No directory found, proceeding to download event: $event_id"
+        echo "$event_id,$date_dir,$event_timestamp"
     else
-        fail "Skipping line: $line, not entirely numeric. Check parsing."
-        loop_success=false
+        validate_complete_directory "$event_dir_path" "$event_id" && log "Complete directory for event: $event_id" || {
+            log "Incomplete directory, proceeding to download event: $event_id"
+            echo "$event_id,$date_dir,$event_timestamp"
+        }
+        
     fi
-
 done
-
-# After the loop, check the flag and log accordingly
-if [ "$loop_success" = true ]; then
-    log "Successfully processed all events."
-else
-    log "Finished processing with some errors."
-fi

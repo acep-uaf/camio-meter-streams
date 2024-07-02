@@ -1,13 +1,13 @@
 #!/bin/bash
 # ==============================================================================
-# Script Name:        commons.sh
-# Description:        Common utility functions used across various scripts in
-#                     the SEL-735 Meter Event Data Pipeline.
+# Script Name:        common_sel735.sh
+# Description:        Common utility functions for SEL-735 scripts in Meter Event Data Pipeline.
 #
 # Functions:
-#   handle_sigint()       - Handles SIGINT signal and marks the current event as incomplete
-#   mark_event_incomplete - Marks an event as incomplete and rotates older incomplete directories
-#   validate_download()   - Validates if all files for an event have been downloaded
+#   handle_sigint               - Handles SIGINT signal and marks the current event as incomplete
+#   mark_event_incomplete       - Marks an event as incomplete and rotates older incomplete directories
+#   validate_download           - Validates if all files for an event have been downloaded
+#   validate_complete_directory - Validates if the directory is complete
 #
 # ==============================================================================
 current_dir=$(dirname "$(readlink -f "$0")")
@@ -23,6 +23,7 @@ handle_sigint() {
     fi
 
     source "$current_dir/cleanup_incomplete.sh" "$base_output_dir"
+    fail $EXIT_SIGINT "SIGINT received. Exiting..."
 }
 
 # Function to mark an event as incomplete and rotate older incomplete directories
@@ -70,7 +71,26 @@ validate_download() {
     # Files expect to have downloaded
     local expected_files=("CEV_${event_id}.CEV" "HR_${event_id}.CFG" "HR_${event_id}.DAT" "HR_${event_id}.HDR" "HR_${event_id}.ZDAT")
     for file in "${expected_files[@]}"; do
-        [ ! -f "${event_dir}/${file}" ] && return 0 # File is missing
+        [ ! -f "${event_dir}/${file}" ] && log "Missing file: ${file} in directory: ${event_dir}" && return 1 # False - File is missing
     done
-    return 1 # All files are present
+    return 0 # True - All files are present
+}
+
+# Wrapper function to validate the complete directory
+validate_complete_directory() {
+    local event_dir=$1
+    local event_id=$2
+
+    [ -d "$event_dir" ] || return 1 # False - Directory does not exist
+
+    # Validate event files
+    validate_download "$event_dir" "$event_id" || return 1
+
+    # Check for metadata files
+    local metadata_files=("${event_id}_metadata.yml" "checksum.md5")
+    for file in "${metadata_files[@]}"; do
+        [ ! -f "${event_dir}/${file}" ] && log "Missing metadata file: ${file} in directory: ${event_dir}" && return 1 # False - Metadata file is missing
+    done
+
+    return 0 # True - All files are present
 }

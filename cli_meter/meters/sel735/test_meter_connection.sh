@@ -9,22 +9,26 @@
 #
 # Arguments:
 #   meter_ip          IP address of the meter
+#   bandwidth_limit   Optional: Bandwidth limit for the connection
+#                     (default is 0)
 #
 # Requirements:       lftp
-#                     commons.sh
+#                     common_utils.sh
 # ==============================================================================
+current_dir=$(dirname "$(readlink -f "$0")")
+script_name=$(basename "$0")
+source "$current_dir/../../common_utils.sh"
 
-# Check if the correct number of arguments are passed
-if [ "$#" -ne 2 ]; then
-    fail "Usage: $0 <meter_ip> <bandwidth_limit>"
-fi
+# Check if at least 1 argument is passed
+[ "$#" -lt 1 ] && fail $EXIT_INVALID_ARGS "Usage: $script_name <meter_ip> [bandwidth_limit]"
+
+meter_ip="$1"
+bandwidth_limit="${2:-0}" # If not set default to 0
 
 # Logging in to the FTP server and checking the connection using lftp
 lftp_output=$(lftp -u $USERNAME,$PASSWORD -e "set net:limit-rate $bandwidth_limit; ls; bye" $meter_ip)
+lftp_exit_code=$?
 
-if [ "$?" -eq 0 ]; then
-    log "Successful connection test to meter: $meter_ip"
-    return 0
-else
-    fail "The FTP service is not available, and the connection was not established. Check for multiple connections to the meter: $meter_ip"
-fi
+[ "$lftp_exit_code" -eq 0 ] && log "Successful connection test to meter: $meter_ip"|| fail $EXIT_LFTP_FAIL "Connection Unsuccessful to meter: $meter_ip"
+
+
