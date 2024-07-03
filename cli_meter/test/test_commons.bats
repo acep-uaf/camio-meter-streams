@@ -20,7 +20,7 @@ teardown() {
 #################### Test cases for common_utils.sh ####################
 @test "log function outputs message to stderr" {
   run log "Test log message"
-  assert_failure
+  assert_success
   assert_output "Test log message"
 }
 

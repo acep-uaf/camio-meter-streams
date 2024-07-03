@@ -7,3 +7,6 @@
 [submodule "cli_meter/test/test_helper/bats-assert"]
 	path = cli_meter/test/test_helper/bats-assert
 	url = https://github.com/bats-core/bats-assert.git
+[submodule "cli_meter/test/test_helper/bats-mock"]
+	path = cli_meter/test/test_helper/bats-mock
+	url = https://github.com/jasonkarns/bats-mock.git
