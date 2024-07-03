@@ -18,8 +18,9 @@ handle_sigint() {
     if [ -n "$current_event_id" ]; then
         local output_dir="$base_output_dir/$date_dir/$meter_id"
         mark_event_incomplete "$current_event_id" "$output_dir"
+        log "Download in progress, moving event $current_event_id to .incomplete"
     else
-        log "current_event_id is not set, no event to move to .incomplete."
+        log "No download in progress, no event to move to .incomplete"
     fi
 
     source "$current_dir/cleanup_incomplete.sh" "$base_output_dir"
@@ -51,7 +52,7 @@ mark_event_incomplete() {
       rm -rf "${base_incomplete_dir}_1"
       # Shift remaining directories
       for ((i=2; i<=5; i++)); do
-        mv "${base_incomplete_dir}_$i" "${base_incomplete_dir}_$((i-1))"
+        mv "${base_incomplete_dir}_$i" "${base_incomplete_dir}_$((i-1))" && log "Rotated ${base_incomplete_dir}_$i to ${base_incomplete_dir}_$((i-1))"
       done
     fi
 
