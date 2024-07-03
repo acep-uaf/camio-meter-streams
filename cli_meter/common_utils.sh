@@ -57,7 +57,7 @@ _failed_locking() {
     pgrep -af "$(basename $0)" | grep -v $$ | while read pid cmd; do
         log "PID: $pid, Command: $cmd"
     done
-    fail $EXIT_LOCK_FAIL
+    failure $EXIT_LOCK_FAIL
 }
 
 exlock_now()        { _lock xn; }  # obtain an exclusive lock immediately or fail
@@ -66,7 +66,7 @@ shlock()            { _lock s; }   # obtain a shared lock
 unlock()            { _lock u; }   # drop a lock
 
 # Utility functions
-fail() {
+failure() {
   local exit_code="${1:-$EXIT_UNKNOWN}"
   local message="${2:-""}"
 
@@ -87,7 +87,7 @@ parse_config_arg() {
       -c | --config)
         if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
           show_help_flag
-          fail $EXIT_INVALID_ARGS "Config path not provided or invalid after -c/--config"
+          failure $EXIT_INVALID_ARGS "Config path not provided or invalid after -c/--config"
         fi
         config_path="$2"
         shift 2
@@ -98,7 +98,7 @@ parse_config_arg() {
         ;;
       *)
         show_help_flag
-        fail $EXIT_INVALID_ARGS "Unknown parameter: $1"
+        failure $EXIT_INVALID_ARGS "Unknown parameter: $1"
         ;;
     esac
   done
@@ -121,7 +121,7 @@ show_help_flag() {
 
 # Export functions for use in other scripts
 export -f log
-export -f fail
+export -f failure
 export -f show_help_flag
 
 export -f _lock

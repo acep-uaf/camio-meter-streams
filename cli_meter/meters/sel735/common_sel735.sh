@@ -24,7 +24,7 @@ handle_sigint() {
     fi
 
     source "$current_dir/cleanup_incomplete.sh" "$base_output_dir"
-    fail $EXIT_SIGINT "SIGINT received. Exiting..."
+    failure $EXIT_SIGINT "SIGINT received. Exiting..."
 }
 
 # Function to mark an event as incomplete and rotate older incomplete directories

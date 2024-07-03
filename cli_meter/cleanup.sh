@@ -19,7 +19,7 @@ source "$current_dir/common_utils.sh"
 LOCKFILE="/var/lock/$script_name" # Define the lock file path using script's basename
 
 # Check for at least 1 argument
-[ "$#" -lt 1 ] && show_help_flag && fail $EXIT_INVALID_ARGS "No arguments provided"
+[ "$#" -lt 1 ] && show_help_flag && failure $EXIT_INVALID_ARGS "No arguments provided"
 
 # On start
 _prepare_locking
@@ -29,7 +29,7 @@ exlock_now || _failed_locking
 
 # Configuration file path
 config_path=$(parse_config_arg "$@")
-[ -f "$config_path" ] && log "Config file exists at: $config_path" || fail $EXIT_FILE_NOT_FOUND "Config file does not exist"
+[ -f "$config_path" ] && log "Config file exists at: $config_path" || failure $EXIT_FILE_NOT_FOUND "Config file does not exist"
 
 # Load configuration
 enable_cleanup=$(yq '.enable_cleanup' "$config_path")
