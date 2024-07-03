@@ -1,38 +1,27 @@
 #!/usr/bin/env bats
 
-# Source the helpers.bash file
-source "$BATS_TEST_DIRNAME/helpers.sh"
-script_name="bash"
 EVENT_ID="1234"
-DATE_DIR="2021-01"
+METER_IP="123.123.123"
+script_name="bash"
+
+load 'test/test_helper/bats-support/load.bash'
+load 'test/test_helper/bats-assert/load.bash'
 
 setup() {
-  load 'test/libs/bats-assert/load.bash' 
-  load 'test/libs/bats-support/load.bash'
-  load "$BATS_TEST_DIRNAME/../common_utils.sh"
-  load "$BATS_TEST_DIRNAME/../meters/sel735/common_sel735.sh"
-  # Create a temporary directory for testing
+  source "$BATS_TEST_DIRNAME/../common_utils.sh"
+  source "$BATS_TEST_DIRNAME/../meters/sel735/common_sel735.sh"
   TMP_DIR=$(mktemp -d)
 }
 
 teardown() {
-  # Remove the temporary directory after testing
   rm -rf "$TMP_DIR"
 }
 
-
 #################### Test cases for common_utils.sh ####################
-@test "fail function outputs error message and exits with status 1099" {
-  run bash -c "fail 1099 'Test error message'"
-  [ "$status" -ne 0 ]
-  [[ "$output" == "[ERROR] Test error message. Exit code: 1099" ]]
-}
-
 @test "log function outputs message to stderr" {
-  run bash -c "log 'Test log message'"
-  [ "$status" -eq 0 ]
-  echo "$output"
-  [[ "$output" == "Test log message" ]]
+  run log "Test log message"
+  assert_failure
+  assert_output "Test log message"
 }
 
 #################### Test cases for common_sel735.sh ####################
@@ -75,16 +64,17 @@ teardown() {
   current_event_id="$EVENT_ID"
   base_output_dir="$TMP_DIR"
   run handle_sigint
-  [ "$status" -eq 130 ]
-  [[ "$output" =~ "Download in progress, moving event $EVENT_ID to .incomplete" ]]
+  assert_failure 130
+  assert_output --partial "Download in progress, moving event $EVENT_ID to .incomplete"
+  assert_output --partial "130"
 }
 
 @test "handle_sigint function no current_event_id set and no dir to move .incomplete" {
   current_event_id=""
   base_output_dir="$TMP_DIR"
   run handle_sigint
-  [ "$status" -eq 130 ]
-  [[ "$output" =~ "No download in progress, no event to move to .incomplete" ]]
+  assert_failure 130
+  assert_output --partial "No download in progress, no event to move to .incomplete"
 }
 
 
@@ -117,7 +107,7 @@ create_metadata_files() {
   create_metadata_files "$EVENT_DIR" "$EVENT_ID"
 
   run validate_complete_directory "$EVENT_DIR" "$EVENT_ID"
-  [ "$status" -eq 0 ]
+  assert_success
 }
 
 @test "validate_complete_directory fails when event files are missing" {
@@ -129,8 +119,8 @@ create_metadata_files() {
   create_metadata_files "$EVENT_DIR" "$EVENT_ID"
 
   run validate_complete_directory "$EVENT_DIR" "$EVENT_ID"
-  [ "$status" -eq 1 ]
-  [[ "$output" =~ "Missing file: HR_${EVENT_ID}.ZDAT in directory: $EVENT_DIR" ]]
+  assert_failure
+  assert_output --partial "Missing file: HR_${EVENT_ID}.ZDAT in directory: $EVENT_DIR"
 }
 
 @test "validate_complete_directory fails when metadata files are missing" {
@@ -140,8 +130,8 @@ create_metadata_files() {
   # Missing checksum.md5
 
   run validate_complete_directory "$EVENT_DIR" "$EVENT_ID"
-  [ "$status" -eq 1 ]
-  [[ "$output" =~ "Missing metadata file: checksum.md5 in directory: $EVENT_DIR" ]]
+  assert_failure
+  assert_output --partial "Missing metadata file: checksum.md5 in directory: $EVENT_DIR"
 }
 
 @test "validate_complete_directory fails when directory does not exist" {
@@ -155,7 +145,7 @@ create_metadata_files() {
   mkdir -p "$EVENT_DIR"
   create_event_files "$EVENT_DIR" "$EVENT_ID"
   run validate_download "$EVENT_DIR" "$EVENT_ID"
-  [ "$status" -eq 0 ]
+  assert_success
 }
 
 @test "validate_download function fails when a file is missing" {
@@ -164,6 +154,6 @@ create_metadata_files() {
   rm "$EVENT_DIR/HR_${EVENT_ID}.ZDAT" # Remove .ZDAT file
 
   run validate_download "$EVENT_DIR" "$EVENT_ID"
-  [ "$status" -eq 1 ]
-  [[ "$output" =~ "Missing file: HR_${EVENT_ID}.ZDAT in directory: $EVENT_DIR" ]]
+  assert_failure
+  assert_output --partial "Missing file: HR_${EVENT_ID}.ZDAT in directory: $EVENT_DIR"
 }

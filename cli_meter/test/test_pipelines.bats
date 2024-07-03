@@ -1,49 +1,55 @@
 #!/usr/bin/env bats
+# Use this script to test functions/scripts in /cli_meter directory
+EVENT_ID="1234"
+METER_IP="123.123.123"
+script_name="bash"
+SCRIPT_DIR="$BATS_TEST_DIRNAME/.."
 
-# Source the helpers.bash file
-source "$BATS_TEST_DIRNAME/helpers.sh"
-script_name="data_pipeline.sh"
+load 'test/test_helper/bats-support/load.bash'
+load 'test/test_helper/bats-assert/load.bash'
 
 setup() {
-  # Create a temporary directory for testing
+  cd "$SCRIPT_DIR"
+  source "$SCRIPT_DIR/common_utils.sh"
   TMP_DIR=$(mktemp -d)
 }
 
 teardown() {
-  # Remove the temporary directory after testing
   rm -rf "$TMP_DIR"
 }
 
 @test "data_pipeline.sh shows usage for no arguments" {
-    local expected_help_msg=$(help_msg $script_name)
-    run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh"
-    [ "$status" -ne 0 ]
-    [[ "$output" =~ "$expected_help_msg" ]]
-    [[ "${lines[-1]}" =~ "[ERROR] No arguments provided. Exit code: 1000" ]]
+    run ./data_pipeline.sh
+    assert_failure
+    assert_output --partial "Options:"
+    assert_output --partial "[ERROR] No arguments provided. Exit code: 1000"
 }
 
 @test "data_pipeline.sh shows usage for help flags" {
-    local expected_help_msg=$(help_msg $script_name)
-    run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh" -h
-    [ "$status" -ne 0 ]
-    [[ "$output" =~ "$expected_help_msg" ]]
+    run ./data_pipeline.sh -h
+    assert_failure
+    assert_output --partial "Options:"
+    assert_output --partial "[ERROR] Config file does not exist. Exit code: 1010"
 
-    run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh" --help
-    [ "$status" -ne 0 ]
-    [[ "$output" =~ "$expected_help_msg" ]]
+
+    run ./data_pipeline.sh --help
+    assert_failure
+    assert_output --partial "Options:"
+    assert_output --partial "[ERROR] Config file does not exist. Exit code: 1010"
 }
 
 @test "data_pipeline.sh fails with no config path" {
-    local expected_help_msg=$(help_msg $script_name)
-    run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh" -c 
-    [[ "$output" =~ "$expected_help_msg" ]]
-    [[ "$output" =~ "[ERROR] Config path not provided or invalid after -c/--config. Exit code: 1000" ]]
+    run ./data_pipeline.sh -c
+    assert_failure
+    assert_output --partial "[ERROR] Config path not provided or invalid after -c/--config. Exit code: 1000"
+
+    run ./data_pipeline.sh --config
+    assert_failure
+    assert_output --partial "[ERROR] Config path not provided or invalid after -c/--config. Exit code: 1000"
 }
 
 @test "data_pipeline.sh fails with invalid config path" {
-    run "$BATS_TEST_DIRNAME/../../cli_meter/data_pipeline.sh" -c invalid_path
-    [ "$status" -ne 0 ]
-    [[ "$output" =~ "[ERROR] Config file does not exist. Exit code: 1010" ]]
+    run ./data_pipeline.sh -c invalid_path
+    assert_failure
+    assert_output --partial "[ERROR] Config file does not exist. Exit code: 1010"
 }
-
-

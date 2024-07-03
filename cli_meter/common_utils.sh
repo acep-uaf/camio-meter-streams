@@ -20,53 +20,29 @@
 # Requirements:       flock
 # ==============================================================================
 # General Execution Codes
-EXIT_SUCCESS=0                # Successful completion
-EXIT_SIGINT=130               # Script interrupted by SIGINT (Ctrl+C)
-EXIT_UNKNOWN=1099             # Unknown error
-
+export EXIT_SUCCESS=0                # Successful completion
+export EXIT_SIGINT=130               # Script interrupted by SIGINT (Ctrl+C)
+export EXIT_UNKNOWN=1099             # Unknown error
 
 # Argument and Configuration Errors
-EXIT_INVALID_ARGS=1000        # Invalid arguments provided
-EXIT_INVALID_CONFIG=1001      # Invalid or missing critical configuration values
+export EXIT_INVALID_ARGS=1000        # Invalid arguments provided
+export EXIT_INVALID_CONFIG=1001      # Invalid or missing critical configuration values
 
 # File and Directory Errors
-EXIT_FILE_NOT_FOUND=1010      # Required file not found
-EXIT_FILE_CREATION_FAIL=1011  # Failed to create file
-EXIT_DIR_NOT_FOUND=1012       # Directory does not exist
-EXIT_DIR_CREATION_FAIL=1013   # Failed to create directory
+export EXIT_FILE_NOT_FOUND=1010      # Required file not found
+export EXIT_FILE_CREATION_FAIL=1011  # Failed to create file
+export EXIT_DIR_NOT_FOUND=1012       # Directory does not exist
+export EXIT_DIR_CREATION_FAIL=1013   # Failed to create directory
 
 # Command Errors
-EXIT_LFTP_FAIL=1020           # LFTP command failed
-EXIT_RSYNC_FAIL=1021          # Rsync command failed
+export EXIT_LFTP_FAIL=1020           # LFTP command failed
+export EXIT_RSYNC_FAIL=1021          # Rsync command failed
 
 # Specific Operation Errors
-EXIT_DOWNLOAD_FAIL=1030       # File download failure
-EXIT_ZIP_FAIL=1031            # Compression/zipping failure
-EXIT_METADATA_FAIL=1032       # Metadata/Checksum creation or file generation failure
-EXIT_LOCK_FAIL=1033           # Failed to acquire lock
-
-export EXIT_SUCCESS
-export EXIT_SIGINT
-export EXIT_UNKNOWN
-export EXIT_LOCK_FAIL
-
-export EXIT_INVALID_ARGS
-export EXIT_CONFIG_NOT_FOUND
-export EXIT_INVALID_CONFIG
-
-export EXIT_FILE_NOT_FOUND
-export EXIT_DIR_NOT_FOUND
-export EXIT_DIR_CREATION_FAIL
-export EXIT_FILE_ACCESS_FAIL
-
-export EXIT_LFTP_FAIL
-export EXIT_RSYNC_FAIL
-
-
-export EXIT_DOWNLOAD_FAIL
-export EXIT_ZIP_FAIL
-export EXIT_METADATA_FAIL
-
+export EXIT_DOWNLOAD_FAIL=1030       # File download failure
+export EXIT_ZIP_FAIL=1031            # Compression/zipping failure
+export EXIT_METADATA_FAIL=1032       # Metadata/Checksum creation or file generation failure
+export EXIT_LOCK_FAIL=1033           # Failed to acquire lock
 
 LOCKFD=99 # Assign a high file descriptor number for locking 
 
@@ -142,7 +118,6 @@ show_help_flag() {
   log "  ./$script_name -c /path/to/config.yml"
   log "  ./$script_name --config /path/to/config.yml"
 }
-
 
 # Export functions for use in other scripts
 export -f log
