@@ -1,21 +1,13 @@
 #!/usr/bin/env bats
 # Use this script to test functions/scripts in /cli_meter directory
-EVENT_ID="1234"
-METER_IP="123.123.123"
-script_name="bash"
-SCRIPT_DIR="$BATS_TEST_DIRNAME/.."
-
-load 'test/test_helper/bats-support/load.bash'
-load 'test/test_helper/bats-assert/load.bash'
 
 setup() {
-  cd "$SCRIPT_DIR"
-  source "$SCRIPT_DIR/common_utils.sh"
-  TMP_DIR=$(mktemp -d)
+    load 'test_helper/common'
+    _common_setup
 }
 
 teardown() {
-  rm -rf "$TMP_DIR"
+    _common_teardown
 }
 
 @test "data_pipeline.sh shows usage for no arguments" {
@@ -30,7 +22,6 @@ teardown() {
     assert_failure
     assert_output --partial "Options:"
     assert_output --partial "[ERROR] Config file does not exist. Exit code: 1010"
-
 
     run ./data_pipeline.sh --help
     assert_failure

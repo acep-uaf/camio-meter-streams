@@ -4,17 +4,13 @@ EVENT_ID="1234"
 METER_IP="123.123.123"
 script_name="bash"
 
-load 'test/test_helper/bats-support/load.bash'
-load 'test/test_helper/bats-assert/load.bash'
-
 setup() {
-  source "$BATS_TEST_DIRNAME/../common_utils.sh"
-  source "$BATS_TEST_DIRNAME/../meters/sel735/common_sel735.sh"
-  TMP_DIR=$(mktemp -d)
+  load 'test_helper/common'
+  _common_setup
 }
 
 teardown() {
-  rm -rf "$TMP_DIR"
+    _common_teardown
 }
 
 #################### Test cases for common_utils.sh ####################
@@ -28,17 +24,16 @@ teardown() {
 @test "mark_event_incomplete function moves the event directory to .incomplete" {
   mkdir -p "$TMP_DIR/$DATE_DIR/$EVENT_ID"
   run mark_event_incomplete "$EVENT_ID" "$TMP_DIR/$DATE_DIR"   
-  echo "$output"
-  [ "$status" -eq 0 ]
-  [[ "$output" =~ "Moved event $EVENT_ID to $EVENT_ID.incomplete_" ]]
+  assert_success
+  assert_output --partial "Moved event $EVENT_ID to $EVENT_ID.incomplete_1"
   assert [ -d "$TMP_DIR/$DATE_DIR/$EVENT_ID.incomplete_1" ]
   assert [ ! -d "$TMP_DIR/$DATE_DIR/$EVENT_ID" ]
 }
 
 @test "mark_event_incomplete function directory doesn't exit" {
   run mark_event_incomplete "$EVENT_ID" "$TMP_DIR/$DATE_DIR"   
-  [ "$status" -eq 0 ]
-  [[ "$output" =~ "[ERROR] Directory $TMP_DIR/$DATE_DIR/$EVENT_ID does not exist." ]]
+  assert_success
+  assert_output --partial "[ERROR] Directory $TMP_DIR/$DATE_DIR/$EVENT_ID does not exist."
 }
 
 @test "mark_event_incomplete function rotate directories" {
@@ -48,9 +43,8 @@ teardown() {
   done
 
   run mark_event_incomplete "$EVENT_ID" "$TMP_DIR/$DATE_DIR"   
-  [ "$status" -eq 0 ]
-  [[ "$output" =~ "Rotated $TMP_DIR/$DATE_DIR/$EVENT_ID.incomplete_5 to $TMP_DIR/$DATE_DIR/$EVENT_ID.incomplete_4" ]]
-  
+  assert_success
+  assert_output --partial "Rotated $TMP_DIR/$DATE_DIR/$EVENT_ID.incomplete_5 to $TMP_DIR/$DATE_DIR/$EVENT_ID.incomplete_4"
   assert [ ! -d "$TMP_DIR/$DATE_DIR/$EVENT_ID" ]
 
   for i in {1..5}; do
@@ -137,7 +131,7 @@ create_metadata_files() {
 @test "validate_complete_directory fails when directory does not exist" {
   EVENT_DIR="$TMP_DIR/$DATE_DIR/$EVENT_ID"
   run validate_complete_directory "$EVENT_DIR" "$EVENT_ID"
-  [ "$status" -eq 1 ]
+  assert_failure
 }
 
 @test "validate_download function passes when all files are present" {

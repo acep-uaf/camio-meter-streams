@@ -2,24 +2,21 @@
 
 EVENT_ID="1234"
 METER_IP="123.123.123"
-SCRIPT_DIR="$BATS_TEST_DIRNAME/../meters/sel735"
-
-load 'test/test_helper/bats-support/load.bash'
-load 'test/test_helper/bats-assert/load.bash'
+DATA_TYPE="events"
+SCRIPT_DIR="meters/sel735"
 
 setup() {
-    source "$BATS_TEST_DIRNAME/../common_utils.sh"
-    cd "$SCRIPT_DIR"
-    source common_sel735.sh
-    TMP_DIR=$(mktemp -d)
+    load 'test_helper/common'
+    _common_setup
+    cd $SCRIPT_DIR
 }
 
 teardown() {
-    rm -rf "$TMP_DIR"
+    _common_teardown
 }
 
 @test "create_message.sh execution test" {
-    run ./create_message.sh "$EVENT_ID" "$EVENT_ID.zip" "/path/to/file" "events" "$TMP_DIR" 
+    run ./create_message.sh "$EVENT_ID" "$EVENT_ID.zip" "/path/to/file" "$DATA_TYPE" "$TMP_DIR" 
     assert_success
     assert [ -f "$TMP_DIR/$EVENT_ID.zip.message" ]
 }
@@ -38,13 +35,13 @@ teardown() {
 }
 
 @test "cleanup_incomplete.sh cleanups incomplete directories" {
-    mkdir -p "$TMP_DIR/1.incomplete_1"
-    mkdir -p "$TMP_DIR/1.incomplete_2"
-    mkdir -p "$TMP_DIR/1.incomplete_3"
+    for i in {1..3}; do
+        mkdir -p "$TMP_DIR/$EVENT_ID.incomplete_$i"
+    done
     
     run ./cleanup_incomplete.sh "$TMP_DIR"
     assert_success 
-    assert [ ! -d "$TMP_DIR/1.incomplete_1" ]
-    assert [ ! -d "$TMP_DIR/1.incomplete_2" ]
-    assert [ ! -d "$TMP_DIR/1.incomplete_3" ]
+    for i in {1..3}; do
+        assert [ ! -d "$TMP_DIR/$EVENT_ID.incomplete_$i" ]
+    done
 }
