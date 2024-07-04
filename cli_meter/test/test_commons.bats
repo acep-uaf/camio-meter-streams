@@ -1,9 +1,5 @@
 #!/usr/bin/env bats
 
-EVENT_ID="1234"
-METER_IP="123.123.123"
-script_name="bash"
-
 setup() {
   load 'test_helper/common'
   _common_setup

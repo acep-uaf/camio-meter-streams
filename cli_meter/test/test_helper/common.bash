@@ -3,6 +3,7 @@
 _common_setup() {
     load 'test_helper/bats-support/load'
     load 'test_helper/bats-assert/load'
+    load 'test_helper/bats-mock/stub'
     source "$BATS_TEST_DIRNAME/../common_utils.sh"
     source "$BATS_TEST_DIRNAME/../meters/sel735/common_sel735.sh"
     # get the containing directory of this file
@@ -11,6 +12,11 @@ _common_setup() {
     # make executables in src/ visible to PATH
     PATH="$PROJECT_ROOT/src:$PATH"
     TMP_DIR=$(mktemp -d)
+
+    EVENT_ID="1234"
+    METER_IP="123.123.123"
+    DATA_TYPE="events"
+    ZIP_FILE="$EVENT_ID.zip"
 }
 
 _common_teardown() {

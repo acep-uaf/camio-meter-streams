@@ -1,10 +1,6 @@
 #!/usr/bin/env bats
-
-EVENT_ID="1234"
-METER_IP="123.123.123"
-DATA_TYPE="events"
+# Use this script to test the scripts in meters/sel735
 SCRIPT_DIR="meters/sel735"
-ZIP_FILE="$EVENT_ID.zip"
 
 setup() {
     load 'test_helper/common'
@@ -29,7 +25,7 @@ teardown() {
     assert_output --partial "Usage: create_message.sh <id> <zip_filename> <path> <data_type> <output_dir>"
 }
 
-@test "create_message.sh test 4 arguments" {
+@test "create_message.sh test too many arguments" {
     run ./create_message.sh "$EVENT_ID" "$ZIP_FILE" "/path/to/file" "$DATA_TYPE"
     assert_failure $(($EXIT_INVALID_ARGS % 256))
     assert_output --partial "Usage: create_message.sh <id> <zip_filename> <path> <data_type> <output_dir>"
