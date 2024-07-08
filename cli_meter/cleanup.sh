@@ -49,12 +49,20 @@ if [ "$enable_cleanup" ]; then
       
       # Find level0 directories
       find "$base_dir" -type d -regex '.*/level0' | while read -r level0_dir; do
-        log "Cleaning level0 directory: $level0_dir"
+        log "Cleaning directory: $level0_dir"
         
-        # Find and delete files older than retention_days, logging each deletion
-        find "$level0_dir" -type f -mmin +$retention_days | while read -r file; do
-          rm -f "$file" && log "Deleted file: $file" || log "Failed to delete file: $file"
-        done
+        # Store the output of the find command in a variable
+        files=$(find "$level0_dir" -type f -mtime +$retention_days)
+
+        # Check if any files were found
+        if [ -n "$files" ]; then
+          echo "$files" | while read -r file; do
+              rm -f "$file" && log "Deleted file: $file" || log "Failed to delete file: $file"
+          done
+        else
+          # If no files are found, log a message
+          log "No files found older than $retention_days days in $level0_dir"
+        fi
 
         # Now check and remove empty directories
         find "$level0_dir" -depth -type d | while read -r dir; do

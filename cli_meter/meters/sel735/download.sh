@@ -24,7 +24,10 @@ source "$current_dir/../../common_utils.sh"
 source "$current_dir/common_sel735.sh"
 export current_event_id=""
 
-trap handle_sig SIGINT SIGTERM SIGQUIT
+# Trap the signals and associate them with the handler function
+trap 'handle_sig SIGINT' SIGINT
+trap 'handle_sig SIGQUIT' SIGQUIT
+trap 'handle_sig SIGTERM' SIGTERM
 
 # Check for exactly 7 arguments
 [ "$#" -ne 7 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"

@@ -12,8 +12,10 @@
 # ==============================================================================
 current_dir=$(dirname "$(readlink -f "$0")")
 
-# Function to handle SIGINT (Ctrl+C) and mark event as incomplete
+# Function to handle SIGs and calls mark_event_incomplete()
 handle_sig() {
+    local sig=$1
+
     # Mark event incomplete if event_id is set
     if [ -n "$current_event_id" ]; then
         local output_dir="$base_output_dir/$date_dir/$meter_id"
@@ -24,7 +26,21 @@ handle_sig() {
     fi
 
     source "$current_dir/cleanup_incomplete.sh" "$base_output_dir"
-    failure $SIGINT "SIGINT received. Exiting..."
+
+    case $sig in
+        SIGINT)
+            failure $STREAMS_SIGINT "SIGINT received. Exiting..."
+            ;;
+        SIGQUIT)
+            failure $STREAMS_SIGQUIT "SIGQUIT received. Exiting..."
+            ;;
+        SIGTERM)
+            failure $STREAMS_SIGTERM "SIGTERM received. Exiting..."
+            ;;
+        *)
+            failure $STREAMS_UNKNOWN "Unknown signal received. Exiting..."
+            ;;
+    esac
 }
 
 # Function to mark an event as incomplete and rotate older incomplete directories
