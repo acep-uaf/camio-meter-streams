@@ -21,13 +21,13 @@ teardown() {
 # TODO: These tests are meant to fail and they are but not with the correct exit code.
 @test "create_message.sh test 0 arguments" {
     run ./create_message.sh
-    assert_failure $(($EXIT_INVALID_ARGS % 256))
+    assert_failure $(($STREAMS_INVALID_ARGS % 256))
     assert_output --partial "Usage: create_message.sh <id> <zip_filename> <path> <data_type> <output_dir>"
 }
 
 @test "create_message.sh test too many arguments" {
     run ./create_message.sh "$EVENT_ID" "$ZIP_FILE" "/path/to/file" "$DATA_TYPE"
-    assert_failure $(($EXIT_INVALID_ARGS % 256))
+    assert_failure $(($STREAMS_INVALID_ARGS % 256))
     assert_output --partial "Usage: create_message.sh <id> <zip_filename> <path> <data_type> <output_dir>"
 }
 
@@ -54,11 +54,11 @@ teardown() {
 
 @test "zip_event.sh test 0 arguments" {
     run ./zip_event.sh
-    assert_failure $(($EXIT_INVALID_ARGS % 256))
+    assert_failure $(($STREAMS_INVALID_ARGS % 256))
     assert_output --partial "Usage: zip_event.sh <source_dir> <dest_dir> <event_id>"
 }
 
 @test "zip_event.sh test invalid event_id" {
     run ./zip_event.sh "$TMP_DIR" "$TMP_DIR" "not_a_directory"
-    assert_failure $(($EXIT_DIR_NOT_FOUND % 256))
+    assert_failure $(($STREAMS_DIR_NOT_FOUND % 256))
 }

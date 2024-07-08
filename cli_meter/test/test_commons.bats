@@ -49,20 +49,20 @@ teardown() {
 }
 
 #TODO: Can I use mock or stub here to create a fake directory to mock mark_event_incomplete function?
-@test "handle_sigint function moves the current_event_id directory to .incomplete" {
+@test "handle_sig function moves the current_event_id directory to .incomplete" {
   mkdir -p "$TMP_DIR/$DATE_DIR/$EVENT_ID"
   current_event_id="$EVENT_ID"
   base_output_dir="$TMP_DIR"
-  run handle_sigint
+  run handle_sig SIGINT
   assert_failure 130
   assert_output --partial "Download in progress, moving event $EVENT_ID to .incomplete"
   assert_output --partial "130"
 }
 
-@test "handle_sigint function no current_event_id set and no dir to move .incomplete" {
+@test "handle_sig function no current_event_id set and no dir to move .incomplete" {
   current_event_id=""
   base_output_dir="$TMP_DIR"
-  run handle_sigint
+  run handle_sig SIGINT
   assert_failure 130
   assert_output --partial "No download in progress, no event to move to .incomplete"
 }

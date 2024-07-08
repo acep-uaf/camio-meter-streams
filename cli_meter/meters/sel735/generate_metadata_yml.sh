@@ -22,7 +22,7 @@ script_name=$(basename "$0")
 source "$current_dir/../../common_utils.sh"
 
 # Check if the correct number of arguments are passed
-[ "$#" -ne 6 ] && failure $EXIT_INVALID_ARGS "Usage: $script_name <event_id> <event_dir> <meter_id> <meter_type> <event_timestamp> <download_timestamp>"
+[ "$#" -ne 6 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <event_id> <event_dir> <meter_id> <meter_type> <event_timestamp> <download_timestamp>"
 
 event_id=$1
 event_dir="$2/$event_id" # Assumes location/data_type/working/YYYY-MM/meter_id/event_id
@@ -57,7 +57,7 @@ create_metadata_yml() {
         echo "  EventID: \"$event_id\""
         echo "  DataLevel: \"level0\""
         echo "  Checksum: \"$checksum\""
-    } >> "$metadata_path" && log "Metadata generated for: $filename" || failure $EXIT_FILE_CREATION_FAIL "Failed to generate metadata for: $filename"
+    } >> "$metadata_path" && log "Metadata generated for: $filename" || failure $STREAMS_FILE_CREATION_FAIL "Failed to generate metadata for: $filename"
 }
 
 log "Creating metadata for event: $event_id"
@@ -71,10 +71,10 @@ for file in "$event_dir"/*; do
             continue
         fi
         create_metadata_yml "$file" "$event_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp" || {
-            failure $EXIT_FILE_CREATION_FAIL "Failed to create metadata file for: $filename"
+            failure $STREAMS_FILE_CREATION_FAIL "Failed to create metadata file for: $filename"
         }
     else
-        failure $EXIT_FILE_NOT_FOUND "File not found or is empty: $file"
+        failure $STREAMS_FILE_NOT_FOUND "File not found or is empty: $file"
     fi
 done
 

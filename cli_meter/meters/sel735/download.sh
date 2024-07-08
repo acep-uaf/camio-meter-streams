@@ -24,10 +24,13 @@ source "$current_dir/../../common_utils.sh"
 source "$current_dir/common_sel735.sh"
 export current_event_id=""
 
-trap handle_sigint SIGINT
+# Trap the signals and associate them with the handler function
+trap 'handle_sig SIGINT' SIGINT
+trap 'handle_sig SIGQUIT' SIGQUIT
+trap 'handle_sig SIGTERM' SIGTERM
 
 # Check for exactly 7 arguments
-[ "$#" -ne 7 ] && failure $EXIT_INVALID_ARGS "Usage: $script_name <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
+[ "$#" -ne 7 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
 
 # Simple CLI flag parsing
 meter_ip="$1"
@@ -61,7 +64,7 @@ for event_info in $("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_
   # Download event directory (5 files)
   "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit" || {
     mark_event_incomplete
-    failure $EXIT_DOWNLOAD_FAIL "Download failed for event_id: $event_id, skipping metadata creation"
+    failure $STREAMS_DOWNLOAD_FAIL "Download failed for event_id: $event_id, skipping metadata creation"
   }
 
   # Timestamp is time this script is run.
@@ -76,7 +79,7 @@ for event_info in $("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_
   # Execute generate_metadata_yml.sh
   "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp" || {
     mark_event_incomplete
-    failure $EXIT_METADATA_FAIL "Failed to generate metadata"
+    failure $STREAMS_METADATA_FAIL "Failed to generate metadata"
   }
 
   # Zip the event directory, including all files and the checksum.md5 file
@@ -86,7 +89,7 @@ for event_info in $("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_
   # Execute zip_event.sh
   "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" || {
     mark_event_incomplete
-    failure $EXIT_ZIP_FAIL "Failed to zip event files"
+    failure $STREAMS_ZIP_FAIL "Failed to zip event files"
   }
 
   zip_filename="${event_id}.zip"
@@ -94,7 +97,7 @@ for event_info in $("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_
   # Execute create_message.sh
   "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir" || {
     mark_event_incomplete
-    failure $EXIT_FILE_CREATION_FAIL "Failed to create message file"
+    failure $STREAMS_FILE_CREATION_FAIL "Failed to create message file"
   }
 
 done

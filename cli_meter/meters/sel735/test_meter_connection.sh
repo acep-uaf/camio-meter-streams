@@ -20,7 +20,7 @@ script_name=$(basename "$0")
 source "$current_dir/../../common_utils.sh"
 
 # Check if at least 1 argument is passed
-[ "$#" -lt 1 ] && failure $EXIT_INVALID_ARGS "Usage: $script_name <meter_ip> [bandwidth_limit]"
+[ "$#" -lt 1 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> [bandwidth_limit]"
 
 meter_ip="$1"
 bandwidth_limit="${2:-0}" # If not set default to 0
@@ -29,6 +29,6 @@ bandwidth_limit="${2:-0}" # If not set default to 0
 lftp_output=$(lftp -u $USERNAME,$PASSWORD -e "set net:limit-rate $bandwidth_limit; ls; bye" $meter_ip)
 lftp_exit_code=$?
 
-[ "$lftp_exit_code" -eq 0 ] && log "Successful connection test to meter: $meter_ip"|| failure $EXIT_LFTP_FAIL "Connection Unsuccessful to meter: $meter_ip"
+[ "$lftp_exit_code" -eq 0 ] && log "Successful connection test to meter: $meter_ip"|| failure $STREAMS_LFTP_FAIL "Connection Unsuccessful to meter: $meter_ip"
 
 
