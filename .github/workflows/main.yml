@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     branches:
-      - '**'
+      - "**"
 
 jobs:
   test:
@@ -13,11 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          submodules: 'true'
+          submodules: "true"
 
       - name: Initialize and update submodules
-        run: git submodule update --init --recursive 
+        run: git submodule update --init --recursive
+
+      - name: Change directory to cli_meter
+        run: cd cli_meter
 
       - name: Run Bats tests
-        run: cd cli_meter
         run: bats test
