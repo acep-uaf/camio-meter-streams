@@ -89,7 +89,7 @@ parse_config_arg() {
       -c | --config)
         if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
           show_help_flag
-          failure $INVALID_ARGS "Config path not provided or invalid after -c/--config"
+          failure $STREAMS_INVALID_ARGS "Config path not provided or invalid after -c/--config"
         fi
         config_path="$2"
         shift 2
@@ -100,7 +100,7 @@ parse_config_arg() {
         ;;
       *)
         show_help_flag
-        failure $INVALID_ARGS "Unknown parameter: $1"
+        failure $STREAMS_INVALID_ARGS "Unknown parameter: $1"
         ;;
     esac
   done

@@ -19,7 +19,7 @@ teardown() {
 
 @test "test_meter_connection.sh test 0 arguments" {
     run ./test_meter_connection.sh
-    assert_failure $(($EXIT_INVALID_ARGS % 256))
+    assert_failure $(($STREAMS_INVALID_ARGS % 256))
     assert_output --partial "Usage: test_meter_connection.sh <meter_ip> [bandwidth_limit]"
 }
 
