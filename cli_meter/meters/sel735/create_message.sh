@@ -18,10 +18,10 @@
 # ==============================================================================
 current_dir=$(dirname "$(readlink -f "$0")")
 script_name=$(basename "$0")
-source "$current_dir/../../common_utils.sh"
+source "$current_dir/../../common_utils.sh" 
 
 # Check for exactly 5 arguments
-[ "$#" -ne 5 ] && fail $EXIT_INVALID_ARGS "Usage: $script_name <id> <zip_filename> <path> <data_type> <output_dir>"
+[ "$#" -ne 5 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <id> <zip_filename> <path> <data_type> <output_dir>"
 
 id="$1"
 zip_filename="$2"
@@ -39,5 +39,5 @@ json_payload=$(jq -n \
     '{id: $id, filename: $fn, path: $pth, data_type: $dt}')
 
 # Write the JSON payload to the .message file
-echo "$json_payload" > "$message_file" && log "Created message file: $message_file" || fail $EXIT_FILE_CREATION_FAIL "Failed to write to message file: $message_file"
+echo "$json_payload" > "$message_file" && log "Created message file: $message_file" || failure $STREAMS_FILE_CREATION_FAIL "Failed to write to message file: $message_file"
 

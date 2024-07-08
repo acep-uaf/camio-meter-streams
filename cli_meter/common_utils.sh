@@ -20,53 +20,31 @@
 # Requirements:       flock
 # ==============================================================================
 # General Execution Codes
-EXIT_SUCCESS=0                # Successful completion
-EXIT_SIGINT=130               # Script interrupted by SIGINT (Ctrl+C)
-EXIT_UNKNOWN=1099             # Unknown error
-
+export STREAMS_SUCCESS=0                # Successful completion
+export STREAMS_SIGINT=130               # Script interrupted by SIGINT (Ctrl+C)
+export STREAMS_SIGQUIT=131              # Script interrupted by SIGQUIT (Ctrl+\)
+export STREAMS_SIGTERM=143              # Script terminated by SIGTERM
+export STREAMS_UNKNOWN=199              # Unknown error
 
 # Argument and Configuration Errors
-EXIT_INVALID_ARGS=1000        # Invalid arguments provided
-EXIT_INVALID_CONFIG=1001      # Invalid or missing critical configuration values
+export STREAMS_INVALID_ARGS=200         # Invalid arguments provided
+export STREAMS_INVALID_CONFIG=201       # Invalid or missing critical configuration values
 
 # File and Directory Errors
-EXIT_FILE_NOT_FOUND=1010      # Required file not found
-EXIT_FILE_CREATION_FAIL=1011  # Failed to create file
-EXIT_DIR_NOT_FOUND=1012       # Directory does not exist
-EXIT_DIR_CREATION_FAIL=1013   # Failed to create directory
+export STREAMS_FILE_NOT_FOUND=210       # Required file not found
+export STREAMS_FILE_CREATION_FAIL=211   # Failed to create file
+export STREAMS_DIR_NOT_FOUND=212        # Directory does not exist
+export STREAMS_DIR_CREATION_FAIL=213    # Failed to create directory
 
 # Command Errors
-EXIT_LFTP_FAIL=1020           # LFTP command failed
-EXIT_RSYNC_FAIL=1021          # Rsync command failed
+export STREAMS_LFTP_FAIL=220            # LFTP command failed
+export STREAMS_RSYNC_FAIL=221           # Rsync command failed
 
 # Specific Operation Errors
-EXIT_DOWNLOAD_FAIL=1030       # File download failure
-EXIT_ZIP_FAIL=1031            # Compression/zipping failure
-EXIT_METADATA_FAIL=1032       # Metadata/Checksum creation or file generation failure
-EXIT_LOCK_FAIL=1033           # Failed to acquire lock
-
-export EXIT_SUCCESS
-export EXIT_SIGINT
-export EXIT_UNKNOWN
-export EXIT_LOCK_FAIL
-
-export EXIT_INVALID_ARGS
-export EXIT_CONFIG_NOT_FOUND
-export EXIT_INVALID_CONFIG
-
-export EXIT_FILE_NOT_FOUND
-export EXIT_DIR_NOT_FOUND
-export EXIT_DIR_CREATION_FAIL
-export EXIT_FILE_ACCESS_FAIL
-
-export EXIT_LFTP_FAIL
-export EXIT_RSYNC_FAIL
-
-
-export EXIT_DOWNLOAD_FAIL
-export EXIT_ZIP_FAIL
-export EXIT_METADATA_FAIL
-
+export STREAMS_DOWNLOAD_FAIL=230        # File download failure
+export STREAMS_ZIP_FAIL=231             # Compression/zipping failure
+export STREAMS_METADATA_FAIL=232        # Metadata/Checksum creation or file generation failure
+export STREAMS_LOCK_FAIL=233            # Failed to acquire lock
 
 LOCKFD=99 # Assign a high file descriptor number for locking 
 
@@ -81,7 +59,7 @@ _failed_locking() {
     pgrep -af "$(basename $0)" | grep -v $$ | while read pid cmd; do
         log "PID: $pid, Command: $cmd"
     done
-    fail $EXIT_LOCK_FAIL
+    failure $STREAMS_LOCK_FAIL
 }
 
 exlock_now()        { _lock xn; }  # obtain an exclusive lock immediately or fail
@@ -90,8 +68,8 @@ shlock()            { _lock s; }   # obtain a shared lock
 unlock()            { _lock u; }   # drop a lock
 
 # Utility functions
-fail() {
-  local exit_code="${1:-$EXIT_UNKNOWN}"
+failure() {
+  local exit_code="${1:-$UNKNOWN}"
   local message="${2:-""}"
 
   log "[ERROR] $message. Exit code: $exit_code"
@@ -111,7 +89,7 @@ parse_config_arg() {
       -c | --config)
         if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
           show_help_flag
-          fail $EXIT_INVALID_ARGS "Config path not provided or invalid after -c/--config"
+          failure $STREAMS_INVALID_ARGS "Config path not provided or invalid after -c/--config"
         fi
         config_path="$2"
         shift 2
@@ -122,7 +100,7 @@ parse_config_arg() {
         ;;
       *)
         show_help_flag
-        fail $EXIT_INVALID_ARGS "Unknown parameter: $1"
+        failure $STREAMS_INVALID_ARGS "Unknown parameter: $1"
         ;;
     esac
   done
@@ -143,10 +121,9 @@ show_help_flag() {
   log "  ./$script_name --config /path/to/config.yml"
 }
 
-
 # Export functions for use in other scripts
 export -f log
-export -f fail
+export -f failure
 export -f show_help_flag
 
 export -f _lock

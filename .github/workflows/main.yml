@@ -12,11 +12,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          submodules: 'true'
 
-      - name: Set up Bats
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y bats
+      - name: Initialize and update submodules
+        run: git submodule update --init --recursive
 
       - name: Run Bats tests
-        run: bats cli_meter/test
+        run: |
+          cd cli_meter
+          ./test/bats-core/bin/bats test

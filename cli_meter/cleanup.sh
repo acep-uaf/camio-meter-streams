@@ -19,7 +19,7 @@ source "$current_dir/common_utils.sh"
 LOCKFILE="/var/lock/$script_name" # Define the lock file path using script's basename
 
 # Check for at least 1 argument
-[ "$#" -lt 1 ] && show_help_flag && fail $EXIT_INVALID_ARGS "No arguments provided"
+[ "$#" -lt 1 ] && show_help_flag && failure $STREAMS_INVALID_ARGS "No arguments provided"
 
 # On start
 _prepare_locking
@@ -29,7 +29,7 @@ exlock_now || _failed_locking
 
 # Configuration file path
 config_path=$(parse_config_arg "$@")
-[ -f "$config_path" ] && log "Config file exists at: $config_path" || fail $EXIT_FILE_NOT_FOUND "Config file does not exist"
+[ -f "$config_path" ] && log "Config file exists at: $config_path" || failure $STREAMS_FILE_NOT_FOUND "Config file does not exist"
 
 # Load configuration
 enable_cleanup=$(yq '.enable_cleanup' "$config_path")
@@ -49,12 +49,20 @@ if [ "$enable_cleanup" ]; then
       
       # Find level0 directories
       find "$base_dir" -type d -regex '.*/level0' | while read -r level0_dir; do
-        log "Cleaning level0 directory: $level0_dir"
+        log "Cleaning directory: $level0_dir"
         
-        # Find and delete files older than retention_days, logging each deletion
-        find "$level0_dir" -type f -mmin +$retention_days | while read -r file; do
-          rm -f "$file" && log "Deleted file: $file" || log "Failed to delete file: $file"
-        done
+        # Store the output of the find command in a variable
+        files=$(find "$level0_dir" -type f -mtime +$retention_days)
+
+        # Check if any files were found
+        if [ -n "$files" ]; then
+          echo "$files" | while read -r file; do
+              rm -f "$file" && log "Deleted file: $file" || log "Failed to delete file: $file"
+          done
+        else
+          # If no files are found, log a message
+          log "No files found older than $retention_days days in $level0_dir"
+        fi
 
         # Now check and remove empty directories
         find "$level0_dir" -depth -type d | while read -r dir; do

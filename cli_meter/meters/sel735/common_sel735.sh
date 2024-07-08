@@ -4,7 +4,7 @@
 # Description:        Common utility functions for SEL-735 scripts in Meter Event Data Pipeline.
 #
 # Functions:
-#   handle_sigint               - Handles SIGINT signal and marks the current event as incomplete
+#   handle_sig                  - Handles signals and marks the current event as incomplete
 #   mark_event_incomplete       - Marks an event as incomplete and rotates older incomplete directories
 #   validate_download           - Validates if all files for an event have been downloaded
 #   validate_complete_directory - Validates if the directory is complete
@@ -12,18 +12,35 @@
 # ==============================================================================
 current_dir=$(dirname "$(readlink -f "$0")")
 
-# Function to handle SIGINT (Ctrl+C) and mark event as incomplete
-handle_sigint() {
+# Function to handle SIGs and calls mark_event_incomplete()
+handle_sig() {
+    local sig=$1
+
     # Mark event incomplete if event_id is set
     if [ -n "$current_event_id" ]; then
         local output_dir="$base_output_dir/$date_dir/$meter_id"
         mark_event_incomplete "$current_event_id" "$output_dir"
+        log "Download in progress, moving event $current_event_id to .incomplete"
     else
-        log "current_event_id is not set, no event to move to .incomplete."
+        log "No download in progress, no event to move to .incomplete"
     fi
 
     source "$current_dir/cleanup_incomplete.sh" "$base_output_dir"
-    fail $EXIT_SIGINT "SIGINT received. Exiting..."
+
+    case $sig in
+        SIGINT)
+            failure $STREAMS_SIGINT "SIGINT received. Exiting..."
+            ;;
+        SIGQUIT)
+            failure $STREAMS_SIGQUIT "SIGQUIT received. Exiting..."
+            ;;
+        SIGTERM)
+            failure $STREAMS_SIGTERM "SIGTERM received. Exiting..."
+            ;;
+        *)
+            failure $STREAMS_UNKNOWN "Unknown signal received. Exiting..."
+            ;;
+    esac
 }
 
 # Function to mark an event as incomplete and rotate older incomplete directories
@@ -51,7 +68,7 @@ mark_event_incomplete() {
       rm -rf "${base_incomplete_dir}_1"
       # Shift remaining directories
       for ((i=2; i<=5; i++)); do
-        mv "${base_incomplete_dir}_$i" "${base_incomplete_dir}_$((i-1))"
+        mv "${base_incomplete_dir}_$i" "${base_incomplete_dir}_$((i-1))" && log "Rotated ${base_incomplete_dir}_$i to ${base_incomplete_dir}_$((i-1))"
       done
     fi
 
