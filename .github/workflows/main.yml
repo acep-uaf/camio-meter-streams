@@ -18,6 +18,9 @@ jobs:
       - name: Initialize and update submodules
         run: git submodule update --init --recursive
 
+      - name: Install Bats
+        run: sudo apt-get install bats -y
+
       - name: Change directory to cli_meter
         run: cd cli_meter
 
