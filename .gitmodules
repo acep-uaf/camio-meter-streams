@@ -1,6 +1,4 @@
-[submodule "cli_meter/test/bats"]
-	path = cli_meter/test/bats
-	url = https://github.com/bats-core/bats-core.git
+
 [submodule "cli_meter/test/test_helper/bats-support"]
 	path = cli_meter/test/test_helper/bats-support
 	url = https://github.com/bats-core/bats-support.git
@@ -10,3 +8,6 @@
 [submodule "cli_meter/test/test_helper/bats-mock"]
 	path = cli_meter/test/test_helper/bats-mock
 	url = https://github.com/jasonkarns/bats-mock.git
+[submodule "cli_meter/test/bats-core"]
+	path = cli_meter/test/bats-core
+	url = git@github.com:bats-core/bats-core.git
