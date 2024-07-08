@@ -19,11 +19,11 @@ Ensure you have the following before running the pipeline:
 - FTP credentials for the meter
 - Meter Configuration
 - Installed on `camio-ot-dev`:
-    - `lftp` — FTP Operations
-    - `yq` - YAML Parsing
-    - `zip` - Compressing Data
-    - `rsync` — Transfering Data
-    - `jq` — JSON Parsing
+    - `lftp`
+    - `yq`
+    - `zip`
+    - `rsync`
+    - `jq`
 
 ## Installation
 1. You must be connected to the `camio-ot-dev` server. See **camio-ot-dev(SSH)** in the [ACEP Wiki](https://wiki.acep.uaf.edu/en/teams/data-ducts/aetb).
@@ -39,35 +39,23 @@ Ensure you have the following before running the pipeline:
 
 ## Configuration
 
-### Data Pipeline Configuration
-1. Navigate to the `config` directory and copy the `config.yml.example` file to a new `config.yml` file:
+### General Configuration Steps
+1. Navigate to the `config` directory and copy the example configuration file to a new file:
 
     ```bash
     cd config
     cp config.yml.example config.yml
-    ```
-
-2. **Update** the `config.yml` file with the FTP credentials and meter configuration data.
-
-3. Secure the `config.yml` file so that only the owner can read and write:
-
-    ```bash
-    chmod 600 config.yml
-    ```
-
-### Archive Pipeline Configuration
-1. Navigate to the `config` directory and copy the `archive_config.yml.example` file to a new `archive_config.yml` file:
-
-    ```bash
-    cd config
     cp archive_config.yml.example archive_config.yml
     ```
 
-2. **Update** the `archive_config.yml` file with the source and destination directories and details.
+2. **Update** the configuration files with the necessary details:
+    - **`config.yml`**: Add the FTP server credentials and meter configuration data.
+    - **`archive_config.yml`**: Add the source and destination directories and other relevant details.
 
-3. Secure the `archive_config.yml` file so that only the owner can read and write:
+3. Secure the configuration files so that only the owner can read and write:
 
     ```bash
+    chmod 600 config.yml
     chmod 600 archive_config.yml
     ```
 
@@ -81,7 +69,7 @@ To run the data pipeline and then transfer data to the Data Acquisition System (
     ### Command
 
     ```bash
-    ./data_pipeline.sh -c /path/to/config.yml
+    ./data_pipeline.sh -c config/config.yml
     ```
 
 2. **Run the Archive Pipeline**
@@ -91,18 +79,25 @@ To run the data pipeline and then transfer data to the Data Acquisition System (
     ### Command
 
     ```bash
-    ./archive_pipeline.sh -c /path/to/archive_config.yml
+    ./archive_pipeline.sh -c config/archive_config.yml
     ```
     #### Notes
     The **rsync** uses the `--exclude` flag to exclude the `working` directory to ensure only complete files are transfered. 
 
 3. **Run the Cleanup Process (Conditional)**
 
-    If the `archive_pipeline` script completes successfully and the `enable_cleanup` flag is set to true in the archive configuration file, the `cleanup.sh` script will be executed automatically. This script removes outdated event files from level0 based on the retention period specified in the configuration file.
+    If the `archive_pipeline` script completes successfully and the `enable_cleanup` flag is set to true in the archive configuration file, the `cleanup.sh` script will be executed automatically. This script removes outdated event files from `level0` based on the retention period specified in the configuration file.
 
+    If the `enable_cleanup` flag is not enabled, you can run the cleanup manually by passing in the archive configuration file.
+
+    ### Command
+
+    ```bash
+    ./cleanup.sh -c config/archive_config.yml
+    ```
+    
     #### Notes
-    Ensure that the `cleanup.sh` script is configured correctly in the `archive_config.yml` file to specify the retention period for each directory set for the cleanup process.
-
+    Ensure that the `archive_config.yml` file is properly configured with the retention periods for each directory in the cleanup process.
 
 ## How to Stop the Pipeline
 
@@ -114,27 +109,28 @@ When you need to stop the pipeline:
 - **Avoid Using `Ctrl+Z`**: 
   - **Do not** use `Ctrl+Z` to suspend the process, as it may cause the pipeline to end without properly closing the FTP connection.
 
+## Testing (IN PROGRESS)
 
-## Testing
+This repository includes automated tests for the scripts using [Bats (Bash Automated Testing System)](https://github.com/bats-core/bats-core) along with helper libraries: `bats-assert`, `bats-mock`, and `bats-support`. The tests are located in the `test` directory.
 
-This repository includes automated tests for the scripts using [Bats (Bash Automated Testing System)](https://github.com/bats-core/bats-core). The tests are located in the `test` directory. 
-
-[Bats Documentation](https://bats-core.readthedocs.io/en/stable/index.html)
 ### Prerequisites
 
-Ensure you have `bats-core` installed. You can install it using the following steps:
+Ensure you have cloned the repository with its required submodules, they should be located under the `test` and `test/test_helper` directories:
+- `bats-core`
+- `bats-assert`
+- `bats-mock`
+- `bats-support`
 
-1. **On Ubuntu/Debian**:
+1. **Clone the repository with submodules**:
 
     ```bash
-    sudo apt-get update
-    sudo apt-get install -y bats
+    git clone --recurse-submodules git@github.com:acep-uaf/camio-meter-streams.git
     ```
 
-2. **On macOS (using Homebrew)**:
+    If you have already cloned the repository without submodules, you can initialize and update them with:
 
     ```bash
-    brew install bats-core
+    git submodule update --init --recursive
     ```
 
 ### Running the Tests
@@ -148,12 +144,5 @@ Ensure you have `bats-core` installed. You can install it using the following st
 2. **Run all the tests**:
 
     ```bash
-    bats test/
-    ```
-
-3. **Run specific test files**:
-
-    ```bash
-    bats test/test_data_pipeline.bats
-    bats test/test_commons.bats
+    bats test
     ```
