@@ -32,7 +32,7 @@ source "$current_dir/common_sel735.sh"
 source "$current_dir/../../common_utils.sh"
 
 # Check if the correct number of arguments are passed
-[ "$#" -ne 3 ] && failure $EXIT_INVALID_ARGS "Usage: $script_name <meter_ip> <meter_id> <output_dir>"
+[ "$#" -ne 3 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <meter_id> <output_dir>"
 
 meter_ip=$1
 meter_id=$2
@@ -60,13 +60,13 @@ END_FTP_SESSION
 lftp_exit_code=$?
 
 # Check the exit status of lftp command
-[ $lftp_exit_code -eq 0 ] && log "Downloaded remote file: $remote_filename" || failure $EXIT_LFTP_FAIL "Failed to download remote file: $remote_filename"
+[ $lftp_exit_code -eq 0 ] && log "Downloaded remote file: $remote_filename" || failure $STREAMS_LFTP_FAIL "Failed to download remote file: $remote_filename"
 
 # Path to CHISTORY.TXT in the temporary directory
 temp_file_path="$temp_dir/$remote_filename"
 
 # Check if CHISTORY.TXT exists and is not empty
-[ -s "$temp_file_path" ] || failure $EXIT_FILE_NOT_FOUND "File does not exist or is empty: $remote_filename"
+[ -s "$temp_file_path" ] || failure $STREAMS_FILE_NOT_FOUND "File does not exist or is empty: $remote_filename"
 
 # Parse CHISTORY.TXT starting from line 4
 awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do

@@ -20,29 +20,31 @@
 # Requirements:       flock
 # ==============================================================================
 # General Execution Codes
-export EXIT_SUCCESS=0                # Successful completion
-export EXIT_SIGINT=130               # Script interrupted by SIGINT (Ctrl+C)
-export EXIT_UNKNOWN=1099             # Unknown error
+export STREAMS_SUCCESS=0                # Successful completion
+export STREAMS_SIGINT=130               # Script interrupted by SIGINT (Ctrl+C)
+export STREAMS_SIGQUIT=131              # Script interrupted by SIGQUIT (Ctrl+\)
+export STREAMS_SIGTERM=143              # Script terminated by SIGTERM
+export STREAMS_UNKNOWN=199              # Unknown error
 
 # Argument and Configuration Errors
-export EXIT_INVALID_ARGS=1000        # Invalid arguments provided
-export EXIT_INVALID_CONFIG=1001      # Invalid or missing critical configuration values
+export STREAMS_INVALID_ARGS=200         # Invalid arguments provided
+export STREAMS_INVALID_CONFIG=201       # Invalid or missing critical configuration values
 
 # File and Directory Errors
-export EXIT_FILE_NOT_FOUND=1010      # Required file not found
-export EXIT_FILE_CREATION_FAIL=1011  # Failed to create file
-export EXIT_DIR_NOT_FOUND=1012       # Directory does not exist
-export EXIT_DIR_CREATION_FAIL=1013   # Failed to create directory
+export STREAMS_FILE_NOT_FOUND=210       # Required file not found
+export STREAMS_FILE_CREATION_FAIL=211   # Failed to create file
+export STREAMS_DIR_NOT_FOUND=212        # Directory does not exist
+export STREAMS_DIR_CREATION_FAIL=213    # Failed to create directory
 
 # Command Errors
-export EXIT_LFTP_FAIL=1020           # LFTP command failed
-export EXIT_RSYNC_FAIL=1021          # Rsync command failed
+export STREAMS_LFTP_FAIL=220            # LFTP command failed
+export STREAMS_RSYNC_FAIL=221           # Rsync command failed
 
 # Specific Operation Errors
-export EXIT_DOWNLOAD_FAIL=1030       # File download failure
-export EXIT_ZIP_FAIL=1031            # Compression/zipping failure
-export EXIT_METADATA_FAIL=1032       # Metadata/Checksum creation or file generation failure
-export EXIT_LOCK_FAIL=1033           # Failed to acquire lock
+export STREAMS_DOWNLOAD_FAIL=230        # File download failure
+export STREAMS_ZIP_FAIL=231             # Compression/zipping failure
+export STREAMS_METADATA_FAIL=232        # Metadata/Checksum creation or file generation failure
+export STREAMS_LOCK_FAIL=233            # Failed to acquire lock
 
 LOCKFD=99 # Assign a high file descriptor number for locking 
 
@@ -57,7 +59,7 @@ _failed_locking() {
     pgrep -af "$(basename $0)" | grep -v $$ | while read pid cmd; do
         log "PID: $pid, Command: $cmd"
     done
-    failure $EXIT_LOCK_FAIL
+    failure $STREAMS_LOCK_FAIL
 }
 
 exlock_now()        { _lock xn; }  # obtain an exclusive lock immediately or fail
@@ -67,7 +69,7 @@ unlock()            { _lock u; }   # drop a lock
 
 # Utility functions
 failure() {
-  local exit_code="${1:-$EXIT_UNKNOWN}"
+  local exit_code="${1:-$UNKNOWN}"
   local message="${2:-""}"
 
   log "[ERROR] $message. Exit code: $exit_code"
@@ -87,7 +89,7 @@ parse_config_arg() {
       -c | --config)
         if [ -z "$2" ] || [[ "$2" =~ ^- ]]; then
           show_help_flag
-          failure $EXIT_INVALID_ARGS "Config path not provided or invalid after -c/--config"
+          failure $INVALID_ARGS "Config path not provided or invalid after -c/--config"
         fi
         config_path="$2"
         shift 2
@@ -98,7 +100,7 @@ parse_config_arg() {
         ;;
       *)
         show_help_flag
-        failure $EXIT_INVALID_ARGS "Unknown parameter: $1"
+        failure $INVALID_ARGS "Unknown parameter: $1"
         ;;
     esac
   done

@@ -20,7 +20,7 @@ script_name=$(basename "$0")
 source "$current_dir/../../common_utils.sh"
 
 # Check if the correct number of arguments are passed
-[ "$#" -lt 3 ] && failure $EXIT_INVALID_ARGS "Usage: $script_name <meter_ip> <event_id> <output_dir> [bandwidth_limit]"
+[ "$#" -lt 3 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <event_id> <output_dir> [bandwidth_limit]"
 
 # Extracting arguments into variables
 meter_ip=$1
@@ -30,7 +30,7 @@ bandwidth_limit="${4:-0}"
 remote_dir="EVENTS"
 
 # Create the local directory for this event if it doesn't exist
-mkdir -p "$download_dir" && log "Created local directory for event: $event_id" || failure $EXIT_DIR_CREATION_FAIL "Failed to create local directory for event: $event_id"
+mkdir -p "$download_dir" && log "Created local directory for event: $event_id" || failure $STREAMS_DIR_CREATION_FAIL "Failed to create local directory for event: $event_id"
 
 # Single lftp session
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<END_FTP_SESSION
@@ -44,4 +44,4 @@ END_FTP_SESSION
 
 # Check the exit status of the lftp command
 lftp_exit_code=$?
-[ $lftp_exit_code -eq 0 ] && log "Download complete for event: $event_id" || failure $EXIT_LFTP_FAIL "Failed to download files for event: $event_id"
+[ $lftp_exit_code -eq 0 ] && log "Download complete for event: $event_id" || failure $STREAMS_LFTP_FAIL "Failed to download files for event: $event_id"

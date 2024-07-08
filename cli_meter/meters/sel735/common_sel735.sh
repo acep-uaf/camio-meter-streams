@@ -4,7 +4,7 @@
 # Description:        Common utility functions for SEL-735 scripts in Meter Event Data Pipeline.
 #
 # Functions:
-#   handle_sigint               - Handles SIGINT signal and marks the current event as incomplete
+#   handle_sig                  - Handles signals and marks the current event as incomplete
 #   mark_event_incomplete       - Marks an event as incomplete and rotates older incomplete directories
 #   validate_download           - Validates if all files for an event have been downloaded
 #   validate_complete_directory - Validates if the directory is complete
@@ -13,7 +13,7 @@
 current_dir=$(dirname "$(readlink -f "$0")")
 
 # Function to handle SIGINT (Ctrl+C) and mark event as incomplete
-handle_sigint() {
+handle_sig() {
     # Mark event incomplete if event_id is set
     if [ -n "$current_event_id" ]; then
         local output_dir="$base_output_dir/$date_dir/$meter_id"
@@ -24,7 +24,7 @@ handle_sigint() {
     fi
 
     source "$current_dir/cleanup_incomplete.sh" "$base_output_dir"
-    failure $EXIT_SIGINT "SIGINT received. Exiting..."
+    failure $SIGINT "SIGINT received. Exiting..."
 }
 
 # Function to mark an event as incomplete and rotate older incomplete directories

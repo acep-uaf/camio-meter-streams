@@ -16,12 +16,12 @@ script_name=$(basename "$0")
 source "$current_dir/../../common_utils.sh"
 
 # Check for exactly 1 argument
-[[ "$#" -ne 1 ]] && failure $EXIT_INVALID_ARGS "Usage: $script_name <directory>"
+[[ "$#" -ne 1 ]] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <directory>"
 
 base_directory="$1"
 
 # Check if base_directory exists
-[ -d "$base_directory" ] && log "Base directory exists" || failure $EXIT_DIR_NOT_FOUND "Base directory does not exist."
+[ -d "$base_directory" ] && log "Base directory exists" || failure $STREAMS_DIR_NOT_FOUND "Base directory does not exist."
 
 log "Starting cleanup process in directory: $base_directory"
 
