@@ -146,3 +146,35 @@ create_metadata_files() {
   assert_failure
   assert_output --partial "Missing file: HR_${EVENT_ID}.ZDAT in directory: $EVENT_DIR"
 }
+
+@test "generate_date_dir function returns the correct date directory" {
+  run generate_date_dir 2021 10
+  assert_success
+  assert_output "2021-10"
+}
+
+@test "generate_date_dir function returns the correct date directory with leading zero" {
+  run generate_date_dir 2021 01
+  assert_success
+  assert_output "2021-01"
+}
+
+@test "calculate_max_date function returns the correct date" {
+  run calculate_max_date 5
+  assert_success
+  assert_output "$(date -d "5 days ago" +%Y-%m-%d)"
+}
+
+@test "calculate_max_date function returns the correct date for 1 day" {
+  run calculate_max_date 1
+  assert_success
+  assert_output "$(date -d "1 days ago" +%Y-%m-%d)"
+}
+
+@test "calculate_max_date function returns the correct date for 10 days" {
+  run calculate_max_date 10
+  assert_success
+  assert_output "$(date -d "10 days ago" +%Y-%m-%d)"
+}
+
+

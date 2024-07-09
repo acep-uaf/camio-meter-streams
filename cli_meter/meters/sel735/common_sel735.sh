@@ -105,7 +105,7 @@ validate_complete_directory() {
     # Check for metadata files
     local metadata_files=("${event_id}_metadata.yml" "checksum.md5")
     for file in "${metadata_files[@]}"; do
-        log "Checking for metadata file: ${file} in directory: ${event_dir}"
+        log "Checking for metadata file: ${file}"
         if [ ! -f "${event_dir}/${file}" ]; then
             log "Missing metadata file: ${file} in directory: ${event_dir}"
             mark_event_incomplete "$event_id" "$(dirname "$event_dir")" && return 1 # False - Metadata file is missing
@@ -113,4 +113,21 @@ validate_complete_directory() {
     done
 
     return 0 # True - All files are present
+}
+
+# Function to generate date directory name
+generate_date_dir() {
+    local year=$1
+    local month=$2
+    
+    formatted_month=$(printf '%02d' "$month")
+    date_dir="$year-$formatted_month"
+    echo "$date_dir"
+}
+
+# Function to calculate the max allowable date
+calculate_max_date() {
+    local max_age_days=$1
+    max_date=$(date -d "$max_age_days days ago" '+%Y-%m-%d')
+    echo "$max_date"
 }
