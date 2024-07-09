@@ -20,7 +20,6 @@ handle_sig() {
     if [ -n "$current_event_id" ]; then
         local output_dir="$base_output_dir/$date_dir/$meter_id"
         mark_event_incomplete "$current_event_id" "$output_dir"
-        log "Download in progress, moving event $current_event_id to .incomplete"
     else
         log "No download in progress, no event to move to .incomplete"
     fi
@@ -106,7 +105,11 @@ validate_complete_directory() {
     # Check for metadata files
     local metadata_files=("${event_id}_metadata.yml" "checksum.md5")
     for file in "${metadata_files[@]}"; do
-        [ ! -f "${event_dir}/${file}" ] && log "Missing metadata file: ${file} in directory: ${event_dir}" && return 1 # False - Metadata file is missing
+        log "Checking for metadata file: ${file} in directory: ${event_dir}"
+        if [ ! -f "${event_dir}/${file}" ]; then
+            log "Missing metadata file: ${file} in directory: ${event_dir}"
+            mark_event_incomplete "$event_id" "$(dirname "$event_dir")" && return 1 # False - Metadata file is missing
+        fi
     done
 
     return 0 # True - All files are present

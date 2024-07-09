@@ -55,7 +55,6 @@ teardown() {
   base_output_dir="$TMP_DIR"
   run handle_sig SIGINT
   assert_failure 130
-  assert_output --partial "Download in progress, moving event $EVENT_ID to .incomplete"
   assert_output --partial "130"
 }
 
