@@ -73,7 +73,8 @@ for ((i = 0; i < num_meters; i++)); do
     if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location"; then
         log "Download complete for meter: $meter_id"
     else
-        # This will be changed to a warning in the future
         warning "Download incomplete for meter: $meter_id"
     fi
 done
+
+log "All meters have been processed"
