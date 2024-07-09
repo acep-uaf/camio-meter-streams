@@ -2,7 +2,7 @@
 # ==============================================================================
 # Script Name:        cleanup_incomplete.sh
 # Description:        This script deletes all directories matching the pattern
-#                     *.incomplete_<digit> within a given directory.
+#                     *.incomplete_<digit> within a given directory and all empty directories.
 #
 # Usage:              ./cleanup_incomplete.sh <directory>
 #

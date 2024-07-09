@@ -13,7 +13,7 @@
 #   exlock()                - Obtain an exclusive lock
 #   shlock()                - Obtain a shared lock
 #   unlock()                - Drop a lock
-#   fail()                  - Output an error message and exit
+#   failure()               - Output an error message and exit
 #   warning()               - Output a warning message
 #   log()                   - Output a message to stderr
 #   show_help_flag()        - Display usage information
