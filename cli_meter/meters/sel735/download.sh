@@ -42,6 +42,8 @@ bandwidth_limit="$5"
 data_type="$6"
 location="$7"
 
+log "Starting download process for meter: $meter_id"
+
 # Make dir if it doesn't exist
 mkdir -p "$base_output_dir"
 

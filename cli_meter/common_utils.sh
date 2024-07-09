@@ -76,6 +76,11 @@ failure() {
   exit $exit_code
 }
 
+warning(){
+  local message="${1:-""}"
+  log "[WARNING] $message"
+}
+
 log() {
   echo "$1" >&2
 }
@@ -124,6 +129,7 @@ show_help_flag() {
 # Export functions for use in other scripts
 export -f log
 export -f failure
+export -f warning
 export -f show_help_flag
 
 export -f _lock

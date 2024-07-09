@@ -5,11 +5,10 @@
 #                     loops through the meters listed in the configuration file
 #                     and downloads event files using the appropriate credentials.
 #
-# Usage:              ./data_pipeline.sh -c <config_path> [-d <download_dir>]
+# Usage:              ./data_pipeline.sh -c <config_path>
 #
 # Arguments:
 #   -c, --config       Path to the configuration file
-#   -d, --download_dir Optional: Override the download directory from the config
 #   -h, --help         Show usage information
 #
 # Requirements:       yq
@@ -75,6 +74,6 @@ for ((i = 0; i < num_meters; i++)); do
         log "Download complete for meter: $meter_id"
     else
         # This will be changed to a warning in the future
-        failure $STREAMS_DOWNLOAD_FAIL "Download incomplete for meter: $meter_id"
+        warning "Download incomplete for meter: $meter_id"
     fi
 done
