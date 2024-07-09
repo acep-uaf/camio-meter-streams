@@ -4,15 +4,21 @@
 # Description:        This script returns a list of event IDs that need to be
 #                     downloaded by checking the CHISTORY.TXT file on the meter.
 #
-# Usage:              ./get_events.sh <meter_ip> <meter_id> <output_dir>
+# Usage:              ./get_events.sh <meter_ip> <meter_id> <output_dir> [<max_age_days>]
 # Called by:          download.sh
 #
 # Arguments:
 #   meter_ip          Meter IP address
 #   meter_id          Meter ID
 #   output_dir        Base directory where the event data will be stored
+#   max_age_days      Maximum age of events to be downloaded (optional)
+#                     If provided, events older than max_age_days will be skipped  
+#                     If not provided, all events will be downloaded
 #
 # Requirements:       lftp
+#                     common_sel735.sh
+#                     common_utils.sh
+#                     $USERNAME and $PASSWORD environment variables
 # ==============================================================================
 # Function to generate date directory name
 generate_date_dir() {
@@ -25,20 +31,11 @@ generate_date_dir() {
     echo "$date_dir"
 }
 
-# Function to check if the event is within the max age
-is_within_max_age() {
-    local event_timestamp=$1
-    local max_age_days=$2
-
-    event_date=$(date -d "$event_timestamp" +%s)
-    current_date=$(date +%s)
-    max_age_seconds=$((max_age_days * 86400))
-
-    if (( (current_date - event_date) <= max_age_seconds )); then
-        return 0
-    else
-        return 1
-    fi
+# Function to calculate the max allowable date
+calculate_max_date() {
+    local max_age_days=$1
+    max_date=$(date -d "$max_age_days days ago" '+%Y-%m-%d')
+    echo "$max_date"
 }
 
 # ==============================================================================
@@ -50,7 +47,7 @@ source "$current_dir/common_sel735.sh"
 source "$current_dir/../../common_utils.sh"
 
 # Check if the correct number of arguments are passed
-[ "$#" -ne 4 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <meter_id> <output_dir> <max_age_days>"
+[ "$#" -lt 3 ] || [ "$#" -gt 4 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <meter_id> <output_dir> [<max_age_days>]"
 
 meter_ip=$1
 meter_id=$2
@@ -87,6 +84,12 @@ temp_file_path="$temp_dir/$remote_filename"
 # Check if CHISTORY.TXT exists and is not empty
 [ -s "$temp_file_path" ] || failure $STREAMS_FILE_NOT_FOUND "File does not exist or is empty: $remote_filename"
 
+# Calculate the max allowable date if max_age_days is provided
+if [[ -n "$max_age_days" ]]; then
+    max_date=$(calculate_max_date "$max_age_days")
+    log "Only downloading events newer than: $max_date"
+fi
+
 # Parse CHISTORY.TXT starting from line 4
 awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do
     # Remove quotes and then extract fields
@@ -94,9 +97,11 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do
     IFS=, read -r _ event_id month day year hour min sec _ <<<"$clean_line"
     [[ ! $event_id =~ ^[0-9]+$ ]] && { log "Parsing error, skipping line: $event_line."; continue; }
 
-    # Format event timestamp, pad month for date directory, and construct event directory path
+    # Format event timestamp
+    event_date=$(printf '%04d-%02d-%02d' "$year" "$month" "$day")
     event_timestamp=$(printf '%04d-%02d-%02dT%02d:%02d:%02d' "$year" "$month" "$day" "$hour" "$min" "$sec")
-    if is_within_max_age "$event_timestamp" "$max_age_days"; then
+    
+    if [[ -z "$max_age_days" ]] || [[ "$event_date" > "$max_date" ]] || [[ "$event_date" == "$max_date" ]]; then
         date_dir=$(generate_date_dir "$year" "$month" "$output_dir")
         event_dir_path="$output_dir/$date_dir/$meter_id/$event_id"
 
@@ -111,8 +116,8 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do
             }
         fi
     else
-        log "Event $event_id is older than max age, skipping."
-        log "All events within $max_age_days days have been processed"
+        log "Event $event_id is older than date range, skipping."
+        log "All events within $max_age_days day(s) have been processed"
         break
     fi
 done

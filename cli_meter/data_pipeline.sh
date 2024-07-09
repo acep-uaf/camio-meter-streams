@@ -51,7 +51,10 @@ max_age_days=$(yq '.max_age_days' "$config_path")
 [[ -z "$data_type" || "$data_type" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Data type cannot be null or empty."
 [[ -z "$bandwidth_limit" || "$bandwidth_limit" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Bandwidth limit cannot be null or empty."
 [[ -z "$num_meters" || "$num_meters" -eq 0 ]] && failure $STREAMS_INVALID_CONFIG "Must have at least 1 meter in the config file."
-[[ -z "$max_age_days" || "$max_age_days" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Max age days cannot be null or empty."  # New validation for max_age_days
+# if max_age_days is set make sure max_age_days is a number
+if [[ ! -z "$max_age_days" && "$max_age_days" != "null" ]]; then
+    [[ ! "$max_age_days" =~ ^[1-9]+$ ]] && failure $STREAMS_INVALID_CONFIG "Max age days must be an integer greater than 0: '$max_age_days' "
+fi
 
 # Create the base output directory
 output_dir="$download_dir/$location/$data_type"
