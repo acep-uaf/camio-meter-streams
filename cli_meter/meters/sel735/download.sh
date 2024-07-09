@@ -30,7 +30,7 @@ trap 'handle_sig SIGQUIT' SIGQUIT
 trap 'handle_sig SIGTERM' SIGTERM
 
 # Check for exactly 7 arguments
-[ "$#" -ne 7 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location>"
+[ "$#" -ne 8 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location> <max_age_days>"
 
 # Simple CLI flag parsing
 meter_ip="$1"
@@ -41,7 +41,8 @@ meter_type="$4"
 bandwidth_limit="$5"
 data_type="$6"
 location="$7"
-
+max_age_days="$8"
+log "Max age days: $max_age_days"
 log "Starting download process for meter: $meter_id"
 
 # Make dir if it doesn't exist
@@ -51,7 +52,7 @@ mkdir -p "$base_output_dir"
 source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bandwidth_limit"
 
 # output_dir is the location where the data will be stored
-for event_info in $("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_output_dir"); do
+for event_info in $("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_output_dir" "$max_age_days"); do
 
   # Split the output into variables
   IFS=',' read -r event_id date_dir event_timestamp <<<"$event_info"

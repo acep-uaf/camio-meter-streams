@@ -41,6 +41,7 @@ num_meters=$(yq '.meters | length' "$config_path")
 location=$(yq '.location' "$config_path")
 data_type=$(yq '.data_type' "$config_path")
 bandwidth_limit=$(yq '.bandwidth_limit' "$config_path")
+max_age_days=$(yq '.max_age_days' "$config_path")
 
 # Check for null or empty values
 [[ -z "$download_dir" || "$download_dir" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Download directory cannot be null or empty."
@@ -50,6 +51,7 @@ bandwidth_limit=$(yq '.bandwidth_limit' "$config_path")
 [[ -z "$data_type" || "$data_type" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Data type cannot be null or empty."
 [[ -z "$bandwidth_limit" || "$bandwidth_limit" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Bandwidth limit cannot be null or empty."
 [[ -z "$num_meters" || "$num_meters" -eq 0 ]] && failure $STREAMS_INVALID_CONFIG "Must have at least 1 meter in the config file."
+[[ -z "$max_age_days" || "$max_age_days" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Max age days cannot be null or empty."  # New validation for max_age_days
 
 # Create the base output directory
 output_dir="$download_dir/$location/$data_type"
@@ -70,7 +72,7 @@ for ((i = 0; i < num_meters; i++)); do
     export PASSWORD=${meter_password:-$default_password}
 
     # Execute download script and check its success in one step
-    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location"; then
+    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location" "$max_age_days" ; then
         log "Download complete for meter: $meter_id"
     else
         warning "Download incomplete for meter: $meter_id"

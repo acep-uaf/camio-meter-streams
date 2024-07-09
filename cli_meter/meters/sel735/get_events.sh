@@ -24,19 +24,38 @@ generate_date_dir() {
     date_dir="$year-$formatted_month"
     echo "$date_dir"
 }
+
+# Function to check if the event is within the max age
+is_within_max_age() {
+    local event_timestamp=$1
+    local max_age_days=$2
+
+    event_date=$(date -d "$event_timestamp" +%s)
+    current_date=$(date +%s)
+    max_age_seconds=$((max_age_days * 86400))
+
+    if (( (current_date - event_date) <= max_age_seconds )); then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # ==============================================================================
 
 current_dir=$(dirname "$(readlink -f "$0")")
+log "Current directory: $current_dir"
 script_name=$(basename "$0")
 source "$current_dir/common_sel735.sh"
 source "$current_dir/../../common_utils.sh"
 
 # Check if the correct number of arguments are passed
-[ "$#" -ne 3 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <meter_id> <output_dir>"
+[ "$#" -ne 4 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <meter_id> <output_dir> <max_age_days>"
 
 meter_ip=$1
 meter_id=$2
 output_dir=$3
+max_age_days=$4
 
 remote_filename="CHISTORY.TXT"
 remote_dir="EVENTS"
@@ -77,18 +96,23 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do
 
     # Format event timestamp, pad month for date directory, and construct event directory path
     event_timestamp=$(printf '%04d-%02d-%02dT%02d:%02d:%02d' "$year" "$month" "$day" "$hour" "$min" "$sec")
-    date_dir=$(generate_date_dir "$year" "$month" "$output_dir")
-    event_dir_path="$output_dir/$date_dir/$meter_id/$event_id"
+    if is_within_max_age "$event_timestamp" "$max_age_days"; then
+        date_dir=$(generate_date_dir "$year" "$month" "$output_dir")
+        event_dir_path="$output_dir/$date_dir/$meter_id/$event_id"
 
-    # If the event directory does not exist, print the event ID else validate the directory
-    if [ ! -d "$event_dir_path" ]; then
-        log "No directory found, proceeding to download event: $event_id"
-        echo "$event_id,$date_dir,$event_timestamp"
-    else
-        validate_complete_directory "$event_dir_path" "$event_id" && log "Complete directory for event: $event_id" || {
-            log "Incomplete directory, proceeding to download event: $event_id"
+        # If the event directory does not exist, print the event ID else validate the directory
+        if [ ! -d "$event_dir_path" ]; then
+            log "No directory found, proceeding to download event: $event_id"
             echo "$event_id,$date_dir,$event_timestamp"
-        }
-        
+        else
+            validate_complete_directory "$event_dir_path" "$event_id" && log "Complete directory for event: $event_id" || {
+                log "Incomplete directory, proceeding to download event: $event_id"
+                echo "$event_id,$date_dir,$event_timestamp"
+            }
+        fi
+    else
+        log "Event $event_id is older than max age, skipping."
+        log "All events within $max_age_days days have been processed"
+        break
     fi
 done
