@@ -106,8 +106,10 @@ validate_complete_directory() {
     local metadata_files=("${event_id}_metadata.yml" "checksum.md5")
     for file in "${metadata_files[@]}"; do
         log "Checking for metadata file: ${file} in directory: ${event_dir}"
-        [ ! -f "${event_dir}/${file}" ] && log "Missing metadata file: ${file} in directory: ${event_dir}"
-        mark_event_incomplete "$event_id" "$(dirname "$event_dir")" && return 1 # False - Metadata file is missing
+        if [ ! -f "${event_dir}/${file}" ]; then
+            log "Missing metadata file: ${file} in directory: ${event_dir}"
+            mark_event_incomplete "$event_id" "$(dirname "$event_dir")" && return 1 # False - Metadata file is missing
+        fi
     done
 
     return 0 # True - All files are present
