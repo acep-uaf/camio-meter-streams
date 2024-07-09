@@ -20,25 +20,6 @@
 #                     common_utils.sh
 #                     $USERNAME and $PASSWORD environment variables
 # ==============================================================================
-# Function to generate date directory name
-generate_date_dir() {
-    local year=$1
-    local month=$2
-    local base_output_dir=$3
-
-    formatted_month=$(printf '%02d' "$month")
-    date_dir="$year-$formatted_month"
-    echo "$date_dir"
-}
-
-# Function to calculate the max allowable date
-calculate_max_date() {
-    local max_age_days=$1
-    max_date=$(date -d "$max_age_days days ago" '+%Y-%m-%d')
-    echo "$max_date"
-}
-
-# ==============================================================================
 
 current_dir=$(dirname "$(readlink -f "$0")")
 log "Current directory: $current_dir"

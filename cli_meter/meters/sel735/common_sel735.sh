@@ -114,3 +114,20 @@ validate_complete_directory() {
 
     return 0 # True - All files are present
 }
+
+# Function to generate date directory name
+generate_date_dir() {
+    local year=$1
+    local month=$2
+    
+    formatted_month=$(printf '%02d' "$month")
+    date_dir="$year-$formatted_month"
+    echo "$date_dir"
+}
+
+# Function to calculate the max allowable date
+calculate_max_date() {
+    local max_age_days=$1
+    max_date=$(date -d "$max_age_days days ago" '+%Y-%m-%d')
+    echo "$max_date"
+}
