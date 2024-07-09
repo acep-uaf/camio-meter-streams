@@ -105,6 +105,7 @@ When you need to stop the pipeline:
 
 - **To Stop Safely/Pause Download**: 
   - Use `Ctrl+C` to interrupt the process. 
+  - If interupting the proccess doesn't work try `Ctrl+\` to quit.
   - If you would like to resume the download, rerun the `data_pipeline`command.The download will resume from where it left off, provided the same config file (`-c`)is used.
 - **Avoid Using `Ctrl+Z`**: 
   - **Do not** use `Ctrl+Z` to suspend the process, as it may cause the pipeline to end without properly closing the FTP connection.
