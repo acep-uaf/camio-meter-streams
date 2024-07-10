@@ -9,14 +9,42 @@ teardown() {
     _common_teardown
 }
 
-#################### Test cases for common_utils.sh ####################
-@test "log function outputs message to stderr" {
-  run log "Test log message"
-  assert_success
-  assert_output "Test log message"
+#TODO: Can I use mock or stub here to create a fake directory to mock mark_event_incomplete function?
+@test "handle_sig function moves the current_event_id directory to .incomplete" {
+  mkdir -p "$TMP_DIR/$DATE_DIR/$EVENT_ID"
+  current_event_id="$EVENT_ID"
+  base_output_dir="$TMP_DIR"
+  run handle_sig SIGINT
+  assert_failure 130
+  assert_output --partial "130"
 }
 
-#################### Test cases for common_sel735.sh ####################
+@test "handle_sig function no current_event_id set and no dir to move .incomplete" {
+  current_event_id=""
+  base_output_dir="$TMP_DIR"
+  run handle_sig SIGINT
+  assert_failure 130
+  assert_output --partial "No download in progress, no event to move to .incomplete"
+}
+
+@test "handle_sig function handles SIGQUIT" {
+  mkdir -p "$TMP_DIR/$DATE_DIR/$EVENT_ID"
+  current_event_id="$EVENT_ID"
+  base_output_dir="$TMP_DIR"
+  run handle_sig SIGQUIT
+  assert_failure 131
+  assert_output --partial "SIGQUIT received. Exiting..."
+}
+
+@test "handle_sig function handles SIGTERM" {
+  mkdir -p "$TMP_DIR/$DATE_DIR/$EVENT_ID"
+  current_event_id="$EVENT_ID"
+  base_output_dir="$TMP_DIR"
+  run handle_sig SIGTERM
+  assert_failure 143
+  assert_output --partial "SIGTERM received. Exiting..."
+}
+
 @test "mark_event_incomplete function moves the event directory to .incomplete" {
   mkdir -p "$TMP_DIR/$DATE_DIR/$EVENT_ID"
   run mark_event_incomplete "$EVENT_ID" "$TMP_DIR/$DATE_DIR"   
@@ -48,24 +76,21 @@ teardown() {
   done
 }
 
-#TODO: Can I use mock or stub here to create a fake directory to mock mark_event_incomplete function?
-@test "handle_sig function moves the current_event_id directory to .incomplete" {
+@test "mark_event_incomplete handles directories with special characters" {
+  special_event_id="event with spaces & special #chars!"
+  mkdir -p "$TMP_DIR/$DATE_DIR/$special_event_id"
+  run mark_event_incomplete "$special_event_id" "$TMP_DIR/$DATE_DIR"
+  assert_success
+  assert [ -d "$TMP_DIR/$DATE_DIR/${special_event_id}.incomplete_1" ]
+  assert [ ! -d "$TMP_DIR/$DATE_DIR/$special_event_id" ]
+}
+
+@test "mark_event_incomplete logs messages correctly" {
   mkdir -p "$TMP_DIR/$DATE_DIR/$EVENT_ID"
-  current_event_id="$EVENT_ID"
-  base_output_dir="$TMP_DIR"
-  run handle_sig SIGINT
-  assert_failure 130
-  assert_output --partial "130"
+  run mark_event_incomplete "$EVENT_ID" "$TMP_DIR/$DATE_DIR"
+  assert_success
+  assert_output --partial "Moved event $EVENT_ID to ${EVENT_ID}.incomplete_1"
 }
-
-@test "handle_sig function no current_event_id set and no dir to move .incomplete" {
-  current_event_id=""
-  base_output_dir="$TMP_DIR"
-  run handle_sig SIGINT
-  assert_failure 130
-  assert_output --partial "No download in progress, no event to move to .incomplete"
-}
-
 
 # Helper function to create expected event files
 create_event_files() {
@@ -88,6 +113,23 @@ create_metadata_files() {
   for file in "${metadata_files[@]}"; do
     touch "${event_dir}/${file}"
   done
+}
+@test "validate_download function passes when all files are present" {
+  EVENT_DIR="$TMP_DIR/$DATE_DIR/$EVENT_ID"
+  mkdir -p "$EVENT_DIR"
+  create_event_files "$EVENT_DIR" "$EVENT_ID"
+  run validate_download "$EVENT_DIR" "$EVENT_ID"
+  assert_success
+}
+
+@test "validate_download function fails when a file is missing" {
+  EVENT_DIR="$TMP_DIR/$DATE_DIR/$EVENT_ID"
+  create_event_files "$EVENT_DIR" "$EVENT_ID"
+  rm "$EVENT_DIR/HR_${EVENT_ID}.ZDAT" # Remove .ZDAT file
+
+  run validate_download "$EVENT_DIR" "$EVENT_ID"
+  assert_failure
+  assert_output --partial "Missing file: HR_${EVENT_ID}.ZDAT in directory: $EVENT_DIR"
 }
 
 @test "validate_complete_directory passes when all files are present" {
@@ -129,24 +171,6 @@ create_metadata_files() {
   assert_failure
 }
 
-@test "validate_download function passes when all files are present" {
-  EVENT_DIR="$TMP_DIR/$DATE_DIR/$EVENT_ID"
-  mkdir -p "$EVENT_DIR"
-  create_event_files "$EVENT_DIR" "$EVENT_ID"
-  run validate_download "$EVENT_DIR" "$EVENT_ID"
-  assert_success
-}
-
-@test "validate_download function fails when a file is missing" {
-  EVENT_DIR="$TMP_DIR/$DATE_DIR/$EVENT_ID"
-  create_event_files "$EVENT_DIR" "$EVENT_ID"
-  rm "$EVENT_DIR/HR_${EVENT_ID}.ZDAT" # Remove .ZDAT file
-
-  run validate_download "$EVENT_DIR" "$EVENT_ID"
-  assert_failure
-  assert_output --partial "Missing file: HR_${EVENT_ID}.ZDAT in directory: $EVENT_DIR"
-}
-
 @test "generate_date_dir function returns the correct date directory" {
   run generate_date_dir 2021 10
   assert_success
@@ -159,19 +183,19 @@ create_metadata_files() {
   assert_output "2021-01"
 }
 
-@test "calculate_max_date function returns the correct date" {
+@test "calculate_max_date function returns success for 5 days" {
   run calculate_max_date 5
   assert_success
   assert_output "$(date -d "5 days ago" +%Y-%m-%d)"
 }
 
-@test "calculate_max_date function returns the correct date for 1 day" {
-  run calculate_max_date 1
+@test "calculate_max_date function returns success and date for 0 days" {
+  run calculate_max_date 0
   assert_success
-  assert_output "$(date -d "1 days ago" +%Y-%m-%d)"
+  assert_output "$(date -d "0 days ago" +%Y-%m-%d)"
 }
 
-@test "calculate_max_date function returns the correct date for 10 days" {
+@test "calculate_max_date function returns success and date for 10 days" {
   run calculate_max_date 10
   assert_success
   assert_output "$(date -d "10 days ago" +%Y-%m-%d)"

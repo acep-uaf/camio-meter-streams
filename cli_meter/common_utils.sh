@@ -70,7 +70,7 @@ unlock()            { _lock u; }   # drop a lock
 
 # Utility functions
 failure() {
-  local exit_code="${1:-$UNKNOWN}"
+  local exit_code="${1:-$STREAMS_UNKNOWN}"
   local message="${2:-""}"
 
   log "[ERROR] $message. Exit code: $exit_code"
