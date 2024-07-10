@@ -1,0 +1,24 @@
+application:
+  name: "Event Data Collection"
+  version: "1.0"
+
+download_directory: "/valid/path"
+
+location: "Test Location"
+data_type: "Test Data"
+
+bandwidth_limit: "1000"
+
+max_age_days: 30
+
+credentials:
+  username: "default_user"
+  password: "default_pass"
+
+meters:
+  - ip: "192.168.1.1"
+    id: "meter_1"
+    type: "SEL735"
+    credentials:
+      username: "meter_user"
+      password: "meter_pass"

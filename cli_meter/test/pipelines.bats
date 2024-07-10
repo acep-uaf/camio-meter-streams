@@ -44,3 +44,21 @@ teardown() {
     assert_failure $(($STREAMS_FILE_NOT_FOUND % 256))
     assert_output --partial "[ERROR] Config file does not exist. Exit code: $STREAMS_FILE_NOT_FOUND"
 }
+
+@test "data_pipeline.sh fails with invalid config: no username" {
+    run ./data_pipeline.sh -c test/mock/configs/config_no_username.yml
+    assert_failure $(($STREAMS_INVALID_CONFIG % 256))
+    assert_output --partial "[ERROR] Default username cannot be null or empty. Exit code: $STREAMS_INVALID_CONFIG"
+}
+
+@test "data_pipeline.sh fails with invalid config: no meters" {
+    run ./data_pipeline.sh -c test/mock/configs/config_no_meters.yml
+    assert_failure $(($STREAMS_INVALID_CONFIG % 256))
+    assert_output --partial "[ERROR] Must have at least 1 meter in the config file. Exit code: $STREAMS_INVALID_CONFIG"
+}
+
+@test "data_pipeline.sh fails with invalid config: max_age_days 0" {
+    run ./data_pipeline.sh -c test/mock/configs/config_max_age_0.yml
+    assert_failure $(($STREAMS_INVALID_CONFIG % 256))
+    assert_output --partial "[ERROR] Max age days must be an integer greater than 0:"
+}

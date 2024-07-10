@@ -1,0 +1,18 @@
+application:
+  name: "Event Data Collection"
+  version: "1.0"
+
+download_directory: "/valid/path"
+
+location: "Test Location"
+data_type: "Test Data"
+
+bandwidth_limit: "1000"
+
+max_age_days: 30
+
+credentials:
+  username: "default_user"
+  password: "default_pass"
+
+meters: []

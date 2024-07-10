@@ -44,13 +44,13 @@ bandwidth_limit=$(yq '.bandwidth_limit' "$config_path")
 max_age_days=$(yq '.max_age_days' "$config_path")
 
 # Check for null or empty values
-[[ -z "$download_dir" || "$download_dir" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Download directory cannot be null or empty."
-[[ -z "$default_username" || "$default_username" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default username cannot be null or empty."
-[[ -z "$default_password" || "$default_password" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default password cannot be null or empty."
-[[ -z "$location" || "$location" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Location cannot be null or empty."
-[[ -z "$data_type" || "$data_type" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Data type cannot be null or empty."
-[[ -z "$bandwidth_limit" || "$bandwidth_limit" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Bandwidth limit cannot be null or empty."
-[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && failure $STREAMS_INVALID_CONFIG "Must have at least 1 meter in the config file."
+[[ -z "$download_dir" || "$download_dir" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Download directory cannot be null or empty"
+[[ -z "$default_username" || "$default_username" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default username cannot be null or empty"
+[[ -z "$default_password" || "$default_password" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default password cannot be null or empty"
+[[ -z "$location" || "$location" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Location cannot be null or empty"
+[[ -z "$data_type" || "$data_type" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Data type cannot be null or empty"
+[[ -z "$bandwidth_limit" || "$bandwidth_limit" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Bandwidth limit cannot be null or empty"
+[[ -z "$num_meters" || "$num_meters" -eq 0 ]] && failure $STREAMS_INVALID_CONFIG "Must have at least 1 meter in the config file"
 # if max_age_days is set make sure max_age_days is a number
 if [[ ! -z "$max_age_days" && "$max_age_days" != "null" ]]; then
     [[ ! "$max_age_days" =~ ^[1-9]+$ ]] && failure $STREAMS_INVALID_CONFIG "Max age days must be an integer greater than 0: '$max_age_days' "
