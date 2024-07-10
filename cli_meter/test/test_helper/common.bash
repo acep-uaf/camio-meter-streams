@@ -14,7 +14,7 @@ _common_setup() {
     TMP_DIR=$(mktemp -d)
 
     EVENT_ID="1234"
-    METER_IP="123.123.123"
+    METER_IP="123.123.123.123"
     DATA_TYPE="events"
     ZIP_FILE="$EVENT_ID.zip"
 }
