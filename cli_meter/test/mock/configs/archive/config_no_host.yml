@@ -1,0 +1,21 @@
+# ==============================================================================
+# Archive Configuration File
+# Configures file archiving from multiple local sources to their respective remote destinations.
+# ==============================================================================
+host: ""
+credentials:
+  user: "remote_user"
+  ssh_key_path: "/path/to/ssh_key"
+
+bandwidth_limit: "1000"
+
+enable_cleanup: true
+
+directories:
+  - source: "/local/source1"
+    destination: "/remote/destination1"
+    retention_days: 30
+
+  - source: "/local/source2"
+    destination: "/remote/destination2"
+    retention_days: 60

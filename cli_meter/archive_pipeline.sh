@@ -40,9 +40,9 @@ dest_host=$(yq e '.host' "$config_path")
 dest_user=$(yq e '.credentials.user' "$config_path") 
 ssh_key_path=$(yq e '.credentials.ssh_key_path' "$config_path") 
 
-[[ -z "$dest_host" || "$dest_host" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Destination host cannot be null or empty."
-[[ -z "$dest_user" || "$dest_user" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Destination user cannot be null or empty."
-[[ -z "$ssh_key_path" || "$ssh_key_path" == "null" ]] && failure $STREAMS_INVALID_CONFIG "SSH key path cannot be null or empty."
+[[ -z "$dest_host" || "$dest_host" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Destination host cannot be null or empty"
+[[ -z "$dest_user" || "$dest_user" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Destination user cannot be null or empty"
+[[ -z "$ssh_key_path" || "$ssh_key_path" == "null" ]] && failure $STREAMS_INVALID_CONFIG "SSH key path cannot be null or empty"
 
 # Parse and process each directory pair using yq
 num_dirs=$(yq e '.directories | length' "$config_path") # Get the number of directory pairs
@@ -51,8 +51,8 @@ for i in $(seq 0 $((num_dirs - 1))); do
     dest_dir=$(yq e ".directories[$i].destination" "$config_path") # Extract destination directory for current pair
 
     # Check for null or empty values in directory configuration
-    [[ -z "$src_dir" ]] && failure $STREAMS_INVALID_CONFIG "Source directory cannot be null or empty."
-    [[ -z "$dest_dir" ]] && failure $STREAMS_INVALID_CONFIG "Destination directory cannot be null or empty."
+    [[ -z "$src_dir" ]] && failure $STREAMS_INVALID_CONFIG "Source directory cannot be null or empty"
+    [[ -z "$dest_dir" ]] && failure $STREAMS_INVALID_CONFIG "Destination directory cannot be null or empty"
 
     # Check if the source directory exists and is not empty
     if [ -d "$src_dir" ] && [ -n "$(ls -A "$src_dir")" ]; then
