@@ -88,13 +88,8 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do
 
         # If the event directory does not exist, print the event ID else validate the directory
         if [ ! -d "$event_dir_path" ]; then
-            log "No directory found, proceeding to download event: $event_id"
+            log "Proceeding to download event: $event_id"
             echo "$event_id,$date_dir,$event_timestamp"
-        else
-            validate_complete_directory "$event_dir_path" "$event_id" && log "Complete directory for event: $event_id" || {
-                log "Incomplete directory, proceeding to download event: $event_id"
-                echo "$event_id,$date_dir,$event_timestamp"
-            }
         fi
     else
         log "Event $event_id is older than date range, skipping."
