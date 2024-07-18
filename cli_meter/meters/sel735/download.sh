@@ -91,7 +91,7 @@ for event_info in $("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_
 
   # LOCATION-TYPE-METER_ID-YYYYMM-EVENT_ID
   zip_filedate="${date_dir//-/}"
-  zip_filename="$location-$meter_type-$meter_id-$zip_filedate-$event_id.zip"
+  zip_filename="$location-$data_type-$meter_id-$zip_filedate-$event_id.zip"
 
   # Execute zip_event.sh
   "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" "$zip_filename"|| {
