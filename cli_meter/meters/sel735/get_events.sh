@@ -88,7 +88,7 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do
 
         # If the event directory does not exist, print the event ID else validate the directory
         if [ ! -d "$event_dir_path" ]; then
-            log "No directory found, proceeding to download event: $event_id"
+            log "Proceeding to download event: $event_id"
             echo "$event_id,$date_dir,$event_timestamp"
         fi
     else

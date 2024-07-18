@@ -51,8 +51,17 @@ mkdir -p "$base_output_dir"
 # Test connection to meter
 source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bandwidth_limit"
 
+# Capture the output of get_events.sh
+events=$("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_output_dir" "$max_age_days")
+
+# Check if events is empty
+if [ -z "$events" ]; then
+  log "No new events to download for meter: $meter_id"
+  exit 0
+fi
+
 # output_dir is the location where the data will be stored
-for event_info in $("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_output_dir" "$max_age_days"); do
+for event_info in $events; do
 
   # Split the output into variables
   IFS=',' read -r event_id date_dir event_timestamp <<<"$event_info"
