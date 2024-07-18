@@ -89,14 +89,16 @@ for event_info in $("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_
   event_zipped_output_dir="$base_zipped_output_dir/$date_dir/$meter_id"
   mkdir -p "$event_zipped_output_dir" 
 
+  # LOCATION-TYPE-METER_ID-YYYYMM-EVENT_ID
+  zip_filedate="${date_dir//-/}"
+  zip_filename="$location-$meter_type-$meter_id-$zip_filedate-$event_id.zip"
+
   # Execute zip_event.sh
-  "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" || {
+  "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" "$zip_filename"|| {
     mark_event_incomplete
     failure $STREAMS_ZIP_FAIL "Failed to zip event files"
   }
 
-  zip_filename="${event_id}.zip"
-      
   # Execute create_message.sh
   "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir" || {
     mark_event_incomplete
