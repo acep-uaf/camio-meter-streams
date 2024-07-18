@@ -11,12 +11,14 @@ _common_setup() {
     PROJECT_ROOT="$( cd "$( dirname "$BATS_TEST_FILENAME" )/.." >/dev/null 2>&1 && pwd )"
     # make executables in src/ visible to PATH
     PATH="$PROJECT_ROOT/src:$PATH"
+    LOCATION="location"
+    METER_TYPE="sel"
+    METER_ID="meter-1234"
     TMP_DIR=$(mktemp -d)
-
     EVENT_ID="1234"
     METER_IP="123.123.123"
     DATA_TYPE="events"
-    ZIP_FILE="$EVENT_ID.zip"
+    ZIP_FILENAME="$LOCATION-$METER_TYPE-$METER_ID-YYYYMM-$EVENT_ID.zip"
 }
 
 _common_teardown() {
