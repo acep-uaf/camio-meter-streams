@@ -80,7 +80,8 @@ for event_info in $events; do
   }
 
   # Timestamp is time this script is run.
-  download_timestamp=$(date --iso-8601=seconds)
+  download_start=$(date --iso-8601=seconds)
+  download_end=$(date --iso-8601=seconds --date="now + 5 seconds")
   
   validate_download "$output_dir/$event_id" "$event_id" || {
     log "Not all files downloaded for event: $event_id"
@@ -89,7 +90,7 @@ for event_info in $events; do
   }
 
   # Execute generate_metadata_yml.sh
-  "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp" || {
+  "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_start" "$download_end" || {
     mark_event_incomplete
     failure $STREAMS_METADATA_FAIL "Failed to generate metadata"
   }
