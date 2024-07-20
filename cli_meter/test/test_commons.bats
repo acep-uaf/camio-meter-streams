@@ -99,17 +99,15 @@ create_metadata_files() {
   assert_success
 }
 
-@test "validate_complete_directory fails when event files are missing" {
+@test "validate_complete_directory fails when metadata file is missing" {
   EVENT_DIR="$TMP_DIR/$DATE_DIR/$EVENT_ID"
   create_event_files "$EVENT_DIR" "$EVENT_ID"
-  rm "$EVENT_DIR/HR_${EVENT_ID}.ZDAT"
-  # Missing HR_${EVENT_ID}.ZDAT
-
   create_metadata_files "$EVENT_DIR" "$EVENT_ID"
+  rm "$EVENT_DIR/${EVENT_ID}_metadata.yml"
 
   run validate_complete_directory "$EVENT_DIR" "$EVENT_ID"
   assert_failure
-  assert_output --partial "Missing file: HR_${EVENT_ID}.ZDAT in directory: $EVENT_DIR"
+  assert_output --partial "Missing metadata file: ${EVENT_ID}_metadata.yml in directory: $EVENT_DIR"
 }
 
 @test "validate_complete_directory fails when metadata files are missing" {
