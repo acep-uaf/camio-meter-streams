@@ -97,10 +97,7 @@ validate_complete_directory() {
     local event_dir=$1
     local event_id=$2
 
-    [ -d "$event_dir" ] || return 1 # False - Directory does not exist
-
-    # Validate event files
-    validate_download "$event_dir" "$event_id" || return 1
+    [ -d "$event_dir" ] || failure $STREAMS_DIR_NOT_FOUND "Directory does not exist: $event_dir"
 
     # Check for metadata files
     local metadata_files=("${event_id}_metadata.yml" "checksum.md5")
