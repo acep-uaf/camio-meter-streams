@@ -84,6 +84,11 @@ done
 # Calculate download_time and download_speed
 download_time=$(($(date -d "$download_end" +%s) - $(date -d "$download_start" +%s)))
 download_speed=$(echo "scale=2; $total_files_size / $download_time" | bc)
+log "Download start: $download_start"
+log "Download end: $download_end"
+log "Total files size: $total_files_size bytes"
+log "Download time: $download_time seconds"
+log "Download speed: $download_speed bytes/second"
 
 # Append calculated fields to metadata
 sed -i "s/download_time: \"\"/download_time: \"$download_time seconds\"/" "$metadata_path"

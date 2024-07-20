@@ -73,15 +73,15 @@ for event_info in $events; do
   output_dir="$base_output_dir/$date_dir/$meter_id"
   path="$location/$data_type/$date_dir/$meter_id"
 
+  download_start=$(date -u --iso-8601=seconds)
+
   # Download event directory (5 files)
   "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit" || {
     mark_event_incomplete
     failure $STREAMS_DOWNLOAD_FAIL "Download failed for event_id: $event_id, skipping metadata creation"
   }
 
-  # Timestamp is time this script is run.
-  download_start=$(date --iso-8601=seconds)
-  download_end=$(date --iso-8601=seconds --date="now + 5 seconds")
+  download_end=$(date -u --iso-8601=seconds)
   
   validate_download "$output_dir/$event_id" "$event_id" || {
     log "Not all files downloaded for event: $event_id"

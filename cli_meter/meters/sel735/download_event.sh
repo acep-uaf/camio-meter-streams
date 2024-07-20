@@ -32,7 +32,7 @@ remote_dir="EVENTS"
 # Create the local directory for this event if it doesn't exist
 mkdir -p "$download_dir" && log "Created local directory for event: $event_id" || failure $STREAMS_DIR_CREATION_FAIL "Failed to create local directory for event: $event_id"
 
-# Single lftp session
+# Single lftp session to download the files
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<END_FTP_SESSION
 set xfer:clobber on
 set net:limit-rate $bandwidth_limit
