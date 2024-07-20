@@ -73,25 +73,31 @@ for event_info in $events; do
   output_dir="$base_output_dir/$date_dir/$meter_id"
   path="$location/$data_type/$date_dir/$meter_id"
 
+  download_start=$(date -u --iso-8601=seconds)
+
   # Download event directory (5 files)
   "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit" || {
     mark_event_incomplete
     failure $STREAMS_DOWNLOAD_FAIL "Download failed for event_id: $event_id, skipping metadata creation"
   }
 
-  # Timestamp is time this script is run.
-  download_timestamp=$(date --iso-8601=seconds)
+  download_end=$(date -u --iso-8601=seconds)
   
-  validate_download "$output_dir/$event_id" "$event_id" || {
+  validate_download "$output_dir/$event_id" "$event_id" && log "Downloaded files validated for event: $event_id" || {
     log "Not all files downloaded for event: $event_id"
     mark_event_incomplete "$event_id" "$output_dir"
     continue
   }
 
   # Execute generate_metadata_yml.sh
-  "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_timestamp" || {
+  "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_start" "$download_end" || {
     mark_event_incomplete
     failure $STREAMS_METADATA_FAIL "Failed to generate metadata"
+  }
+
+  validate_complete_directory "$output_dir/$event_id" "$event_id" && log "Metadata files validated for event: $event_id" || {
+    mark_event_incomplete
+    failure $STREAMS_INCOMPLETE_DIR "Missing metadata file in event directory"
   }
 
   # Zip the event directory, including all files and the checksum.md5 file
