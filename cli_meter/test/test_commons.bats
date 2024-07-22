@@ -29,7 +29,7 @@ teardown() {
 @test "mark_event_incomplete function directory doesn't exit" {
   run mark_event_incomplete "$EVENT_ID" "$TMP_DIR/$DATE_DIR"   
   assert_success
-  assert_output --partial "[ERROR] Directory $TMP_DIR/$DATE_DIR/$EVENT_ID does not exist."
+  assert_output --partial "[WARNING] Directory $TMP_DIR/$DATE_DIR/$EVENT_ID does not exist."
 }
 
 @test "mark_event_incomplete function rotate directories" {
