@@ -29,8 +29,8 @@ trap 'handle_sig SIGINT' SIGINT
 trap 'handle_sig SIGQUIT' SIGQUIT
 trap 'handle_sig SIGTERM' SIGTERM
 
-# Check for exactly 7 arguments
-[ "$#" -ne 8 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location> <max_age_days>"
+# Check for exactly 9 arguments
+[ "$#" -ne 9 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <output_dir> <meter_id> <meter_type> <bw_limit> <data_type> <location> <max_age_days> <max_retries>"
 
 # Simple CLI flag parsing
 meter_ip="$1"
@@ -42,14 +42,15 @@ bandwidth_limit="$5"
 data_type="$6"
 location="$7"
 max_age_days="$8"
-log "Max age days: $max_age_days"
+max_retries="$9"
+
 log "Starting download process for meter: $meter_id"
 
 # Make dir if it doesn't exist
 mkdir -p "$base_output_dir"
 
 # Test connection to meter
-source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bandwidth_limit"
+source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bandwidth_limit" "$max_retries" || failure $STREAMS_CONNECTION_FAIL "Failed to connect to meter"
 
 # Capture the output of get_events.sh
 events=$("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_output_dir" "$max_age_days")
