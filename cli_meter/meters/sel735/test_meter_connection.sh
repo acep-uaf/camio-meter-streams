@@ -4,13 +4,15 @@
 # Description:        This script checks the connection to the meter
 #                     via FTP using provided environment variables.
 #
-# Usage:              ./test_meter_connection.sh <meter_ip>
+# Usage:              ./test_meter_connection.sh <meter_ip> [bandwidth_limit] [max_retries]
 # Called by:          download.sh
 #
 # Arguments:
 #   meter_ip          IP address of the meter
 #   bandwidth_limit   Optional: Bandwidth limit for the connection
-#                     (default is 0)
+#                     (default is 0/unlimited)
+#   max_retries       Optional: Maximum number of retries for the connection
+#                     (default is 1)
 #
 # Requirements:       lftp
 #                     common_utils.sh
@@ -30,13 +32,13 @@ max_retries="${3:-1}"
 reconnect_interval_base=5
 
 # Logging in to the FTP server and checking the connection using lftp
-lftp_output=$(lftp -u $USERNAME,$PASSWORD $meter_ip <<LFTP
+lftp_output=$(lftp -u $USERNAME,$PASSWORD $meter_ip <<END_FTP_SESSION
     set net:max-retries $max_retries;
     set net:reconnect-interval-base $reconnect_interval_base;
     set net:limit-rate $bandwidth_limit;
     ls;
     bye
-LFTP
+END_FTP_SESSION
 )
 
 lftp_exit_code=$?

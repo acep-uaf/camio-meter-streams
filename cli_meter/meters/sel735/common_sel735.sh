@@ -1,13 +1,15 @@
 #!/bin/bash
 # ==============================================================================
 # Script Name:        common_sel735.sh
-# Description:        Common utility functions for SEL-735 scripts in Meter Event Data Pipeline.
+# Description:        Common utility functions for SEL-735 scripts in the Meter Event Data Pipeline.
 #
 # Functions:
 #   handle_sig                  - Handles signals and marks the current event as incomplete
 #   mark_event_incomplete       - Marks an event as incomplete and rotates older incomplete directories
 #   validate_download           - Validates if all files for an event have been downloaded
 #   validate_complete_directory - Validates if the directory is complete
+#   generate_date_dir           - Generates a formatted date directory name
+#   calculate_max_date          - Calculates the maximum allowable date based on the specified age in days
 #
 # ==============================================================================
 current_dir=$(dirname "$(readlink -f "$0")")
@@ -76,7 +78,7 @@ mark_event_incomplete() {
     log "" # Add a new line for better readability
     log "Moved event $event_id to ${event_id}.incomplete_${suffix}"
   else
-    log "[ERROR] Directory $original_dir does not exist."
+    warning "Directory $original_dir does not exist."
   fi
 }
 

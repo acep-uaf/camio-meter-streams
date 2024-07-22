@@ -6,7 +6,7 @@
 #                     metadata, and zipping the files.
 #
 # Usage:              ./download.sh <meter_ip> <output_dir> <meter_id> <meter_type>
-#                     <bandwidth_limit> <data_type> <location>
+#                     <bandwidth_limit> <data_type> <location> <max_age_days> <max_retries>
 # Called by:          data_pipeline.sh
 #
 # Arguments:
@@ -14,9 +14,15 @@
 #   output_dir        Base directory where the event data will be stored
 #   meter_id          Meter ID
 #   meter_type        Meter Type (ex. sel735)
+#   bandwidth_limit   Bandwidth limit for the connection
+#   data_type         Data type (ex. power)
+#   location          Location of the meter
+#   max_age_days      Maximum age of the event in days
+#   max_retries       Maximum number of retries for the connection
 #
 # Requirements:       common_sel735.sh, test_meter_connection.sh, get_events.sh,
 #                     download_event.sh, generate_event_metadata.sh, zip_event.sh
+#                     create_message.sh
 # ==============================================================================
 current_dir=$(dirname "$(readlink -f "$0")")
 script_name=$(basename "$0")
@@ -63,10 +69,9 @@ fi
 
 # output_dir is the location where the data will be stored
 for event_info in $events; do
-
-  # Split the output into variables
   IFS=',' read -r event_id date_dir event_timestamp <<<"$event_info"
   log "Processing event: $event_id"
+
   # Update current_event_id for mark_event_incomplete
   current_event_id=$event_id
 
@@ -84,18 +89,20 @@ for event_info in $events; do
 
   download_end=$(date -u --iso-8601=seconds)
   
+  # Validate the downloaded files
   validate_download "$output_dir/$event_id" "$event_id" && log "Downloaded files validated for event: $event_id" || {
     log "Not all files downloaded for event: $event_id"
     mark_event_incomplete "$event_id" "$output_dir"
     continue
   }
 
-  # Execute generate_metadata_yml.sh
+  # Generate metadata for the event
   "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_start" "$download_end" || {
     mark_event_incomplete
     failure $STREAMS_METADATA_FAIL "Failed to generate metadata"
   }
 
+  # Validate the metadata files
   validate_complete_directory "$output_dir/$event_id" "$event_id" && log "Metadata files validated for event: $event_id" || {
     mark_event_incomplete
     failure $STREAMS_INCOMPLETE_DIR "Missing metadata file in event directory"
@@ -109,13 +116,13 @@ for event_info in $events; do
   zip_filedate="${date_dir//-/}"
   zip_filename="$location-$data_type-$meter_id-$zip_filedate-$event_id.zip"
 
-  # Execute zip_event.sh
+  # Zip the event files and empty the working event directory
   "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" "$zip_filename"|| {
     mark_event_incomplete
     failure $STREAMS_ZIP_FAIL "Failed to zip event files"
   }
 
-  # Execute create_message.sh
+  # Create the message file (JSON) for the event
   "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir" || {
     mark_event_incomplete
     warning $STREAMS_FILE_CREATION_FAIL "Failed to create message file"
