@@ -19,10 +19,9 @@ current_dir=$(dirname "$(readlink -f "$0")")
 script_name=$(basename "$0")
 source "$current_dir/../../common_utils.sh"
 
-# Check if the correct number of arguments are passed
+# Check if at least 3 arguments are passed
 [ "$#" -lt 3 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <event_id> <output_dir> [bandwidth_limit]"
 
-# Extracting arguments into variables
 meter_ip=$1
 event_id=$2
 download_dir="$3/$event_id" # Assumes $3 = /../location/data_type/YYYY-MM/METER_ID/working
@@ -32,7 +31,7 @@ remote_dir="EVENTS"
 # Create the local directory for this event if it doesn't exist
 mkdir -p "$download_dir" && log "Created local directory for event: $event_id" || failure $STREAMS_DIR_CREATION_FAIL "Failed to create local directory for event: $event_id"
 
-# Single lftp session to download the files
+# Single lftp session to download the files containing the event_id
 lftp -u "$USERNAME,$PASSWORD" "$meter_ip" <<END_FTP_SESSION
 set xfer:clobber on
 set net:limit-rate $bandwidth_limit

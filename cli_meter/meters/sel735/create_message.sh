@@ -7,7 +7,7 @@
 #                     <data_type> <output_dir>
 #
 # Arguments:
-#   event_id                ID
+#   event_id          event ID
 #   zip_filename      Name of the zipped file
 #   path              Path to file
 #   data_type         Type of data

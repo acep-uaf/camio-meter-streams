@@ -1,37 +1,40 @@
-# ==============================================================================
-# Configuration File for SEL735 Event Data Collection
-# Contains settings for application, download location, credentials, and meters.
-# ==============================================================================
+# This file contains the configuration settings for SEL735 meters.
 
 # General settings for the application
 application:
   name: "Event Data Collection"
-  version: ""  # Version number of the application
+  version: 2.0
 
-# Default download directory (overridden by -d/--download_dir flag if specified)
+# Configuration Settings
+location: ""
+data_type: ""
 download_directory: ""
 
-# Configuration settings
-location: ""    # Geographic location of the data collection
-data_type: ""   # Type of data being collected
-
 # bytes/s, 0 means unlimited, Suffixes are supported, e.g. 100K means 102400.
-bandwidth_limit: "0"
-
-# Optional, leave empty to download all available
+bandwidth_limit: 0
+# If empty, the default to 1.
+max_conection_retries: 
 max_age_days: 
 
-# Default FTP credentials (overridden by meter-specific credentials)
+# Require default credentials for FTP server
 credentials:
-  username: ""  # Default FTP username
-  password: ""  # Default FTP password
+  username: ""
+  password: ""
 
-# Meter configurations with optional username/password overrides
+# Configuration for the meter and optional username/password override
 meters:
-  # Meter 1
-  - ip: ""       # IP address of the meter
-    id: ""       # Unique identifier for the meter
-    type: ""     # Type of the meter (e.g., "SEL735")
+# Meter 1
+  - ip: ""
+    id: ""
+    type: ""
     credentials:
-      username: ""  # Optional FTP username override for this meter
-      password: ""  # Optional FTP password override for this meter
+      username: "" # Optional override
+      password: "" # Optional override
+# Meter 2
+  - ip: ""
+    id: ""
+    type: ""
+    credentials:
+      username: "" # Optional override
+      password: "" # Optional override
+

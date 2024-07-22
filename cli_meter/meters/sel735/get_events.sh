@@ -27,8 +27,8 @@ script_name=$(basename "$0")
 source "$current_dir/common_sel735.sh"
 source "$current_dir/../../common_utils.sh"
 
-# Check if the correct number of arguments are passed
-[ "$#" -lt 3 ] || [ "$#" -gt 4 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <meter_id> <output_dir> [<max_age_days>]"
+# Check that the number of arguments is between 3 and 4
+[ "$#" -lt 3 ] || [ "$#" -gt 4 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_ip> <meter_id> <output_dir> [max_age_days]"
 
 meter_ip=$1
 meter_id=$2
@@ -71,7 +71,7 @@ if [[ -n "$max_age_days" ]]; then
     log "Only downloading events newer than: $max_date"
 fi
 
-# Parse CHISTORY.TXT starting from line 4
+# Parse CHISTORY.TXT event data starts from line 4
 awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do
     # Remove quotes and then extract fields
     clean_line=$(echo "$event_line" | sed 's/"//g')
@@ -82,17 +82,18 @@ awk 'NR > 3' "$temp_file_path" | while IFS= read -r event_line; do
     event_date=$(printf '%04d-%02d-%02d' "$year" "$month" "$day")
     event_timestamp=$(printf '%04d-%02d-%02dT%02d:%02d:%02d' "$year" "$month" "$day" "$hour" "$min" "$sec")
     
+    # Check if the event is within the max_age_days date range
     if [[ -z "$max_age_days" ]] || [[ "$event_date" > "$max_date" ]] || [[ "$event_date" == "$max_date" ]]; then
         date_dir=$(generate_date_dir "$year" "$month" "$output_dir")
         event_dir_path="$output_dir/$date_dir/$meter_id/$event_id"
 
-        # If the event directory does not exist, print the event ID else validate the directory
+        # If the event directory does not exist, print the event info
         if [ ! -d "$event_dir_path" ]; then
             log "Proceeding to download event: $event_id"
             echo "$event_id,$date_dir,$event_timestamp"
         fi
     else
-        log "Event $event_id is older than date range, skipping."
+        log "Event $event_id is older than the specified date range, skipping."
         log "All events within $max_age_days day(s) have been processed"
         break
     fi

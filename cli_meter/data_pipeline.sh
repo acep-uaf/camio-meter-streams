@@ -34,23 +34,27 @@ config_path=$(parse_config_arg "$@")
 [ -f "$config_path" ] && log "Config file exists at: $config_path" || failure $STREAMS_FILE_NOT_FOUND "Config file does not exist"
 
 # Read the config file
+location=$(yq '.location' "$config_path")
+data_type=$(yq '.data_type' "$config_path")
 download_dir=$(yq '.download_directory' "$config_path")
+bandwidth_limit=$(yq '.bandwidth_limit' "$config_path")
+max_age_days=$(yq '.max_age_days' "$config_path")
+max_conection_retries=$(yq '.max_conection_retries' "$config_path")
 default_username=$(yq '.credentials.username' "$config_path")
 default_password=$(yq '.credentials.password' "$config_path")
 num_meters=$(yq '.meters | length' "$config_path")
-location=$(yq '.location' "$config_path")
-data_type=$(yq '.data_type' "$config_path")
-bandwidth_limit=$(yq '.bandwidth_limit' "$config_path")
-max_age_days=$(yq '.max_age_days' "$config_path")
 
 # Check for null or empty values
+[[ -z "$location" || "$location" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Location cannot be null or empty."
+[[ -z "$data_type" || "$data_type" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Data type cannot be null or empty."
 [[ -z "$download_dir" || "$download_dir" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Download directory cannot be null or empty."
 [[ -z "$default_username" || "$default_username" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default username cannot be null or empty."
 [[ -z "$default_password" || "$default_password" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default password cannot be null or empty."
-[[ -z "$location" || "$location" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Location cannot be null or empty."
-[[ -z "$data_type" || "$data_type" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Data type cannot be null or empty."
 [[ -z "$bandwidth_limit" || "$bandwidth_limit" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Bandwidth limit cannot be null or empty."
 [[ -z "$num_meters" || "$num_meters" -eq 0 ]] && failure $STREAMS_INVALID_CONFIG "Must have at least 1 meter in the config file."
+[[ "$max_conection_retries" =~ ^([1-9]|10)$ ]] || failure $STREAMS_INVALID_CONFIG "Max connection retries must be an integer between 1 and 10: '$max_conection_retries'"
+[[ -z "$max_conection_retries" || "$max_conection_retries" == "null" ]] && max_conection_retries=1
+
 # if max_age_days is set make sure max_age_days is a number
 if [[ ! -z "$max_age_days" && "$max_age_days" != "null" ]]; then
     [[ ! "$max_age_days" =~ ^[1-9][0-9]*$ ]] && failure $STREAMS_INVALID_CONFIG "Max age days must be an integer greater than 0: '$max_age_days' "
@@ -75,7 +79,7 @@ for ((i = 0; i < num_meters; i++)); do
     export PASSWORD=${meter_password:-$default_password}
 
     # Execute download script and check its success in one step
-    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location" "$max_age_days" ; then
+    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location" "$max_age_days" "$max_conection_retries"; then
         log "Download complete for meter: $meter_id"
     else
         warning "Download incomplete for meter: $meter_id"
