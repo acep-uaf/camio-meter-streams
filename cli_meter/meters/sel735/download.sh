@@ -90,11 +90,11 @@ for event_info in $events; do
     error_message="Failed to download event files for event_id: $event_id"
     error_code=$STREAMS_DOWNLOAD_FAIL
     warning "$error_message" $error_code
-    append_error "$YAML_SUMMARY_FILE" "$meter_id" "$error_code" "$error_message"
+    append_error "$YAML_SUMMARY_FILE" $meter_id $error_code "$error_message"
   fi
 
   # Append event information after processing
-  append_event "$YAML_SUMMARY_FILE" "$meter_id" "$event_id" "$event_status"
+  append_event "$YAML_SUMMARY_FILE" $meter_id $event_id $event_status
 
   download_end=$(date -u --iso-8601=seconds)
   
