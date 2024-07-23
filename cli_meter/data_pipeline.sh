@@ -17,6 +17,7 @@
 current_dir=$(dirname "$(readlink -f "$0")")
 script_name=$(basename "$0")
 source "$current_dir/common_utils.sh"
+source "$current_dir/yaml_summary.sh"
 
 LOCKFILE="/var/lock/$script_name" # Define the lock file path using script's basename
 
@@ -64,12 +65,21 @@ fi
 output_dir="$download_dir/$location/$data_type"
 mkdir -p "$output_dir" && log "Directory created successfully: $output_dir" || failure $STREAMS_DIR_CREATION_FAIL "Failed to create directory: $output_dir"
 
+# Initialize log summary
+TIMESTAMP=$(date +"%Y%m%d_%H%M")
+LOG_DIR="$download_dir/logs"
+mkdir -p "$LOG_DIR"
+YAML_SUMMARY_FILE="$LOG_DIR/download_summary_$TIMESTAMP.yml"
+export YAML_SUMMARY_FILE
+init_summary "$YAML_SUMMARY_FILE"
+
 # Loop through the meters and download the event files
 for ((i = 0; i < num_meters; i++)); do
     meter_type=$(yq ".meters[$i].type" $config_path)
     meter_ip=$(yq ".meters[$i].ip" $config_path)
     meter_id=$(yq ".meters[$i].id" $config_path)
-
+    meter_start_time=$(date -u --iso-8601=seconds)
+    init_meter_summary "$YAML_SUMMARY_FILE" "$meter_id" "$meter_start_time"
     # Use the default credentials if specific meter credentials are not provided
     meter_username=$(yq ".meters[$i].credentials.username // strenv(default_username)" $config_path)
     meter_password=$(yq ".meters[$i].credentials.password // strenv(default_password)" $config_path)
@@ -81,9 +91,19 @@ for ((i = 0; i < num_meters; i++)); do
     # Execute download script and check its success in one step
     if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location" "$max_age_days" "$max_conection_retries"; then
         log "Download complete for meter: $meter_id"
+        meter_status="success"
+        error_code=""
+        error_message=""
     else
-        warning "Download incomplete for meter: $meter_id"
+        error_code=$STREAMS_DOWNLOAD_FAIL
+        error_message="Download failed for meter: $meter_id"
+        meter_status="failure"
+        warning "$error_message" "$error_code"
     fi
+    meter_end_time=$(date -u --iso-8601=seconds)
+
+    # Append meter information after processing
+    append_meter "$YAML_SUMMARY_FILE" "$meter_id" "$meter_status" "$meter_start_time" "$meter_end_time" "$error_code" "$error_message" 
 done
 
 log "All meters have been processed"

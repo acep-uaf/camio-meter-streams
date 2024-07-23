@@ -27,6 +27,7 @@
 current_dir=$(dirname "$(readlink -f "$0")")
 script_name=$(basename "$0")
 source "$current_dir/../../common_utils.sh"
+source "$current_dir/../../yaml_summary.sh"
 source "$current_dir/common_sel735.sh"
 export current_event_id=""
 
@@ -61,11 +62,8 @@ source "$current_dir/test_meter_connection.sh" "$meter_ip" "$bandwidth_limit" "$
 # Capture the output of get_events.sh
 events=$("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_output_dir" "$max_age_days")
 
-# Check if events is empty
-if [ -z "$events" ]; then
-  log "No new events to download for meter: $meter_id"
-  exit 0
-fi
+# Check if there are any events to download
+[ -z "$events" ] && log "No new events to download for meter: $meter_id" && exit 0
 
 # output_dir is the location where the data will be stored
 for event_info in $events; do
@@ -82,10 +80,18 @@ for event_info in $events; do
   download_start=$(date -u --iso-8601=seconds)
 
   # Download event directory (5 files)
-  "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit" || {
+  if "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit"; then
+    event_status="success"
+  else
     mark_event_incomplete
-    failure $STREAMS_DOWNLOAD_FAIL "Download failed for event_id: $event_id, skipping metadata creation"
-  }
+    event_status="failure"
+    error_message="Failed to download event files for event_id: $event_id"
+    error_code=$STREAMS_DOWNLOAD_FAIL
+    warning "$error_message" $error_code
+  fi
+
+  # Append event information after processing
+  append_event "$YAML_SUMMARY_FILE" "$meter_id" "$event_id" "$event_status" "$error_message" "$error_code"
 
   download_end=$(date -u --iso-8601=seconds)
   
@@ -125,7 +131,7 @@ for event_info in $events; do
   # Create the message file (JSON) for the event
   "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir" || {
     mark_event_incomplete
-    warning $STREAMS_FILE_CREATION_FAIL "Failed to create message file"
+    warning "Failed to create message file" $STREAMS_FILE_CREATION_FAIL
   }
 
 done
