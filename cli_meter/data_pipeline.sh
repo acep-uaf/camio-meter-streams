@@ -92,18 +92,17 @@ for ((i = 0; i < num_meters; i++)); do
     if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location" "$max_age_days" "$max_conection_retries"; then
         log "Download complete for meter: $meter_id"
         meter_status="success"
-        error_code=""
-        error_message=""
     else
         error_code=$STREAMS_DOWNLOAD_FAIL
         error_message="Download failed for meter: $meter_id"
         meter_status="failure"
         warning "$error_message" "$error_code"
+        append_error "$YAML_SUMMARY_FILE" "$meter_id" "$error_code" "$error_message"
     fi
     meter_end_time=$(date -u --iso-8601=seconds)
 
     # Append meter information after processing
-    append_meter "$YAML_SUMMARY_FILE" "$meter_id" "$meter_status" "$meter_start_time" "$meter_end_time" "$error_code" "$error_message" 
+    append_meter "$YAML_SUMMARY_FILE" "$meter_id" "$meter_status"  "$meter_end_time"
 done
 
 log "All meters have been processed"

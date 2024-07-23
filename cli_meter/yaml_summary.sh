@@ -38,51 +38,36 @@ init_summary() {
   
   # Create the directory if it does not exist
   mkdir -p "$dir"
-  
+  echo "meters:" > "$yaml_file"
 }
 
 init_meter_summary() {
   local yaml_file=$1
   local meter_name=$2
   local started_at=$3
-  {
-      echo "meters:"
-      echo "  - name: $meter_name"
-      echo "    status:"
-      echo "    warnings:"
-      echo "    errors:"
-      echo "    events:"
-      echo "      total: 0"
-      echo "      downloaded: 0"
-      echo "      failed: 0"
-      echo "    started_at: $started_at"
-      echo "    completed_at: "
-  } > "$yaml_file"
+
+  meter_template="{
+    \"name\": \"$meter_name\",
+    \"status\": \"\",
+    \"started_at\": \"$started_at\",
+    \"completed_at\": \"\",
+    \"events\": [],
+    \"errors\": []
+  }"
+
+  yq e -i ".meters += [$meter_template]" "$yaml_file"
 }
 
 append_meter() {
   local yaml_file=$1
   local meter_name=$2
   local status=$3
-  local started_at=$4
-  local completed_at=$5
-  local error_code=$6
-  local error_message=$7
+  local completed_at=$4
+  local error_code=$5
+  local error_message=$6
 
-  {
-      echo "  - name: $meter_name"
-      echo "    status: $status"
-      echo "    warnings:"
-      echo "    errors:"
-      [[ -n "$error_code" && -n "$error_message" ]] && echo "      - code: $error_code"
-      [[ -n "$error_message" ]] && echo "        message: $error_message"
-      echo "    events:"
-      echo "      total: 0"
-      echo "      downloaded: 0"
-      echo "      failed: 0"
-      echo "    started_at: $started_at"
-      echo "    completed_at: $completed_at"
-  } >> "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .status) = \"$status\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .completed_at) = \"$completed_at\"" "$yaml_file"
 }
 
 append_event() {
@@ -93,13 +78,36 @@ append_event() {
   local error_code=$5
   local error_message=$6
 
-  log "Appending event: $event_id for meter: $meter_name"
-  log "Event status: $event_status"
-  log "Error code: $error_code"
-  log "Error message: $error_message"
+  # Create the event template
+  event_template="{
+    \"event_id\": \"$event_id\",
+    \"status\": \"$event_status\"
+  }"
+
+  # Append the event to the specified meter's events array
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) += [$event_template]" "$yaml_file"
+
+}
+
+append_error(){
+  local yaml_file=$1
+  local meter_name=$2
+  local error_code=$3
+  local error_message=$4
+
+  # Create the error template
+  error_template="{
+    \"error_code\": \"$error_code\",
+    \"error_message\": \"$error_message\"
+  }"
+
+  # Append the error to the specified meter's errors array
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .errors ) += [$error_template]" "$yaml_file"
+
 }
 
 export -f init_summary
 export -f init_meter_summary
 export -f append_meter
 export -f append_event
+export -f append_error
