@@ -71,7 +71,8 @@ LOG_DIR="$download_dir/logs"
 mkdir -p "$LOG_DIR"
 YAML_SUMMARY_FILE="$LOG_DIR/download_summary_$TIMESTAMP.yml"
 export YAML_SUMMARY_FILE
-init_summary "$YAML_SUMMARY_FILE"
+download_start_time=$(date -u --iso-8601=seconds)
+init_summary "$YAML_SUMMARY_FILE" "$download_start_time"
 
 # Loop through the meters and download the event files
 for ((i = 0; i < num_meters; i++)); do
@@ -102,7 +103,10 @@ for ((i = 0; i < num_meters; i++)); do
     meter_end_time=$(date -u --iso-8601=seconds)
 
     # Append meter information after processing
-    append_meter "$YAML_SUMMARY_FILE" "$meter_id" "$meter_status"  "$meter_end_time"
+    append_meter "$YAML_SUMMARY_FILE" "$meter_id" "$meter_status" "$meter_start_time" "$meter_end_time"
 done
+
+download_end_time=$(date -u --iso-8601=seconds)
+append_timestamps "$YAML_SUMMARY_FILE" "$download_start_time" "$download_end_time" "download"
 
 log "All meters have been processed"
