@@ -65,6 +65,10 @@ events=$("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_output_dir"
 # Check if there are any events to download
 [ -z "$events" ] && log "No new events to download for meter: $meter_id" && exit 0
 
+total_events=$(echo "$events" | wc -l)
+
+init_event_summary "$YAML_SUMMARY_FILE" "$meter_id" $total_events
+
 # output_dir is the location where the data will be stored
 for event_info in $events; do
   IFS=',' read -r event_id date_dir event_timestamp <<<"$event_info"

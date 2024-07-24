@@ -61,9 +61,8 @@ init_summary() {
   local dir=$(dirname "$yaml_file")
   mkdir -p "$dir"
 
-
   echo "download:" >> "$yaml_file"
-  echo "  started_at: \"$started_at\"" >> "$yaml_file"
+  echo "  started_at: $started_at" >> "$yaml_file"
   echo "  completed_at: \"\"" >> "$yaml_file"
   echo "  duration: \"\"" >> "$yaml_file"
   echo "meters:" >> "$yaml_file"
@@ -80,10 +79,25 @@ init_meter_summary() {
     \"status\": \"\",
     \"started_at\": \"$started_at\",
     \"completed_at\": \"\",
-    \"duration\": \"\"
+    \"duration\": \"\",
+    \"downloads\": {
+      \"total\": 0,
+      \"success\": 0,
+      \"fail\": 0,
+      \"skipped\": 0
+    },
+    \"events\": []
   }"
 
   yq e -i ".meters += [$meter_template]" "$yaml_file"
+}
+
+init_event_summary() {
+  local yaml_file=$1
+  local meter_name=$2
+  local total_events=$3
+
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.total ) = $total_events" "$yaml_file"
 }
 
 append_info() {
@@ -106,7 +120,7 @@ append_meter() {
 
   started_at=$(yq e ".meters[] | select(.name == \"$meter_name\") | .started_at" "$yaml_file")
 
-  duration=$(calculate_duration "$started_at" "$completed_at")
+  duration=$(calculate_duration $started_at $completed_at)
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .duration) = \"$duration\"" "$yaml_file"
 
 }
@@ -120,15 +134,19 @@ append_event() {
   # Add the events array if it doesn't exist
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) = ( .meters[] | select(.name == \"$meter_name\") | .events // [] )" "$yaml_file"
 
-  # Create the event template
   event_template="{
-    \"event_id\": \"$event_id\",
+    \"event_id\": $event_id,
     \"status\": \"$event_status\"
   }"
 
   # Append the event to the specified meter's events array
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) += [$event_template]" "$yaml_file"
 
+  if [ "$event_status" == "success" ]; then
+    yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.success ) |= . + 1" "$yaml_file"
+  else
+    yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.fail ) |= . + 1" "$yaml_file"
+  fi
 }
 
 append_error(){
@@ -142,7 +160,7 @@ append_error(){
 
   # Create the error template
   error_template="{
-    \"exit_code\": \"$exit_code\",
+    \"exit_code\": $exit_code,
     \"message\": \"$message\"
   }"
 
@@ -172,12 +190,26 @@ calculate_duration() {
   end_seconds=$(date -d "$completed_at" +%s)
 
   duration=$((end_seconds - start_seconds))
-  echo $duration
+  echo "${duration}s"
+}
+
+update_skipped() {
+  local yaml_file=$1
+  local meter_name=$2
+
+  total_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.total" "$yaml_file")
+  success_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.success" "$yaml_file")
+  fail_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.fail" "$yaml_file")
+  skipped_events=$((total_events - (success_events + fail_events)))
+
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.skipped ) = $skipped_events" "$yaml_file"
 }
 
 export -f init_summary
 export -f init_meter_summary
+export -f init_event_summary
 export -f append_meter
 export -f append_event
 export -f append_error
 export -f append_timestamps
+export -f update_skipped

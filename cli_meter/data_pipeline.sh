@@ -81,6 +81,7 @@ for ((i = 0; i < num_meters; i++)); do
     meter_id=$(yq ".meters[$i].id" $config_path)
     meter_start_time=$(date -u --iso-8601=seconds)
     init_meter_summary "$YAML_SUMMARY_FILE" "$meter_id" "$meter_start_time"
+
     # Use the default credentials if specific meter credentials are not provided
     meter_username=$(yq ".meters[$i].credentials.username // strenv(default_username)" $config_path)
     meter_password=$(yq ".meters[$i].credentials.password // strenv(default_password)" $config_path)
@@ -89,20 +90,24 @@ for ((i = 0; i < num_meters; i++)); do
     export USERNAME=${meter_username:-$default_username}
     export PASSWORD=${meter_password:-$default_password}
 
-    # Execute download script and check its success in one step
-    if "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location" "$max_age_days" "$max_conection_retries"; then
+    "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location" "$max_age_days" "$max_conection_retries"
+
+    download_return_code=$?
+
+    if [ $download_return_code -eq 0 ]; then
         log "Download complete for meter: $meter_id"
         meter_status="success"
     else
-        error_code=$STREAMS_DOWNLOAD_FAIL
+        error_code=$download_return_code
         error_message="Download failed for meter: $meter_id"
         meter_status="failure"
         warning "$error_message" "$error_code"
         append_error "$YAML_SUMMARY_FILE" "$meter_id" "$error_code" "$error_message"
+        update_skipped "$YAML_SUMMARY_FILE" "$meter_id"
     fi
-    meter_end_time=$(date -u --iso-8601=seconds)
 
     # Append meter information after processing
+    meter_end_time=$(date -u --iso-8601=seconds)
     append_meter "$YAML_SUMMARY_FILE" "$meter_id" "$meter_status" "$meter_start_time" "$meter_end_time"
 done
 
