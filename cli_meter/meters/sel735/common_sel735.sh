@@ -78,7 +78,7 @@ mark_event_incomplete() {
     log "" # Add a new line for better readability
     log "Moved event $event_id to ${event_id}.incomplete_${suffix}"
   else
-    warning "Directory $original_dir does not exist."
+    warning "Directory $original_dir does not exist." "$STREAMS_DIR_NOT_FOUND"
   fi
 }
 

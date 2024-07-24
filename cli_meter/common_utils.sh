@@ -73,14 +73,14 @@ failure() {
   local exit_code="${1:-$UNKNOWN}"
   local message="${2:-""}"
 
-  log "[ERROR] $message, exit code: $exit_code"
+  log "[ERROR] $message. Exit code: $exit_code"
   exit $exit_code
 }
 
 warning(){
   local message="${1:-""}"
   local exit_code="${2:-$UNKNOWN}"
-  log "[WARNING] $message, code: $exit_code"
+  log "[WARNING] $message. Exit code: $exit_code"
 }
 
 log() {

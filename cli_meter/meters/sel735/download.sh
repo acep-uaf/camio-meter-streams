@@ -85,7 +85,7 @@ for event_info in $events; do
     error_message=""
     error_code=""
   else
-    mark_event_incomplete
+    mark_event_incomplete "$event_id" "$output_dir"
     event_status="failure"
     error_message="Failed to download event files for event_id: $event_id"
     error_code=$STREAMS_DOWNLOAD_FAIL
@@ -107,13 +107,13 @@ for event_info in $events; do
 
   # Generate metadata for the event
   "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_start" "$download_end" || {
-    mark_event_incomplete
+    mark_event_incomplete "$event_id" "$output_dir"
     failure $STREAMS_METADATA_FAIL "Failed to generate metadata"
   }
 
   # Validate the metadata files
   validate_complete_directory "$output_dir/$event_id" "$event_id" && log "Metadata files validated for event: $event_id" || {
-    mark_event_incomplete
+    mark_event_incomplete "$event_id" "$output_dir"
     failure $STREAMS_INCOMPLETE_DIR "Missing metadata file in event directory"
   }
 
@@ -127,13 +127,13 @@ for event_info in $events; do
 
   # Zip the event files and empty the working event directory
   "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" "$zip_filename"|| {
-    mark_event_incomplete
+    mark_event_incomplete "$event_id" "$output_dir"
     failure $STREAMS_ZIP_FAIL "Failed to zip event files"
   }
 
   # Create the message file (JSON) for the event
   "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir" || {
-    mark_event_incomplete
+    mark_event_incomplete "$event_id" "$output_dir"
     warning "Failed to create message file" $STREAMS_FILE_CREATION_FAIL
   }
 
