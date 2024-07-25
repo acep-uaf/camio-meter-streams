@@ -58,13 +58,18 @@
 init_summary() {
   local yaml_file=$1
   local started_at=$2
+  local meters_total=$3
   local dir=$(dirname "$yaml_file")
   mkdir -p "$dir"
 
-  echo "download:" >> "$yaml_file"
+  echo "summary:" >> "$yaml_file"
   echo "  started_at: \"$started_at\"" >> "$yaml_file"
   echo "  completed_at: \"\"" >> "$yaml_file"
   echo "  duration: \"\"" >> "$yaml_file"
+  echo "  meters_total: $meters_total" >> "$yaml_file"
+  echo "  meters_attempted: 0" >> "$yaml_file"
+  echo "  meters_successful: 0" >> "$yaml_file"
+  echo "  meters_failed: 0" >> "$yaml_file"
   echo "meters:" >> "$yaml_file"
   
 }
@@ -215,6 +220,21 @@ update_skipped() {
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.skipped ) = $skipped_events" "$yaml_file"
 }
 
+increase_meters_attemped() {
+  local yaml_file=$1
+  yq e -i ".summary.meters_attempted |= . + 1" "$yaml_file"
+}
+
+increase_meters_failed() {
+  local yaml_file=$1
+  yq e -i ".summary.meters_failed |= . + 1" "$yaml_file"
+}
+
+increase_meters_successful() {
+  local yaml_file=$1
+  yq e -i ".summary.meters_successful |= . + 1" "$yaml_file"
+}
+
 export -f init_summary
 export -f init_meter_summary
 export -f init_event_summary
@@ -223,3 +243,6 @@ export -f append_event
 export -f append_error
 export -f append_timestamps
 export -f update_skipped
+export -f increase_meters_attemped
+export -f increase_meters_failed
+export -f increase_meters_successful

@@ -83,6 +83,17 @@ done
 
 # Calculate download_time and download_speed
 download_time=$(($(date -d "$download_end" +%s) - $(date -d "$download_start" +%s)))
+
+if [ "$download_time" -eq 0 ]; then
+    download_time=1
+    log "Download time is zero, setting it to 1 second"
+fi
+
+if [ "$total_files_size" -eq 0 ]; then
+    log "Total files size is zero, setting it to 1 byte"
+    total_files_size=1
+fi
+
 download_speed=$(echo "scale=2; $total_files_size / $download_time" | bc)
 log "Download start: $download_start"
 log "Download end: $download_end"
