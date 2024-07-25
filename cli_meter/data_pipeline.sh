@@ -101,7 +101,7 @@ for ((i = 0; i < num_meters; i++)); do
         error_code=$download_return_code
         error_message="Download failed for meter: $meter_id"
         meter_status="failure"
-        warning "$error_message" "$error_code"
+        warning "$error_code" "$error_message" 
         append_error "$YAML_SUMMARY_FILE" "$meter_id" "$error_code" "$error_message"
         update_skipped "$YAML_SUMMARY_FILE" "$meter_id"
     fi

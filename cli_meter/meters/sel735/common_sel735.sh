@@ -30,16 +30,16 @@ handle_sig() {
 
     case $sig in
         SIGINT)
-            failure $STREAMS_SIGINT "SIGINT received. Exiting..."
+            failure $STREAMS_SIGINT "SIGINT received, exiting"
             ;;
         SIGQUIT)
-            failure $STREAMS_SIGQUIT "SIGQUIT received. Exiting..."
+            failure $STREAMS_SIGQUIT "SIGQUIT received, exiting"
             ;;
         SIGTERM)
-            failure $STREAMS_SIGTERM "SIGTERM received. Exiting..."
+            failure $STREAMS_SIGTERM "SIGTERM received, exiting"
             ;;
         *)
-            failure $STREAMS_UNKNOWN "Unknown signal received. Exiting..."
+            failure $STREAMS_UNKNOWN "Unknown signal received, exiting"
             ;;
     esac
 }
@@ -75,10 +75,9 @@ mark_event_incomplete() {
 
     # Move the current directory to its new incomplete name
     mv "$original_dir" "${base_incomplete_dir}_${suffix}"
-    log "" # Add a new line for better readability
     log "Moved event $event_id to ${event_id}.incomplete_${suffix}"
   else
-    warning "Directory $original_dir does not exist." "$STREAMS_DIR_NOT_FOUND"
+    warning $STREAMS_DIR_NOT_FOUND "Directory $original_dir does not exist" 
   fi
 }
 

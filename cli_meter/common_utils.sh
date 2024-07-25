@@ -71,16 +71,16 @@ unlock()            { _lock u; }   # drop a lock
 # Utility functions
 failure() {
   local exit_code="${1:-$UNKNOWN}"
-  local message="${2:-""}"
+  local message="${2:-"Unknown error"}"
 
   log "[ERROR] $message. Exit code: $exit_code"
   exit $exit_code
 }
 
 warning(){
-  local message="${1:-""}"
-  local exit_code="${2:-$UNKNOWN}"
-  log "[WARNING] $message. Exit code: $exit_code"
+  local code="${1:-$UNKNOWN}"
+  local message="${2:-"Unknown warning"}"
+  log "[WARNING] $message. Exit code: $code"
 }
 
 log() {

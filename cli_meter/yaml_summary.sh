@@ -62,7 +62,7 @@ init_summary() {
   mkdir -p "$dir"
 
   echo "download:" >> "$yaml_file"
-  echo "  started_at: $started_at" >> "$yaml_file"
+  echo "  started_at: \"$started_at\"" >> "$yaml_file"
   echo "  completed_at: \"\"" >> "$yaml_file"
   echo "  duration: \"\"" >> "$yaml_file"
   echo "meters:" >> "$yaml_file"
@@ -75,9 +75,9 @@ init_meter_summary() {
   local started_at=$3
 
   meter_template="{
-    \"name\": \"$meter_name\",
+    \"name\": \"\",
     \"status\": \"\",
-    \"started_at\": \"$started_at\",
+    \"started_at\": \"\",
     \"completed_at\": \"\",
     \"duration\": \"\",
     \"downloads\": {
@@ -90,6 +90,10 @@ init_meter_summary() {
   }"
 
   yq e -i ".meters += [$meter_template]" "$yaml_file"
+
+  # Insert the meter name and start time
+  yq e -i "( .meters[] | select(.name == \"\") | .name ) = \"$meter_name\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .started_at ) = \"$started_at\"" "$yaml_file"
 }
 
 init_event_summary() {
@@ -136,11 +140,14 @@ append_event() {
 
   event_template="{
     \"event_id\": $event_id,
-    \"status\": \"$event_status\"
+    \"status\": \"\"
   }"
 
   # Append the event to the specified meter's events array
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) += [$event_template]" "$yaml_file"
+
+  # Insert status into the event template
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].status ) = \"$event_status\"" "$yaml_file"
 
   if [ "$event_status" == "success" ]; then
     yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.success ) |= . + 1" "$yaml_file"
@@ -161,11 +168,14 @@ append_error(){
   # Create the error template
   error_template="{
     \"exit_code\": $exit_code,
-    \"message\": \"$message\"
+    \"message\": \"\"
   }"
 
   # Append the error to the specified meter's errors array
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .errors ) += [$error_template]" "$yaml_file"
+  
+  # Insert message into the error template
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .errors[-1].message ) = \"$message\"" "$yaml_file"
 
 }
 append_timestamps() {
