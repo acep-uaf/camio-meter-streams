@@ -46,7 +46,7 @@ checksum_file="$event_dir/checksum.md5"
     echo "data_level: \"level0\""
     echo "download_start: \"$download_start\""
     echo "download_end: \"$download_end\""
-    echo "download_time: \"\""
+    echo "duration: \"\""
     echo "download_speed: \"\""
     echo "total_files_size: \"\""
     echo ""
@@ -81,29 +81,28 @@ for file in "$event_dir"/*; do
     fi
 done
 
-# Calculate download_time and download_speed
-download_time=$(($(date -d "$download_end" +%s) - $(date -d "$download_start" +%s)))
+# Calculate duration and download_speed
+duration=$(($(date -d "$download_end" +%s) - $(date -d "$download_start" +%s)))
 
-if [ "$download_time" -eq 0 ]; then
-    download_time=1
-    log "Download time is zero, setting it to 1 second"
-fi
+[[ "$duration" -eq 0 ]] && duration=1 && log "Download time is zero, setting it to 1 second"
+[[ "$total_files_size" -eq 0 ]] && log "Total files size is zero, setting it to 1 byte" && total_files_size=1
 
-if [ "$total_files_size" -eq 0 ]; then
-    log "Total files size is zero, setting it to 1 byte"
-    total_files_size=1
-fi
+# Convert bytes to kilobytes and round to 2 decimal places
+total_files_size_kb=$(echo "scale=4; $total_files_size / 1024" | bc)
+download_speed_kbps=$(echo "scale=4; $total_files_size_kb / $duration" | bc)
 
-download_speed=$(echo "scale=2; $total_files_size / $download_time" | bc)
+total_files_size_fmt=$(numfmt --to=iec --suffix=B --format="%.4f" "$total_files_size_kb")
+download_speed_fmt=$(numfmt --to=iec --suffix=Bps --format="%.4f" "$download_speed_kbps")
+
 log "Download start: $download_start"
 log "Download end: $download_end"
-log "Total files size: $total_files_size bytes"
-log "Download time: $download_time seconds"
-log "Download speed: $download_speed bytes/second"
+log "Total files size: $total_files_size_fmt"
+log "Download duration: ${duration}s"
+log "Download speed: $download_speed_fmt"
 
 # Append calculated fields to metadata
-sed -i "s/download_time: \"\"/download_time: \"$download_time seconds\"/" "$metadata_path"
-sed -i "s/download_speed: \"\"/download_speed: \"$download_speed bytes\/second\"/" "$metadata_path"
-sed -i "s/total_files_size: \"\"/total_files_size: \"$total_files_size bytes\"/" "$metadata_path"
+sed -i "s/duration: \"\"/duration: \"${duration}s\"/" "$metadata_path"
+sed -i "s/download_speed: \"\"/download_speed: \"$download_speed_fmt\"/" "$metadata_path"
+sed -i "s/total_files_size: \"\"/total_files_size: \"$total_files_size_fmt\"/" "$metadata_path"
 
 log "Final metadata appended to: $metadata_path"
