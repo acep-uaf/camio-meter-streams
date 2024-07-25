@@ -5,16 +5,27 @@
 # Description:        This script creates hard links for existing event files
 #                     in DAS for .zip and .message files.
 #
-# Usage:              ./hard-link-existing-event-files.sh
+# Usage:              ./hard-link-existing-event-files.sh <BASE_DIR>
+#                      example BASE_DIR: camio-meter-stream-test-2.0/data/kea/events/level0
+#                      pwd /home/agreer5/camio-meter-stream-test-2.0
 #
-# Arguments:          None
+# Arguments:          BASE_DIR - The base directory to process
 #
 # Requirements:       jq
 #
 # ==============================================================================
 
+# Check if BASE_DIR is provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 <BASE_DIR>"
+    exit 1
+fi
+
 # Constants
-BASE_DIR="camio-meter-stream/kea/events/level0"
+BASE_DIR="$1"
+
+# Debug
+echo "BASE_DIR is set to: $BASE_DIR"
 
 # Function to parse .message file and extract required values using jq
 parse_message_file() {
@@ -31,11 +42,11 @@ parse_message_file() {
 create_hard_link() {
     local original_file="$1"
     local new_file="$2"
-    
+
     if [ -f "$original_file" ]; then
         if cp -l "$original_file" "$new_file"; then
             echo "Created hard link: $new_file"
-        else
+        else                         
             echo "FAILED to create hard link: $new_file"
         fi
     else
@@ -43,6 +54,7 @@ create_hard_link() {
     fi
 }
 
+#______________________________________________________________________
 # Main logic to loop through directories and create hard links
 for date_dir in "$BASE_DIR"/*; do
     if [ -d "$date_dir" ]; then
@@ -56,7 +68,8 @@ for date_dir in "$BASE_DIR"/*; do
                     if [ -f "$message_file" ]; then
                         read id zip_filename path data_type <<< $(parse_message_file "$message_file")
 
-                        location=$(echo "$path" | cut -d'/' -f2)
+                        # Parse location from path (first path) Ex: kea/path/to
+                        location=$(echo "$path" | cut -d'/' -f1)
 
                         new_file_name="${location}-${data_type}-${meter}-${date}-${zip_filename}"
                         new_message_file_name="${location}-${data_type}-${meter}-${date}-${zip_filename}.message"
@@ -77,7 +90,7 @@ for date_dir in "$BASE_DIR"/*; do
                 done
             fi
         done
-    fi
+    fi     
 done
 
-echo "END"
+echo "END"        
