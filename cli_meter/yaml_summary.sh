@@ -139,25 +139,37 @@ append_event() {
   local meter_name=$2
   local event_id=$3
   local event_status=$4
+  local exit_code=${5:-}
+  local message=${6:-}
 
   # Add the events array if it doesn't exist
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) = ( .meters[] | select(.name == \"$meter_name\") | .events // [] )" "$yaml_file"
 
-  event_template="{
-    \"event_id\": $event_id,
-    \"status\": \"\"
-  }"
-
+  if [ "$event_status" == "failure" ]; then
+    event_template="{
+      \"event_id\": $event_id,
+      \"status\": \"\",
+      \"exit_code\": $exit_code,
+      \"message\": \"\"
+    }"
+  else
+    event_template="{
+      \"event_id\": $event_id,
+      \"status\": \"\"
+    }"
+  fi
   # Append the event to the specified meter's events array
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) += [$event_template]" "$yaml_file"
 
   # Insert status into the event template
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].status ) = \"$event_status\"" "$yaml_file"
 
+
   if [ "$event_status" == "success" ]; then
     yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.success ) |= . + 1" "$yaml_file"
   else
     yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.fail ) |= . + 1" "$yaml_file"
+    yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].message ) = \"$message\"" "$yaml_file"
   fi
 }
 
@@ -235,6 +247,27 @@ increase_meters_successful() {
   yq e -i ".summary.meters_successful |= . + 1" "$yaml_file"
 }
 
+# Compare failed/successful events for meter to total
+get_meter_status(){
+  local yaml_file=$1
+  local meter_name=$2
+
+  total_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.total" "$yaml_file")
+  success_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.success" "$yaml_file")
+  fail_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.fail" "$yaml_file")
+
+  increase_meters_attemped "$yaml_file"
+
+  if [ $total_events -eq $success_events ] && [ $fail_events -eq 0 ]; then
+    increase_meters_successful "$yaml_file"
+    echo "success"
+
+  else
+    increase_meters_failed "$yaml_file"
+    echo "failure"
+  fi
+}
+
 export -f init_summary
 export -f init_meter_summary
 export -f init_event_summary
@@ -243,6 +276,4 @@ export -f append_event
 export -f append_error
 export -f append_timestamps
 export -f update_skipped
-export -f increase_meters_attemped
-export -f increase_meters_failed
-export -f increase_meters_successful
+export -f get_meter_status

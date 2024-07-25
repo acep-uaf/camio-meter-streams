@@ -76,7 +76,6 @@ init_summary "$YAML_SUMMARY_FILE" "$download_start_time" $num_meters
 
 # Loop through the meters and download the event files
 for ((i = 0; i < num_meters; i++)); do
-    increase_meters_attemped "$YAML_SUMMARY_FILE" 
     meter_type=$(yq ".meters[$i].type" $config_path)
     meter_ip=$(yq ".meters[$i].ip" $config_path)
     meter_id=$(yq ".meters[$i].id" $config_path)
@@ -97,20 +96,17 @@ for ((i = 0; i < num_meters; i++)); do
 
     if [ $download_return_code -eq 0 ]; then
         log "Download complete for meter: $meter_id"
-        meter_status="success"
-        increase_meters_successful "$YAML_SUMMARY_FILE"
     else
         error_code=$download_return_code
         error_message="Download failed for meter: $meter_id"
-        meter_status="failure"
         warning "$error_code" "$error_message" 
         append_error "$YAML_SUMMARY_FILE" "$meter_id" "$error_code" "$error_message"
         update_skipped "$YAML_SUMMARY_FILE" "$meter_id"
-        increase_meters_failed "$YAML_SUMMARY_FILE"
     fi
 
     # Append meter information after processing
     meter_end_time=$(date -u --iso-8601=seconds)
+    meter_status=$(get_meter_status "$YAML_SUMMARY_FILE" "$meter_id")
     append_meter "$YAML_SUMMARY_FILE" "$meter_id" "$meter_status" "$meter_start_time" "$meter_end_time"
 done
 

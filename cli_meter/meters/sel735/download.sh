@@ -34,8 +34,8 @@ handle_failure() {
 
   mark_event_incomplete "$event_id" "$output_dir"
   warning "$error_code" "$error_message"
-  append_error "$yaml_file" "$meter_id" "$error_code" "$error_message"
-  append_event "$yaml_file" "$meter_id" "$event_id" "failure"
+  #append_error "$yaml_file" "$meter_id" 
+  append_event "$yaml_file" "$meter_id" "$event_id" "failure" "$error_code" "$error_message"
 }
 
 current_dir=$(dirname "$(readlink -f "$0")")
