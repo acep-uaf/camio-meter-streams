@@ -130,7 +130,7 @@ append_meter() {
   started_at=$(yq e ".meters[] | select(.name == \"$meter_name\") | .started_at" "$yaml_file")
 
   duration=$(calculate_duration $started_at $completed_at)
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .duration) = \"$duration\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .duration) = \"${duration}s\"" "$yaml_file"
 
 }
 
@@ -139,8 +139,11 @@ append_event() {
   local meter_name=$2
   local event_id=$3
   local event_status=$4
-  local exit_code=${5:-}
-  local message=${6:-}
+  local started_at=$5
+  local completed_at=$6
+  local total_files_size=$7
+  local exit_code=${8:-}
+  local message=${9:-}
 
   # Add the events array if it doesn't exist
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) = ( .meters[] | select(.name == \"$meter_name\") | .events // [] )" "$yaml_file"
@@ -149,21 +152,40 @@ append_event() {
     event_template="{
       \"event_id\": $event_id,
       \"status\": \"\",
+      \"started_at\": \"\",
+      \"completed_at\": \"\",
+      \"duration\": \"\",
+      \"download_size\": \"\",
+      \"download_speed\": \"\",
       \"exit_code\": $exit_code,
       \"message\": \"\"
     }"
   else
     event_template="{
       \"event_id\": $event_id,
-      \"status\": \"\"
+      \"status\": \"\",
+      \"started_at\": \"\",
+      \"completed_at\": \"\",
+      \"duration\": \"\",
+      \"download_size\": \"\",
+      \"download_speed\": \"\"
     }"
   fi
+
+  duration=$(calculate_duration "$started_at" "$completed_at")
+
+  [ "$duration" -eq 0 ] && duration=1
+  download_speed=$(echo "scale=4; $total_files_size / $duration" | bc)
   # Append the event to the specified meter's events array
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) += [$event_template]" "$yaml_file"
 
   # Insert status into the event template
   yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].status ) = \"$event_status\"" "$yaml_file"
-
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].started_at ) = \"$started_at\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].completed_at ) = \"$completed_at\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].duration ) = \"${duration}s\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].download_size ) = \"${total_files_size}KB\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].download_speed ) = \"${download_speed}KBps\"" "$yaml_file"
 
   if [ "$event_status" == "success" ]; then
     yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.success ) |= . + 1" "$yaml_file"
@@ -205,7 +227,7 @@ append_timestamps() {
   yq e -i ".$type.completed_at = \"$completed_at\"" "$yaml_file"
 
   duration=$(calculate_duration "$started_at" "$completed_at")
-  yq e -i ".$type.duration = \"$duration\"" "$yaml_file"
+  yq e -i ".$type.duration = \"${duration}s\"" "$yaml_file"
 
 }
 
@@ -217,7 +239,7 @@ calculate_duration() {
   end_seconds=$(date -d "$completed_at" +%s)
 
   duration=$((end_seconds - start_seconds))
-  echo "${duration}s"
+  echo "$duration"
 }
 
 update_skipped() {
