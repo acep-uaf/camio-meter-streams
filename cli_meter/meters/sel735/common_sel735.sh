@@ -30,16 +30,16 @@ handle_sig() {
 
     case $sig in
         SIGINT)
-            failure $STREAMS_SIGINT "SIGINT received. Exiting..."
+            failure $STREAMS_SIGINT "SIGINT received, exiting"
             ;;
         SIGQUIT)
-            failure $STREAMS_SIGQUIT "SIGQUIT received. Exiting..."
+            failure $STREAMS_SIGQUIT "SIGQUIT received, exiting"
             ;;
         SIGTERM)
-            failure $STREAMS_SIGTERM "SIGTERM received. Exiting..."
+            failure $STREAMS_SIGTERM "SIGTERM received, exiting"
             ;;
         *)
-            failure $STREAMS_UNKNOWN "Unknown signal received. Exiting..."
+            failure $STREAMS_UNKNOWN "Unknown signal received, exiting"
             ;;
     esac
 }
@@ -75,10 +75,9 @@ mark_event_incomplete() {
 
     # Move the current directory to its new incomplete name
     mv "$original_dir" "${base_incomplete_dir}_${suffix}"
-    log "" # Add a new line for better readability
     log "Moved event $event_id to ${event_id}.incomplete_${suffix}"
   else
-    warning "Directory $original_dir does not exist."
+    warning $STREAMS_DIR_NOT_FOUND "Directory $original_dir does not exist" 
   fi
 }
 
@@ -94,6 +93,25 @@ validate_download() {
     return 0 # True - All files are present
 }
 
+get_total_event_files_size() {
+    local event_dir=$1
+    local event_id=$2
+    local total_size=0
+
+    # Files expected to have downloaded
+    local expected_files=("CEV_${event_id}.CEV" "HR_${event_id}.CFG" "HR_${event_id}.DAT" "HR_${event_id}.HDR" "HR_${event_id}.ZDAT")
+
+    for file in "${expected_files[@]}"; do
+        if [ -f "${event_dir}/${file}" ]; then
+            file_size=$(stat -c %s "${event_dir}/${file}")
+            total_size=$((total_size + file_size))
+        fi
+    done
+
+    # Convert to KB
+    total_files_size_kb=$(echo "scale=4; $total_size / 1024" | bc)
+    echo "$total_files_size_kb"
+}
 # Wrapper function to validate the complete directory
 validate_complete_directory() {
     local event_dir=$1

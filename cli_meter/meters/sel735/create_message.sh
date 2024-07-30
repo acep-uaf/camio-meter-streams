@@ -39,5 +39,5 @@ json_payload=$(jq -n \
     '{event_id: $eid, filename: $fn, path: $pth, data_type: $dt}')
 
 # Write the JSON payload to the .message file
-echo "$json_payload" > "$message_file" && log "Created message file: $message_file" || warning "Failed to write to message file: $message_file"
+echo "$json_payload" > "$message_file" && log "Created message file: $message_file" || failure $STREAMS_FILE_CREATION_FAIL "Failed to write to message file: $message_file"
 
