@@ -55,13 +55,16 @@
 # ==============================================================================
 
 
+# init_summary function modified to set SUMMARY_FILE and create the required directory structure
 init_summary() {
-  local yaml_file=$1
+  local output_dir=$1
   local started_at=$2
   local meters_total=$3
-  local dir=$(dirname "$yaml_file")
+  local year_month=$(date -d "$started_at" +"%Y-%m")
+  local dir="$output_dir/summary/$year_month"
+  local yaml_file="$dir/download_summary_$(date -d "$started_at" +"%Y%m%d_%H%M").yml"
   mkdir -p "$dir"
-
+  
   echo "summary:" >> "$yaml_file"
   echo "  started_at: \"$started_at\"" >> "$yaml_file"
   echo "  completed_at: \"\"" >> "$yaml_file"
@@ -71,13 +74,14 @@ init_summary() {
   echo "  meters_successful: 0" >> "$yaml_file"
   echo "  meters_failed: 0" >> "$yaml_file"
   echo "meters:" >> "$yaml_file"
-  
+
+  export SUMMARY_FILE="$yaml_file"
 }
 
+# Modified other functions to use SUMMARY_FILE directly
 init_meter_summary() {
-  local yaml_file=$1
-  local meter_name=$2
-  local started_at=$3
+  local meter_name=$1
+  local started_at=$2
 
   meter_template="{
     \"name\": \"\",
@@ -94,59 +98,54 @@ init_meter_summary() {
     \"events\": []
   }"
 
-  yq e -i ".meters += [$meter_template]" "$yaml_file"
+  yq e -i ".meters += [$meter_template]" "$SUMMARY_FILE"
 
   # Insert the meter name and start time
-  yq e -i "( .meters[] | select(.name == \"\") | .name ) = \"$meter_name\"" "$yaml_file"
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .started_at ) = \"$started_at\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"\") | .name ) = \"$meter_name\"" "$SUMMARY_FILE"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .started_at ) = \"$started_at\"" "$SUMMARY_FILE"
 }
 
 init_event_summary() {
-  local yaml_file=$1
-  local meter_name=$2
-  local total_events=$3
+  local meter_name=$1
+  local total_events=$2
 
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.total ) = $total_events" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.total ) = $total_events" "$SUMMARY_FILE"
 }
 
 append_info() {
-  local yaml_file=$1
-  local key=$2
-  local value=$3
+  local key=$1
+  local value=$2
 
-  yq e -i ".${key} = \"$value\"" "$yaml_file"
+  yq e -i ".${key} = \"$value\"" "$SUMMARY_FILE"
 }
 
 append_meter() {
-  local yaml_file=$1
-  local meter_name=$2
-  local status=$3
-  local started_at=$4
-  local completed_at=$5
+  local meter_name=$1
+  local status=$2
+  local started_at=$3
+  local completed_at=$4
 
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .status) = \"$status\"" "$yaml_file"
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .completed_at) = \"$completed_at\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .status) = \"$status\"" "$SUMMARY_FILE"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .completed_at) = \"$completed_at\"" "$SUMMARY_FILE"
 
-  started_at=$(yq e ".meters[] | select(.name == \"$meter_name\") | .started_at" "$yaml_file")
+  started_at=$(yq e ".meters[] | select(.name == \"$meter_name\") | .started_at" "$SUMMARY_FILE")
 
   duration=$(calculate_duration $started_at $completed_at)
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .duration) = \"${duration}s\"" "$yaml_file"
-
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .duration) = \"${duration}s\"" "$SUMMARY_FILE"
 }
 
 append_event() {
-  local yaml_file=$1
-  local meter_name=$2
-  local event_id=$3
-  local event_status=$4
-  local started_at=$5
-  local completed_at=$6
-  local total_files_size=$7
-  local exit_code=${8:-}
-  local message=${9:-}
+  local meter_name=$1
+  local event_id=$2
+  local event_status=$3
+  local started_at=$4
+  local completed_at=$5
+  local total_files_size=$6
+  local exit_code=${7:-}
+  local message=${8:-}
 
   # Add the events array if it doesn't exist
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) = ( .meters[] | select(.name == \"$meter_name\") | .events // [] )" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) = ( .meters[] | select(.name == \"$meter_name\") | .events // [] )" "$SUMMARY_FILE"
 
   if [ "$event_status" == "failure" ]; then
     event_template="{
@@ -177,32 +176,31 @@ append_event() {
   [ "$duration" -eq 0 ] && duration=1
   download_speed=$(echo "scale=4; $total_files_size / $duration" | bc)
   # Append the event to the specified meter's events array
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) += [$event_template]" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events ) += [$event_template]" "$SUMMARY_FILE"
 
   # Insert status into the event template
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].status ) = \"$event_status\"" "$yaml_file"
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].started_at ) = \"$started_at\"" "$yaml_file"
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].completed_at ) = \"$completed_at\"" "$yaml_file"
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].duration ) = \"${duration}s\"" "$yaml_file"
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].download_size ) = \"${total_files_size}KB\"" "$yaml_file"
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].download_speed ) = \"${download_speed}KBps\"" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].status ) = \"$event_status\"" "$SUMMARY_FILE"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].started_at ) = \"$started_at\"" "$SUMMARY_FILE"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].completed_at ) = \"$completed_at\"" "$SUMMARY_FILE"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].duration ) = \"${duration}s\"" "$SUMMARY_FILE"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].download_size ) = \"${total_files_size}KB\"" "$SUMMARY_FILE"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].download_speed ) = \"${download_speed}KBps\"" "$SUMMARY_FILE"
 
   if [ "$event_status" == "success" ]; then
-    yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.success ) |= . + 1" "$yaml_file"
+    yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.success ) |= . + 1" "$SUMMARY_FILE"
   else
-    yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.fail ) |= . + 1" "$yaml_file"
-    yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].message ) = \"$message\"" "$yaml_file"
+    yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.fail ) |= . + 1" "$SUMMARY_FILE"
+    yq e -i "( .meters[] | select(.name == \"$meter_name\") | .events[-1].message ) = \"$message\"" "$SUMMARY_FILE"
   fi
 }
 
-append_error(){
-  local yaml_file=$1
-  local meter_name=$2
-  local exit_code=$3
-  local message=$4
+append_error() {
+  local meter_name=$1
+  local exit_code=$2
+  local message=$3
 
   # Add the errors array if it doesn't exist
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .errors ) = ( .meters[] | select(.name == \"$meter_name\") | .errors // [] )" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .errors ) = ( .meters[] | select(.name == \"$meter_name\") | .errors // [] )" "$SUMMARY_FILE"
 
   # Create the error template
   error_template="{
@@ -211,24 +209,22 @@ append_error(){
   }"
 
   # Append the error to the specified meter's errors array
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .errors ) += [$error_template]" "$yaml_file"
-  
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .errors ) += [$error_template]" "$SUMMARY_FILE"
+
   # Insert message into the error template
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .errors[-1].message ) = \"$message\"" "$yaml_file"
-
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .errors[-1].message ) = \"$message\"" "$SUMMARY_FILE"
 }
-append_timestamps() {
-  local yaml_file=$1
-  local started_at=$2
-  local completed_at=$3
-  local type=$4
 
-  yq e -i ".$type.started_at = \"$started_at\"" "$yaml_file"
-  yq e -i ".$type.completed_at = \"$completed_at\"" "$yaml_file"
+append_timestamps() {
+  local started_at=$1
+  local completed_at=$2
+  local type=$3
+
+  yq e -i ".$type.started_at = \"$started_at\"" "$SUMMARY_FILE"
+  yq e -i ".$type.completed_at = \"$completed_at\"" "$SUMMARY_FILE"
 
   duration=$(calculate_duration "$started_at" "$completed_at")
-  yq e -i ".$type.duration = \"${duration}s\"" "$yaml_file"
-
+  yq e -i ".$type.duration = \"${duration}s\"" "$SUMMARY_FILE"
 }
 
 calculate_duration() {
@@ -243,49 +239,43 @@ calculate_duration() {
 }
 
 update_skipped() {
-  local yaml_file=$1
-  local meter_name=$2
+  local meter_name=$1
 
-  total_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.total" "$yaml_file")
-  success_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.success" "$yaml_file")
-  fail_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.fail" "$yaml_file")
+  total_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.total" "$SUMMARY_FILE")
+  success_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.success" "$SUMMARY_FILE")
+  fail_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.fail" "$SUMMARY_FILE")
   skipped_events=$((total_events - (success_events + fail_events)))
 
-  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.skipped ) = $skipped_events" "$yaml_file"
+  yq e -i "( .meters[] | select(.name == \"$meter_name\") | .downloads.skipped ) = $skipped_events" "$SUMMARY_FILE"
 }
 
-increase_meters_attemped() {
-  local yaml_file=$1
-  yq e -i ".summary.meters_attempted |= . + 1" "$yaml_file"
+increase_meters_attempted() {
+  yq e -i ".summary.meters_attempted |= . + 1" "$SUMMARY_FILE"
 }
 
 increase_meters_failed() {
-  local yaml_file=$1
-  yq e -i ".summary.meters_failed |= . + 1" "$yaml_file"
+  yq e -i ".summary.meters_failed |= . + 1" "$SUMMARY_FILE"
 }
 
 increase_meters_successful() {
-  local yaml_file=$1
-  yq e -i ".summary.meters_successful |= . + 1" "$yaml_file"
+  yq e -i ".summary.meters_successful |= . + 1" "$SUMMARY_FILE"
 }
 
 # Compare failed/successful events for meter to total
-get_meter_status(){
-  local yaml_file=$1
-  local meter_name=$2
+get_meter_status() {
+  local meter_name=$1
 
-  total_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.total" "$yaml_file")
-  success_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.success" "$yaml_file")
-  fail_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.fail" "$yaml_file")
+  total_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.total" "$SUMMARY_FILE")
+  success_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.success" "$SUMMARY_FILE")
+  fail_events=$(yq e ".meters[] | select(.name == \"$meter_name\") | .downloads.fail" "$SUMMARY_FILE")
 
-  increase_meters_attemped "$yaml_file"
+  increase_meters_attempted
 
   if [ $total_events -eq $success_events ] && [ $fail_events -eq 0 ]; then
-    increase_meters_successful "$yaml_file"
+    increase_meters_successful
     echo "success"
-
   else
-    increase_meters_failed "$yaml_file"
+    increase_meters_failed
     echo "failure"
   fi
 }

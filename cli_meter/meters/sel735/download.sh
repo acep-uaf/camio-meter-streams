@@ -29,15 +29,14 @@ handle_fail() {
   local output_dir=$2
   local error_code=$3
   local error_message=$4
-  local yaml_file=$5
-  local meter_id=$6
-  local download_start=$7
-  local download_end=$8
+  local meter_id=$5
+  local download_start=$6
+  local download_end=$7
   local download_size=$(get_total_event_files_size "$output_dir/$event_id" "$event_id")
 
   mark_event_incomplete "$event_id" "$output_dir"
   warning "$error_code" "$error_message"
-  append_event "$yaml_file" "$meter_id" "$event_id" "failure" "$download_start" "$download_end" "$download_size" "$error_code" "$error_message"
+  append_event "$meter_id" "$event_id" "failure" "$download_start" "$download_end" "$download_size" "$error_code" "$error_message"
 }
 
 current_dir=$(dirname "$(readlink -f "$0")")
@@ -83,7 +82,7 @@ events=$("$current_dir/get_events.sh" "$meter_ip" "$meter_id" "$base_output_dir"
 
 total_events=$(echo "$events" | wc -l)
 
-init_event_summary "$YAML_SUMMARY_FILE" "$meter_id" $total_events
+init_event_summary "$meter_id" $total_events
 
 # output_dir is the location where the data will be stored
 for event_info in $events; do
@@ -104,29 +103,28 @@ for event_info in $events; do
   if "$current_dir/download_event.sh" "$meter_ip" "$event_id" "$output_dir" "$bandwidth_limit"; then
     event_status="success"
     download_end=$(date -u --iso-8601=seconds)
-    log "DOWNLOAD: download"
     download_size=$(get_total_event_files_size "$output_dir/$event_id" "$event_id")
   else
     download_end=$(date -u --iso-8601=seconds)
-    handle_fail "$event_id" "$output_dir" "$STREAMS_DOWNLOAD_FAIL" "Failed to download event files for event_id: $event_id" "$YAML_SUMMARY_FILE" "$meter_id" "$download_start" "$download_end"
+    handle_fail "$event_id" "$output_dir" "$STREAMS_DOWNLOAD_FAIL" "Failed to download event files for event_id: $event_id" "$meter_id" "$download_start" "$download_end"
     continue
   fi
   
   # Validate the downloaded files
   validate_download "$output_dir/$event_id" "$event_id" && log "Downloaded files validated for event: $event_id" || {
-    handle_fail "$event_id" "$output_dir" "$STREAMS_UNKNOWN" "Failed to validate event files for event: $event_id" "$YAML_SUMMARY_FILE" "$meter_id" "$download_start" "$download_end"
+    handle_fail "$event_id" "$output_dir" "$STREAMS_UNKNOWN" "Failed to validate event files for event: $event_id"  "$meter_id" "$download_start" "$download_end"
     continue
   }
 
   # Generate metadata for the event
   "$current_dir/generate_metadata_yml.sh" "$event_id" "$output_dir" "$meter_id" "$meter_type" "$event_timestamp" "$download_start" "$download_end" || {
-    handle_fail "$event_id" "$output_dir" "$STREAMS_METADATA_FAIL" "Failed to generate metadata for event: $event_id" "$YAML_SUMMARY_FILE" "$meter_id" "$download_start" "$download_end"
+    handle_fail "$event_id" "$output_dir" "$STREAMS_METADATA_FAIL" "Failed to generate metadata for event: $event_id"  "$meter_id" "$download_start" "$download_end"
     continue
   }
 
   # Validate the metadata files
   validate_complete_directory "$output_dir/$event_id" "$event_id" && log "Metadata files validated for event: $event_id" || {
-    handle_fail "$event_id" "$output_dir" "$STREAMS_INCOMPLETE_DIR" "Missing metadata file in event directory for event_id: $event_id" "$YAML_SUMMARY_FILE" "$meter_id" "$download_start" "$download_end"
+    handle_fail "$event_id" "$output_dir" "$STREAMS_INCOMPLETE_DIR" "Missing metadata file in event directory for event_id: $event_id" "$meter_id" "$download_start" "$download_end"
     continue
   }
 
@@ -140,15 +138,15 @@ for event_info in $events; do
 
   # Zip the event files and empty the working event directory
   "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" "$zip_filename"|| {
-    handle_fail "$event_id" "$output_dir" "$STREAMS_ZIP_FAIL" "Failed to zip event: $event_id" "$YAML_SUMMARY_FILE" "$meter_id" "$download_start" "$download_end"
+    handle_fail "$event_id" "$output_dir" "$STREAMS_ZIP_FAIL" "Failed to zip event: $event_id" "$meter_id" "$download_start" "$download_end"
     continue
   }
 
   # Create the message file (JSON) for the event
   "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$path" "$data_type" "$event_zipped_output_dir" || {
-    handle_fail "$event_id" "$output_dir" "$STREAMS_FILE_CREATION_FAIL" "Failed to create message file for event: $event_id" "$YAML_SUMMARY_FILE" "$meter_id" "$download_start" "$download_end" 
+    handle_fail "$event_id" "$output_dir" "$STREAMS_FILE_CREATION_FAIL" "Failed to create message file for event: $event_id"  "$meter_id" "$download_start" "$download_end" 
     continue
   }
 
-  append_event "$YAML_SUMMARY_FILE" $meter_id $event_id "$event_status" "$download_start" "$download_end" "$download_size"
+  append_event $meter_id $event_id "$event_status" "$download_start" "$download_end" "$download_size"
 done
