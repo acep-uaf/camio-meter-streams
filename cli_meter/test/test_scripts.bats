@@ -45,9 +45,9 @@ teardown() {
 
 @test "zip_event.sh execution test" {
     mkdir -p "$TMP_DIR/$EVENT_ID"
-    run ./zip_event.sh "$TMP_DIR" "$TMP_DIR" "$EVENT_ID" "$ZIP_FILENAME"
+    run ./zip_event.sh "$TMP_DIR" "$TMP_DIR" "$EVENT_ID" "$SYMLINK_NAME"
     assert_success
-    assert_output --partial "Zipped files for event: $EVENT_ID"
+    assert_output --partial "Successfully zipped symlink: $SYMLINK_NAME to $TMP_DIR/$ZIP_FILENAME for event: $EVENT_ID"
     assert [ -f "$TMP_DIR/$ZIP_FILENAME" ]
     assert [ -d "$TMP_DIR/$EVENT_ID" ]
 }
@@ -55,10 +55,10 @@ teardown() {
 @test "zip_event.sh test 0 arguments" {
     run ./zip_event.sh
     assert_failure $(($STREAMS_INVALID_ARGS % 256))
-    assert_output --partial "Usage: zip_event.sh <source_dir> <dest_dir> <event_id> <zip_filename>"
+    assert_output --partial "Usage: zip_event.sh <source_dir> <dest_dir> <event_id> <symlink_name>"
 }
 
 @test "zip_event.sh test invalid event_id" {
-    run ./zip_event.sh "$TMP_DIR" "$TMP_DIR" "not_a_directory" "$ZIP_FILENAME"
+    run ./zip_event.sh "$TMP_DIR" "$TMP_DIR" "not_a_directory" "$SYMLINK_NAME"
     assert_failure $(($STREAMS_DIR_NOT_FOUND % 256))
 }
