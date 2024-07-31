@@ -134,10 +134,11 @@ for event_info in $events; do
 
   # LOCATION-TYPE-METER_ID-YYYYMM-EVENT_ID
   zip_filedate="${date_dir//-/}"
-  zip_filename="$location-$data_type-$meter_id-$zip_filedate-$event_id.zip"
-
+  symlink_name="$location-$data_type-$meter_id-$zip_filedate-$event_id"
+  zip_filename="${symlink_name}.zip"
+  
   # Zip the event files and empty the working event directory
-  "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" "$zip_filename"|| {
+  "$current_dir/zip_event.sh" "$output_dir" "$event_zipped_output_dir" "$event_id" "$symlink_name"|| {
     handle_fail "$event_id" "$output_dir" "$STREAMS_ZIP_FAIL" "Failed to zip event: $event_id" "$meter_id" "$download_start" "$download_end"
     continue
   }
