@@ -28,3 +28,5 @@ config.yml
 >>>>>>> ot-dev-ftp-meter-download
 *.download_progress
 *.message
+config_*.yml
+archive_config_*.yml

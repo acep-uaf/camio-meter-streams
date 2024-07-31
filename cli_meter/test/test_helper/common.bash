@@ -18,7 +18,8 @@ _common_setup() {
     EVENT_ID="1234"
     METER_IP="123.123.123"
     DATA_TYPE="events"
-    ZIP_FILENAME="$LOCATION-$METER_TYPE-$METER_ID-YYYYMM-$EVENT_ID.zip"
+    SYMLINK_NAME="$LOCATION-$METER_TYPE-$METER_ID-YYYYMM-$EVENT_ID"
+    ZIP_FILENAME="${SYMLINK_NAME}.zip"
 }
 
 _common_teardown() {

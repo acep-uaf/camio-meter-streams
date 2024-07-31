@@ -1,19 +1,20 @@
 #!/bin/bash
 # ==============================================================================
 # Script Name:        zip_event.sh
-# Description:        This script zips the event files in the source directory
-#                     and saves the zip file in the destination directory and removes
-#                     the files in the source directory, but leaves the directory to
-#                     be used to compare with the history file.
+# Description:        This script creates a symbolic link for the event directory,
+#                     zips the contents via the symbolic link, saves the zip file in the
+#                     destination directory, and then removes the symbolic link. It also
+#                     removes the files in the source directory but leaves the directory
+#                     itself to be used for comparison with the history file.
 #
-# Usage:              ./zip_event.sh <source_dir> <dest_dir> <event_id> <zip_filename>
+# Usage:              ./zip_event.sh <source_dir> <dest_dir> <event_id> <symlink_name>
 # Called by:          download.sh
 #
 # Arguments:
 #   source_dir        The directory containing the event files
 #   dest_dir          The directory where the zip file will be saved
 #   event_id          The event ID (ex.10000)
-#   zip_filename      The name of the zip file (ex. location-dataType-meterId-YYYYMM-eventId.zip)
+#   symlink_name      The name of the symlink and base of the zip file (ex. location-dataType-meterId-YYYYMM-eventId)
 #
 # Requirements:       zip
 #                     common_utils.sh
@@ -23,18 +24,23 @@ script_name=$(basename "$0")
 source "$current_dir/../../common_utils.sh"
 
 # Check for exactly 4 arguments
-[ "$#" -ne 4 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <source_dir> <dest_dir> <event_id> <zip_filename>"
+[ "$#" -ne 4 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <source_dir> <dest_dir> <event_id> <symlink_name>"
 
 source_dir="$1"
 dest_dir="$2"
 event_id="$3"
-zip_filename="$4"
+symlink_name="$4"
+zip_filename="${symlink_name}.zip"
 
 [[ -d "$source_dir/$event_id" ]] || failure $STREAMS_DIR_NOT_FOUND "Source directory does not exist: $source_dir/$event_id"
 
 # Zip the files in the source directory
 pushd "$source_dir" > /dev/null
-zip -r -q "${dest_dir}/${zip_filename}" $event_id && log "Zipped files for event: $event_id" || failure $STREAMS_ZIP_FAIL "Failed to zip event: $event_id in directory: $source_dir"
+ln -s "$event_id" "$symlink_name" && log "Created symlink: $symlink_name" || failure $STREAMS_SYMLINK_FAIL "Failed to create symlink: $symlink_name"
+zip -r -q "${dest_dir}/${zip_filename}" "$symlink_name" && \
+log "Successfully zipped symlink: $symlink_name to ${dest_dir}/${zip_filename} for event: $event_id" || \
+failure $STREAMS_ZIP_FAIL "Failed to zip symlink: $symlink_name located at ${source_dir}/${symlink_name} to ${dest_dir}/${zip_filename}"
+rm "$symlink_name" && log "Removed symlink: $symlink_name" || failure $STREAMS_SYMLINK_FAIL "Failed to remove symlink: $symlink_name"
 popd > /dev/null
 
 # Delete the files in the event_id directory but not the directory itself
