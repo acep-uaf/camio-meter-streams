@@ -40,7 +40,7 @@ data_type=$(yq '.data_type' "$config_path")
 download_dir=$(yq '.download_directory' "$config_path")
 bandwidth_limit=$(yq '.bandwidth_limit' "$config_path")
 max_age_days=$(yq '.max_age_days' "$config_path")
-max_conection_retries=$(yq '.max_conection_retries' "$config_path")
+max_connection_retries=$(yq '.max_connection_retries' "$config_path")
 default_username=$(yq '.credentials.username' "$config_path")
 default_password=$(yq '.credentials.password' "$config_path")
 num_meters=$(yq '.meters | length' "$config_path")
@@ -53,8 +53,8 @@ num_meters=$(yq '.meters | length' "$config_path")
 [[ -z "$default_password" || "$default_password" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default password cannot be null or empty."
 [[ -z "$bandwidth_limit" || "$bandwidth_limit" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Bandwidth limit cannot be null or empty."
 [[ -z "$num_meters" || "$num_meters" -eq 0 ]] && failure $STREAMS_INVALID_CONFIG "Must have at least 1 meter in the config file."
-[[ "$max_conection_retries" =~ ^([1-9]|10)$ ]] || failure $STREAMS_INVALID_CONFIG "Max connection retries must be an integer between 1 and 10: '$max_conection_retries'"
-[[ -z "$max_conection_retries" || "$max_conection_retries" == "null" ]] && max_conection_retries=1
+[[ "$max_connection_retries" =~ ^([1-9]|10)$ ]] || failure $STREAMS_INVALID_CONFIG "Max connection retries must be an integer between 1 and 10: '$max_connection_retries'"
+[[ -z "$max_connection_retries" || "$max_connection_retries" == "null" ]] && max_connection_retries=1
 
 # if max_age_days is set make sure max_age_days is a number
 if [[ ! -z "$max_age_days" && "$max_age_days" != "null" ]]; then
@@ -84,7 +84,7 @@ for ((i = 0; i < num_meters; i++)); do
     export USERNAME=${meter_username:-$default_username}
     export PASSWORD=${meter_password:-$default_password}
 
-    "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location" "$max_age_days" "$max_conection_retries"
+    "$current_dir/meters/$meter_type/download.sh" "$meter_ip" "$output_dir" "$meter_id" "$meter_type" "$bandwidth_limit" "$data_type" "$location" "$max_age_days" "$max_connection_retries"
 
     download_return_code=$?
 
