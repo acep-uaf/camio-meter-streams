@@ -12,8 +12,8 @@ download_directory: ""
 
 # bytes/s, 0 means unlimited, Suffixes are supported, e.g. 100K means 102400.
 bandwidth_limit: 0
-# If empty, the default to 1.
-max_conection_retries: 
+
+max_connection_retries: 1
 max_age_days: 
 
 # Require default credentials for FTP server
