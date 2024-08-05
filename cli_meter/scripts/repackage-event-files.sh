@@ -124,4 +124,4 @@ for date_dir in "$BASE_DIR"/*; do
         done
     fi     
 done
-echo "Done processing event files"
+echo "Finished updating directory: $BASE_DIR"
