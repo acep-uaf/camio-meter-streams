@@ -45,8 +45,8 @@ max_age_days=$(yq '.max_age_days' "$config_path")
 
 # Check for null or empty values
 [[ -z "$download_dir" || "$download_dir" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Download directory cannot be null or empty."
-# [[ -z "$default_username" || "$default_username" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default username cannot be null or empty."
-# [[ -z "$default_password" || "$default_password" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default password cannot be null or empty."
+[[ -z "$default_username" || "$default_username" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default username cannot be null or empty."
+[[ -z "$default_password" || "$default_password" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Default password cannot be null or empty."
 [[ -z "$location" || "$location" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Location cannot be null or empty."
 [[ -z "$data_type" || "$data_type" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Data type cannot be null or empty."
 [[ -z "$bandwidth_limit" || "$bandwidth_limit" == "null" ]] && failure $STREAMS_INVALID_CONFIG "Bandwidth limit cannot be null or empty."
