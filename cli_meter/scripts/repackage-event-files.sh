@@ -34,8 +34,7 @@ fi
 # Constants
 BASE_DIR="$1"
 
-# Debug
-echo "BASE_DIR is set to: $BASE_DIR"
+echo "Updating directory: $BASE_DIR"
 
 # Function to parse .message file and extract required values using jq
 parse_message_file() {
@@ -125,5 +124,4 @@ for date_dir in "$BASE_DIR"/*; do
         done
     fi     
 done
-
-echo "END"
+echo "Done processing event files"
