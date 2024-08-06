@@ -15,6 +15,11 @@
 #                     New zip file: kea-events-meter1-202401-12345.zip
 #                     New message file: kea-events-meter1-202401-12345.zip.message
 #
+# Message File
+# content:            V1: id, filename, data_type, path
+#                     V2: event_id, filename, path, data_type
+#                     V3: event_id, filename, md5sum, data_type
+#
 # Usage:              ./repackage-event-files.sh <BASE_DIR>
 #                      example BASE_DIR: camio-meter-stream-test/data/kea/events/level0
 #                      pwd /home/user/camio-meter-stream-test
@@ -42,8 +47,9 @@ parse_message_file() {
     local event_id=$(jq -r '.id' "$message_file")
     local zip_filename=$(jq -r '.filename' "$message_file")
     local data_type=$(jq -r '.data_type' "$message_file")
+    local path=$(jq -r '.path' "$message_file")
 
-    echo "$event_id" "$zip_filename" "$data_type"
+    echo "$event_id" "$zip_filename" "$data_type" "$path"
 }
 
 # Function to unzip, rename the directory, and repackage the zip file
@@ -101,18 +107,38 @@ for date_dir in "$BASE_DIR"/*; do
 
         for meter_dir in "$date_dir"/*; do
             if [ -d "$meter_dir" ]; then
+                echo "Processing meter directory: $meter_dir"
                 meter=$(basename "$meter_dir")
 
                 for message_file in "$meter_dir"/*.message; do
                     if [ -f "$message_file" ]; then
                         # Check if the message file matches the new naming convention
                         if [[ "$message_file" =~ ^.*/[^/]+-[^/]+-[^/]+-[0-9]{6}-[0-9]+\.zip\.message$ ]]; then
-                            echo "Skipping already repackaged file: $message_file"
+                            # Check if the message file contains "md5sum" or "path"
+                            if grep -q '"path"' "$message_file"; then
+                                echo "V2 Message Format: $message_file"
+
+                                # Parse the message file
+                                read event_id zip_filename data_type path <<< $(parse_message_file "$message_file")
+
+                                cur_meter_dir="$BASE_DIR/$cur_date_dir/$meter"
+                                original_zip_file_path="$cur_meter_dir/$zip_filename"
+
+                                # Calculate the md5sum of the zip file
+                                md5sum_value=$(calculate_md5sum "$original_zip_file_path")
+
+                                # Update the message file to replace "path" with "md5sum"
+                                jq --arg md5s "$md5sum_value" '. | {event_id: .event_id, filename: .filename, md5sum: $md5s, data_type: .data_type}' "$message_file" > "$message_file.tmp" && mv "$message_file.tmp" "$message_file"
+                            elif grep -q '"md5sum"' "$message_file"; then
+                                echo "V3 Message Format: $message_file"
+                            fi
                             continue
                         fi
 
+                        echo "V1 Message Format: $message_file"
+
                         # Parse the message file
-                        read event_id zip_filename data_type <<< $(parse_message_file "$message_file")
+                        read event_id zip_filename data_type path<<< $(parse_message_file "$message_file")
 
                         # Parse location from path (first path) Ex: kea/path/to
                         location=$(echo "$path" | cut -d'/' -f1)
