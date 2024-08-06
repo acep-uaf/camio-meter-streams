@@ -6,7 +6,7 @@
 #                     in DAS for .zip and .message files to achieve a new
 #                     naming convention. 
 #
-# Naming Convention:  location-data_type-meter-YYYYMM-id
+# Naming Convention:  location-data_type-meter-YYYYMM-event_id
 #                     Ex. kea-events-meter1-202401-12345 
 #                     
 # Example:            Original zip file: 12345.zip
@@ -21,7 +21,7 @@
 #
 # Arguments:          BASE_DIR - The base directory to process
 #
-# Requirements:       jq, unzip, zip
+# Requirements:       jq, unzip, zip, md5sum
 #
 # ==============================================================================
 
@@ -39,12 +39,11 @@ echo "Updating directory: $BASE_DIR"
 # Function to parse .message file and extract required values using jq
 parse_message_file() {
     local message_file="$1"
-    local id=$(jq -r '.id' "$message_file")
+    local event_id=$(jq -r '.id' "$message_file")
     local zip_filename=$(jq -r '.filename' "$message_file")
-    local path=$(jq -r '.path' "$message_file")
     local data_type=$(jq -r '.data_type' "$message_file")
 
-    echo "$id" "$zip_filename" "$path" "$data_type"
+    echo "$event_id" "$zip_filename" "$data_type"
 }
 
 # Function to unzip, rename the directory, and repackage the zip file
@@ -70,12 +69,34 @@ repackage_event_file() {
     rm -rf "$temp_dir" || { echo "Failed to remove temporary directory: $temp_dir"; return 1; }
 }
 
-# Main logic to loop through directories and process files
+# Function to calculate md5sum of a file
+calculate_md5sum() {
+    local file="$1"
+    md5sum "$file" | awk '{ print $1 }'
+}
+
+# Function to create a new message file with updated format
+create_new_message_file() {
+    local new_message_file_path="$1"
+    local event_id="$2"
+    local new_zip_file_name="$3"
+    local md5sum_value="$4"
+    local data_type="$5"
+
+    jq -n \
+       --arg event_id "$event_id" \
+       --arg filename "$new_zip_file_name" \
+       --arg md5sum "$md5sum_value" \
+       --arg data_type "$data_type" \
+       '{event_id: $event_id, filename: $filename, md5sum: $md5sum, data_type: $data_type}' > "$new_message_file_path" && echo "Created new message file: $new_message_file_path" || echo "Failed to create new message file: $new_message_file_path"
+}
+
+# Main script logic to process directories and files
 for date_dir in "$BASE_DIR"/*; do
     if [ -d "$date_dir" ]; then
         echo "Processing date directory: $date_dir"
         cur_date_dir=$(basename "$date_dir")
-        # Format date directory to remove hyphens
+        # Format date directory to remove hyphens Ex: 2024-01 -> 202401
         fmt_date_dir=$(echo "$cur_date_dir" | sed 's/-//g')
 
         for meter_dir in "$date_dir"/*; do
@@ -91,30 +112,31 @@ for date_dir in "$BASE_DIR"/*; do
                         fi
 
                         # Parse the message file
-                        read id zip_filename path data_type <<< $(parse_message_file "$message_file")
+                        read event_id zip_filename data_type <<< $(parse_message_file "$message_file")
 
                         # Parse location from path (first path) Ex: kea/path/to
                         location=$(echo "$path" | cut -d'/' -f1)
 
                         # New naming conventions example: kea-events-meter1-202401-12345
-                        new_dir_name="${location}-${data_type}-${meter}-${fmt_date_dir}-${id}"
+                        new_dir_name="${location}-${data_type}-${meter}-${fmt_date_dir}-${event_id}"
                         new_zip_file_name="${new_dir_name}.zip"
                         new_message_file_name="${new_zip_file_name}.message"
 
                         cur_meter_dir="$BASE_DIR/$cur_date_dir/$meter"
                         new_zip_file_path="$cur_meter_dir/$new_zip_file_name"
-                        new_message_file_path="$cur_meter_dir/$new_message_file_name"
-
                         original_zip_file_path="$cur_meter_dir/$zip_filename"
-                        original_message_file_path="$message_file"
 
                         # Repackage the .zip file with the new naming convention
                         if repackage_event_file "$original_zip_file_path" "$new_zip_file_path" "$new_dir_name"; then
-                            # Rename the .message file with the new naming convention
-                            mv "$original_message_file_path" "$new_message_file_path" && echo "Renamed: $original_message_file_path to $new_message_file_path" || echo "Failed to rename: $original_message_file_path"
+                            # Calculate the md5sum of the new zip file
+                            md5sum_value=$(calculate_md5sum "$new_zip_file_path")
 
-                            # Remove the original zip file if desired
+                            # Create the new message file with the updated format
+                            create_new_message_file "$cur_meter_dir/$new_message_file_name" "$event_id" "$new_zip_file_name" "$md5sum_value" "$data_type"
+
+                            # Remove the original zip and message files if desired
                             rm -f "$original_zip_file_path" && echo "Removed: $original_zip_file_path" || echo "Failed to remove: $original_zip_file_path"
+                            rm -f "$message_file" && echo "Removed: $message_file" || echo "Failed to remove: $message_file"
                         else
                             echo "Failed to repackage: $original_zip_file_path"
                         fi
@@ -124,4 +146,5 @@ for date_dir in "$BASE_DIR"/*; do
         done
     fi     
 done
+
 echo "Finished updating directory: $BASE_DIR"
