@@ -58,7 +58,7 @@ for i in $(seq 0 $((num_dirs - 1))); do
     if [ -d "$src_dir" ] && [ -n "$(ls -A "$src_dir")" ]; then
         log "Transfering data from: $src_dir to $dest_dir on $dest_host as $dest_user"
 
-        rsync -av -e 'ssh -i $ssh_key_path' --bwlimit=$bwlimit --exclude 'working' "$src_dir" "$dest_user@$dest_host:$dest_dir"
+        rsync -av -e "ssh -i $ssh_key_path" --bwlimit=$bwlimit --exclude 'working' "$src_dir" "$dest_user@$dest_host:$dest_dir"
         rsync_status=$?
 
         # Check the status of the rsync command
