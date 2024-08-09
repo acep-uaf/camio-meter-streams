@@ -17,6 +17,7 @@
 #
 # Message File
 # content:            V1: id, filename, data_type, path
+#                         if v1, repackaging is required
 #                     V2: event_id, filename, path, data_type
 #                     V3: event_id, filename, md5sum, data_type
 #
@@ -36,8 +37,12 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# Constants
 BASE_DIR="$1"
+
+# Counters for versions
+count_v1=0
+count_v2=0
+count_v3=0
 
 echo "Updating directory: $BASE_DIR"
 
@@ -117,6 +122,7 @@ for date_dir in "$BASE_DIR"/*; do
                             # Check if the message file contains "md5sum" or "path"
                             if grep -q '"path"' "$message_file"; then
                                 echo "V2 Message Format: $message_file"
+                                count_v2=$((count_v2 + 1))
 
                                 # Parse the message file
                                 read event_id zip_filename data_type path <<< $(parse_message_file "$message_file")
@@ -131,11 +137,13 @@ for date_dir in "$BASE_DIR"/*; do
                                 jq --arg md5s "$md5sum_value" '. | {event_id: .event_id, filename: .filename, md5sum: $md5s, data_type: .data_type}' "$message_file" > "$message_file.tmp" && mv "$message_file.tmp" "$message_file"
                             elif grep -q '"md5sum"' "$message_file"; then
                                 echo "V3 Message Format: $message_file"
+                                count_v3=$((count_v3 + 1))
                             fi
                             continue
                         fi
 
                         echo "V1 Message Format: $message_file"
+                        count_v1=$((count_v1 + 1))
 
                         # Parse the message file
                         read event_id zip_filename data_type path<<< $(parse_message_file "$message_file")
@@ -173,4 +181,11 @@ for date_dir in "$BASE_DIR"/*; do
     fi     
 done
 
+# Print counts of message versions
 echo "Finished updating directory: $BASE_DIR"
+echo -e "\nSummary of Processed Message Formats:\n"
+printf "%-10s %-20s\n" "Version" "Count"
+printf "%-10s %-20s\n" "-------" "-----"
+printf "%-10s %-20s\n" "V1" "$count_v1"
+printf "%-10s %-20s\n" "V2" "$count_v2"
+printf "%-10s %-20s\n" "V3 (skipped)" "$count_v3"
