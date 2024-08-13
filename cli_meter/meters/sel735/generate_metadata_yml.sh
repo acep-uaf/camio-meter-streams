@@ -13,7 +13,7 @@
 #   meter_id          Meter ID
 #   meter_type        Meter type
 #   event_timestamp   Original timestamp of the event
-#   started_at    Timestamp of when the download started
+#   started_at        Timestamp of when the download started
 #   completed_at      Timestamp of when the download ended
 #
 # Requirements:       common_utils.sh

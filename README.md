@@ -15,10 +15,9 @@ This repository contains a set of Bash scripts that make up a data pipeline, des
 ## Prerequisites
 Ensure you have the following before running the pipeline:
 - Unix-like environment (Linux, macOS, or a Unix-like Windows terminal)
-- Able to `ssh` to the **ot-dev** and **das.lab.acep.uaf.edu** servers
 - FTP credentials for the meter
 - Meter Configuration
-- Installed on `camio-ot-dev`:
+- Must have installed:
     - `lftp`
     - `yq`
     - `zip`
@@ -26,9 +25,7 @@ Ensure you have the following before running the pipeline:
     - `jq`
 
 ## Installation
-1. You must be connected to the `camio-ot-dev` server. See **camio-ot-dev(SSH)** in the [ACEP Wiki](https://wiki.acep.uaf.edu/en/teams/data-ducts/aetb).
-
-2. Clone the repository:
+1. Clone the repository:
 
     ```bash
     git clone git@github.com:acep-uaf/camio-meter-streams.git
