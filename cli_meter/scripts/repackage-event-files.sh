@@ -7,14 +7,7 @@
 #                     naming convention. 
 #
 # Naming Convention:  location-data_type-meter-YYYYMM-event_id
-#                     Ex. kea-events-meter1-202401-12345 
 #                     
-# Example:            Original zip file: 12345.zip
-#                     Original message file: 12345.zip.message
-#
-#                     New zip file: kea-events-meter1-202401-12345.zip
-#                     New message file: kea-events-meter1-202401-12345.zip.message
-#
 # Message File
 # content:            V1: id, filename, data_type, path
 #                         if v1, repackaging is required
@@ -22,8 +15,6 @@
 #                     V3: event_id, filename, md5sum, data_type
 #
 # Usage:              ./repackage-event-files.sh <BASE_DIR>
-#                      example BASE_DIR: camio-meter-stream-test/data/kea/events/level0
-#                      pwd /home/user/camio-meter-stream-test
 #
 # Arguments:          BASE_DIR - The base directory to process
 #
@@ -145,13 +136,13 @@ for date_dir in "$BASE_DIR"/*; do
                         echo "V1 Message Format: $message_file"
                         count_v1=$((count_v1 + 1))
 
-                        # Parse the message file
+                        # Parse message file
                         read event_id zip_filename data_type path<<< $(parse_message_file "$message_file")
 
-                        # Parse location from path (first path) Ex: kea/path/to
+                        # Parse location
                         location=$(echo "$path" | cut -d'/' -f1)
 
-                        # New naming conventions example: kea-events-meter1-202401-12345
+                        # New naming conventions: location-data_type-meter-YYYYMM-event_id
                         new_dir_name="${location}-${data_type}-${meter}-${fmt_date_dir}-${event_id}"
                         new_zip_file_name="${new_dir_name}.zip"
                         new_message_file_name="${new_zip_file_name}.message"
