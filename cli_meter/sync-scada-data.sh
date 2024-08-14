@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+current_dir=$(dirname "$(readlink -f "$0")")
+script_name=$(basename "$0")
+source "$current_dir/common_utils.sh"
 
 # Trap to handle cleanup on exit
 trap cleanup INT
@@ -14,7 +17,20 @@ function read_config() {
     yq e ".$key" $CONFIG_FILE
 }
 
-CONFIG_FILE="$1"
+LOCKFILE="/var/lock/$script_name" # Define the lock file path using script's basename
+
+# Check for at least 1 argument
+[ "$#" -lt 1 ] && show_help_flag && failure $STREAMS_INVALID_ARGS "No arguments provided"
+
+# On start
+_prepare_locking
+
+# Try to lock exclusively without waiting; exit if another instance is running
+exlock_now || _failed_locking
+
+# Configuration file path
+CONFIG_FILE=$(parse_config_arg "$@")
+[ -f "$CONFIG_FILE" ] && log "Config file exists at: $CONFIG_FILE" || failure $STREAMS_FILE_NOT_FOUND "Config file does not exist"
 
 # Read values from the YAML config
 SRC_DIR=$(read_config "source")
