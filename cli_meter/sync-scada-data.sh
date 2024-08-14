@@ -33,10 +33,6 @@ log "Syncing from $SRC_DIR to $DEST_DIR for the last $NUM_MONTHS months"
 # Calculate the timestamp for the given number of months
 END_DATE=$(date -d "$NUM_MONTHS months ago" +%Y%m%d)
 
-# Add the SSH key to the agent
-eval "$(ssh-agent -s)"
-ssh-add "$SSH_KEY_PATH"
-
 # Create an associative array to track which timestamps have been processed
 declare -A synced_timestamps
 
@@ -63,7 +59,3 @@ done
 
 rsync_exit_code=$?
 [ $rsync_exit_code -eq 0 ] && log "Sync from $SRC_DIR to $DEST_DIR complete" || failure $STREAMS_RSYNC_FAIL "Sync from $SRC_DIR to $DEST_DIR failed with exit code $rsync_exit_code"
-
-# Remove the SSH key from the agent
-ssh-agent -k
-
