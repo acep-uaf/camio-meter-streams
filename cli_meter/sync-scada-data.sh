@@ -27,34 +27,23 @@ SSH_KEY_PATH=$(read_config "ssh_key_path")
 USER=$(read_config "dest_user")
 HOST=$(read_config "dest_host")
 DEST_DIR=$(read_config "dest_dir")
+CUR_DATE=$(date +%Y-%m-01)
 
 log "Syncing from $SRC_DIR to $DEST_DIR for the last $NUM_MONTHS months"
 
-# Calculate the timestamp for the given number of months
-END_DATE=$(date -d "$NUM_MONTHS months ago" +%Y%m%d)
+# Loop over the number of months specified
+for ((i=0; i<NUM_MONTHS; i++)); do
+    # Calculate the date for each month in the past
+    timestamp=$(date -d "$CUR_DATE -$i month" +%Y%m)
 
-# Create an associative array to track which timestamps have been processed
-declare -A synced_timestamps
-
-# Iterate over files in the source directory
-for file in "$SRC_DIR"/*; do
-    # Extract the timestamp from the filename
-    timestamp=$(echo "$file" | cut -d' ' -f2 | cut -c1-6)
+    # Create the destination directory if it doesn't exist
+    dest_dir_path="$DEST_DIR/$timestamp"
+    ssh -i "$SSH_KEY_PATH" "$USER@$HOST" "mkdir -p $dest_dir_path"
     
-    # Check if the timestamp is within the desired range and not already processed
-    if [[ "$timestamp" > "${END_DATE:0:6}" ]] && [[ -z "${synced_timestamps[$timestamp]}" ]]; then
-        # Mark the timestamp as processed to avoid duplicate processing
-        synced_timestamps["$timestamp"]=1
-        
-        # Create the destination directory if it doesn't exist
-        dest_dir_path="$DEST_DIR/$timestamp"
-        ssh -i "$SSH_KEY_PATH" "$USER@$HOST" "mkdir -p $dest_dir_path"
-        
-        log "Syncing files with timestamp $timestamp to $dest_dir_path"
-        
-        # Rsync all files with the same timestamp in their filenames to timestamped dirs
-        rsync -av -e "ssh -i $SSH_KEY_PATH" "$SRC_DIR"/*"$timestamp"* "$USER@$HOST:$dest_dir_path/"
-    fi
+    log "Syncing files for timestamp $timestamp to $dest_dir_path"
+
+    # Rsync all files for the current timestamp
+    rsync -av -e "ssh -i $SSH_KEY_PATH" "$SRC_DIR"/*"$timestamp"* "$USER@$HOST:$dest_dir_path/"
 done
 
 rsync_exit_code=$?
