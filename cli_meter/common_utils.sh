@@ -87,6 +87,16 @@ log() {
   echo "$1" >&2
 }
 
+function cleanup() {
+    echo "exiting..."
+    exit 0
+}
+
+function read_config() {
+    local key=$1
+    yq e ".$key" $CONFIG_FILE
+}
+
 parse_config_arg() {
   local config_path=""
 

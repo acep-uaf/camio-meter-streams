@@ -5,19 +5,7 @@ source "$current_dir/common_utils.sh"
 
 # Trap to handle cleanup on exit
 trap cleanup INT
-
-function cleanup() {
-    echo "exiting..."
-    exit 0
-}
-
-# Function to read config values using yq
-function read_config() {
-    local key=$1
-    yq e ".$key" $CONFIG_FILE
-}
-
-LOCKFILE="/var/lock/$script_name" # Define the lock file path using script's basename
+LOCKFILE="/var/lock/$script_name"
 
 # Check for at least 1 argument
 [ "$#" -lt 1 ] && show_help_flag && failure $STREAMS_INVALID_ARGS "No arguments provided"
@@ -61,20 +49,21 @@ for file in "$SRC_DIR"/*; do
     if [[ "$timestamp" > "${END_DATE:0:6}" ]] && [[ -z "${synced_timestamps[$timestamp]}" ]]; then
         # Mark the timestamp as processed to avoid duplicate processing
         synced_timestamps["$timestamp"]=1
-
+        
         # Create the destination directory if it doesn't exist
         dest_dir_path="$DEST_DIR/$timestamp"
         ssh -i "$SSH_KEY_PATH" "$USER@$HOST" "mkdir -p $dest_dir_path"
-
+        
         log "Syncing files with timestamp $timestamp to $dest_dir_path"
-
+        
         # Rsync all files with the same timestamp in their filenames to timestamped dirs
         rsync -av -e "ssh -i $SSH_KEY_PATH" "$SRC_DIR"/*"$timestamp"* "$USER@$HOST:$dest_dir_path/"
     fi
 done
 
-# Kill the ssh-agent after the script runs
-ssh-agent -k
-
 rsync_exit_code=$?
 [ $rsync_exit_code -eq 0 ] && log "Sync from $SRC_DIR to $DEST_DIR complete" || failure $STREAMS_RSYNC_FAIL "Sync from $SRC_DIR to $DEST_DIR failed with exit code $rsync_exit_code"
+
+# Remove the SSH key from the agent
+ssh-agent -k
+
