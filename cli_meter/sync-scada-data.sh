@@ -40,7 +40,7 @@ USER=$(read_config "dest_user")
 HOST=$(read_config "dest_host")
 DEST_DIR=$(read_config "dest_dir")
 
-echo "Syncing from $SRC_DIR to $DEST_DIR for the last $NUM_MONTHS months"
+log "Syncing from $SRC_DIR to $DEST_DIR for the last $NUM_MONTHS months"
 
 # Calculate the timestamp for the given number of months
 END_DATE=$(date -d "$NUM_MONTHS months ago" +%Y%m%d)
@@ -66,20 +66,15 @@ for file in "$SRC_DIR"/*; do
         dest_dir_path="$DEST_DIR/$timestamp"
         ssh -i "$SSH_KEY_PATH" "$USER@$HOST" "mkdir -p $dest_dir_path"
 
-        echo "Syncing files with timestamp $timestamp to $dest_dir_path"
+        log "Syncing files with timestamp $timestamp to $dest_dir_path"
 
         # Rsync all files with the same timestamp in their filenames to timestamped dirs
         rsync -av -e "ssh -i $SSH_KEY_PATH" "$SRC_DIR"/*"$timestamp"* "$USER@$HOST:$dest_dir_path/"
-    else
-        if [[ -z "${synced_timestamps[$timestamp]}" ]]; then
-            echo "Skipping file, timestamp $timestamp is already synced"
-        else
-            echo "Skipping file, $timestamp is outside the range"
-        fi
     fi
 done
 
 # Kill the ssh-agent after the script runs
 ssh-agent -k
 
-echo "Syncing from $SRC_DIR to $DEST_DIR complete"
+rsync_exit_code=$?
+[ $rsync_exit_code -eq 0 ] && log "Sync from $SRC_DIR to $DEST_DIR complete" || failure $STREAMS_RSYNC_FAIL "Sync from $SRC_DIR to $DEST_DIR failed with exit code $rsync_exit_code"
