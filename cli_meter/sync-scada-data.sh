@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-current_dir=$(dirname "$(readlink -f "$0")")
-script_name=$(basename "$0")
-source "$current_dir/common_utils.sh"
+CUR_DIR=$(dirname "$(readlink -f "$0")")
+SCRIPT_NAME=$(basename "$0")
+source "$CUR_DIR/common_utils.sh"
 
 # Trap to handle cleanup on exit
 trap cleanup INT
-LOCKFILE="/var/lock/$script_name"
+LOCKFILE="/var/lock/$SCRIPT_NAME"
 
 # Check for at least 1 argument
 [ "$#" -lt 1 ] && show_help_flag && failure $STREAMS_INVALID_ARGS "No arguments provided"
