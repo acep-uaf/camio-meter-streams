@@ -21,7 +21,7 @@ CONFIG_FILE=$(parse_config_arg "$@")
 [ -f "$CONFIG_FILE" ] && log "Config file exists at: $CONFIG_FILE" || failure $STREAMS_FILE_NOT_FOUND "Config file does not exist"
 
 # Read values from the YAML config
-SRC_DIR=$(read_config "source")
+SRC_DIR=$(read_config "src_dir")
 NUM_MONTHS=$(read_config "num_months")
 SSH_KEY_PATH=$(read_config "ssh_key_path")
 USER=$(read_config "dest_user")

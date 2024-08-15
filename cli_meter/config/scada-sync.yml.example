@@ -1,6 +1,6 @@
 # This file contains the configuration settings to sync scada data.
 
-source: 
+src_dir: 
 num_months: 
 ssh_key_path: 
 dest_user: 
