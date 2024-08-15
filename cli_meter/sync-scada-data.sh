@@ -1,4 +1,21 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# ==============================================================================
+# Script Name:        sync-scada-data.sh
+# Description:        This script syncs SCADA data files from a source directory
+#                     to a destination directory over a specified number of months.
+#                     The script reads configuration values from a YAML file.
+#
+# Usage:              ./sync-scada-data.sh -c <config_path>
+#
+# Arguments:
+#   -c, --config       Path to the configuration file
+#   -h, --help         Show usage information
+#
+# Requirements:       yq
+#                     common_utils.sh
+# ==============================================================================
+
+
 CUR_DIR=$(dirname "$(readlink -f "$0")")
 SCRIPT_NAME=$(basename "$0")
 source "$CUR_DIR/common_utils.sh"
