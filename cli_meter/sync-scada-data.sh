@@ -40,9 +40,6 @@ CONFIG_FILE=$(parse_config_arg "$@")
 # Read values from the YAML config
 SRC_DIR=$(read_config "src_dir")
 NUM_MONTHS=$(read_config "num_months")
-SSH_KEY_PATH=$(read_config "ssh_key_path")
-USER=$(read_config "dest_user")
-HOST=$(read_config "dest_host")
 DEST_DIR=$(read_config "dest_dir")
 CUR_DATE=$(date +%Y-%m-01)
 
@@ -55,12 +52,12 @@ for ((i=0; i<NUM_MONTHS; i++)); do
 
     # Create the destination directory if it doesn't exist
     dest_dir_path="$DEST_DIR/$timestamp"
-    ssh -i "$SSH_KEY_PATH" "$USER@$HOST" "mkdir -p $dest_dir_path"
     
     log "Syncing files for timestamp $timestamp to $dest_dir_path"
 
+
     # Rsync all files for the current timestamp
-    rsync -av -e "ssh -i $SSH_KEY_PATH" "$SRC_DIR"/*"$timestamp"* "$USER@$HOST:$dest_dir_path/"
+    rsync -av "$SRC_DIR"/*"$timestamp"* "${dest_dir_path}/"
 done
 
 rsync_exit_code=$?

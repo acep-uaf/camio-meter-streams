@@ -2,7 +2,4 @@
 
 src_dir: 
 num_months: 
-ssh_key_path: 
-dest_user: 
-dest_host: 
 dest_dir: 
