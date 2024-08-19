@@ -48,16 +48,15 @@ log "Syncing from $SRC_DIR to $DEST_DIR for the last $NUM_MONTHS months"
 # Loop over the number of months specified
 for ((i=0; i<NUM_MONTHS; i++)); do
     # Calculate the date for each month in the past
-    timestamp=$(date -d "$CUR_DATE -$i month" +%Y%m)
+    cur_timestamp=$(date -d "$CUR_DATE -$i month" +%Y%m)
 
     # Create the destination directory if it doesn't exist
-    dest_dir_path="$DEST_DIR/$timestamp"
+    dest_dir_path="$DEST_DIR/$cur_timestamp"
     
-    log "Syncing files for timestamp $timestamp to $dest_dir_path"
-
+    log "Syncing files for timestamp $cur_timestamp to $dest_dir_path"
 
     # Rsync all files for the current timestamp
-    rsync -av "$SRC_DIR"/*"$timestamp"* "${dest_dir_path}/"
+    rsync -av $SRC_DIR/*$cur_timestamp* $dest_dir_path
 done
 
 rsync_exit_code=$?
