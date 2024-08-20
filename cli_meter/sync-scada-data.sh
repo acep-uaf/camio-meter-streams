@@ -56,7 +56,7 @@ for ((i=0; i<NUM_MONTHS; i++)); do
     log "Syncing files for timestamp $cur_timestamp to $dest_dir_path"
 
     # Rsync all files for the current timestamp
-    rsync -av $SRC_DIR/*$cur_timestamp* $dest_dir_path
+    rsync -av ${SRC_DIR}/*${cur_timestamp}* $dest_dir_path
 done
 
 rsync_exit_code=$?
