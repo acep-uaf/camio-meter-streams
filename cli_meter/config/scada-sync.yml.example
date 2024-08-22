@@ -1,0 +1,5 @@
+# This file contains the configuration settings to sync scada data.
+
+src_dir: 
+num_months: 
+dest_dir: 
