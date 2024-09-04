@@ -51,9 +51,10 @@ log "Syncing from $SRC_DIR to $DEST_DIR for the last $NUM_MONTHS months"
 for ((i=0; i<NUM_MONTHS; i++)); do
     # Calculate the date for each month in the past
     cur_timestamp=$(date -d "$CUR_DATE -$i month" +%Y%m)
+    date_dir=$(date -d "$CUR_DATE -$i month" +%Y-%m)
 
     # Create the destination directory if it doesn't exist
-    dest_dir_path="$DEST_DIR/$cur_timestamp"
+    dest_dir_path="$DEST_DIR/$date_dir"
     
     log "Syncing files for timestamp $cur_timestamp to $dest_dir_path"
 
