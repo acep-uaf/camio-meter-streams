@@ -43,6 +43,8 @@ NUM_MONTHS=$(read_config "num_months")
 DEST_DIR=$(read_config "dest_dir")
 CUR_DATE=$(date +%Y-%m-01)
 
+mkdir -p $DEST_DIR
+
 log "Syncing from $SRC_DIR to $DEST_DIR for the last $NUM_MONTHS months"
 
 # Loop over the number of months specified
