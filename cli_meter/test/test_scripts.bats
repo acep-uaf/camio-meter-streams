@@ -13,7 +13,7 @@ teardown() {
 }
 
 @test "create_message.sh execution test" {
-    run ./create_message.sh "$EVENT_ID" "$ZIP_FILENAME" "/path/to/file" "$DATA_TYPE" "$TMP_DIR" 
+    run ./create_message.sh "$METER_ID" "$EVENT_ID" "$ZIP_FILENAME" "$MD5SUM_VALUE" "$DATA_TYPE" "$TMP_DIR"
     assert_success
     assert [ -f "$TMP_DIR/$ZIP_FILENAME.message" ]
 }
@@ -22,13 +22,13 @@ teardown() {
 @test "create_message.sh test 0 arguments" {
     run ./create_message.sh
     assert_failure $(($STREAMS_INVALID_ARGS % 256))
-    assert_output --partial "Usage: create_message.sh <event_id> <zip_filename> <md5sum_value> <data_type> <output_dir>"
+    assert_output --partial "Usage: create_message.sh <meter_id> <event_id> <zip_filename> <md5sum_value> <data_type> <output_dir>"
 }
 
 @test "create_message.sh test too many arguments" {
-    run ./create_message.sh "$EVENT_ID" "$ZIP_FILENAME" "/path/to/file" "$DATA_TYPE"
+    run ./create_message.sh "$METER_ID" "$EVENT_ID" "$ZIP_FILENAME" "$MD5SUM_VALUE" "$DATA_TYPE" "$TMP_DIR" "extra_argument"
     assert_failure $(($STREAMS_INVALID_ARGS % 256))
-    assert_output --partial "Usage: create_message.sh <event_id> <zip_filename> <md5sum_value> <data_type> <output_dir>"
+    assert_output --partial "Usage: create_message.sh <meter_id> <event_id> <zip_filename> <md5sum_value> <data_type> <output_dir>"
 }
 
 @test "cleanup_incomplete.sh cleanups incomplete directories" {
