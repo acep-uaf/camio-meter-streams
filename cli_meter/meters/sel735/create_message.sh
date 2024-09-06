@@ -7,6 +7,7 @@
 #                     <data_type> <output_dir>
 #
 # Arguments:
+#   meter_id          Meter ID
 #   event_id          event ID
 #   zip_filename      Name of the zipped file
 #   md5sum_value      md5sum of the zipped file
@@ -20,23 +21,25 @@ current_dir=$(dirname "$(readlink -f "$0")")
 script_name=$(basename "$0")
 source "$current_dir/../../common_utils.sh" 
 
-# Check for exactly 5 arguments
-[ "$#" -ne 5 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <event_id> <zip_filename> <md5sum_value> <data_type> <output_dir>"
+# Check for exactly 6 arguments
+[ "$#" -ne 6 ] && failure $STREAMS_INVALID_ARGS "Usage: $script_name <meter_id> <event_id> <zip_filename> <md5sum_value> <data_type> <output_dir>"
 
-event_id="$1"
-zip_filename="$2"
-md5sum_value="$3"
-data_type="$4"
-output_dir="$5"
+meter_id="$1"
+event_id="$2"
+zip_filename="$3"
+md5sum_value="$4"
+data_type="$5"
+output_dir="$6"
 message_file="$output_dir/${zip_filename}.message"
 
 # Create the JSON payload
 json_payload=$(jq -n \
+    --arg mid "$meter_id" \
     --arg eid "$event_id" \
     --arg fn "$zip_filename" \
     --arg md5s "$md5sum_value" \
     --arg dt "$data_type" \
-    '{event_id: $eid, filename: $fn, md5sum: $md5s, data_type: $dt}')
+    '{meter_id: $mid, event_id: $eid, filename: $fn, md5sum: $md5s, data_type: $dt}')
 
 # Write the JSON payload to the .message file
 echo "$json_payload" > "$message_file" && log "Created message file: $message_file" || failure $STREAMS_FILE_CREATION_FAIL "Failed to write to message file: $message_file"
