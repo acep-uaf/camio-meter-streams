@@ -147,7 +147,7 @@ for event_info in $events; do
   md5sum_value=$(md5sum "$event_zipped_output_dir/$zip_filename" | awk '{print $1}')
 
   # Create the message file (JSON) for the event
-  "$current_dir/create_message.sh" "$event_id" "$zip_filename" "$md5sum_value" "$data_type" "$event_zipped_output_dir" || {
+  "$current_dir/create_message.sh" "$meter_id" "$event_id" "$zip_filename" "$md5sum_value" "$data_type" "$event_zipped_output_dir" || {
     handle_fail "$event_id" "$output_dir" "$STREAMS_FILE_CREATION_FAIL" "Failed to create message file for event: $event_id"  "$meter_id" "$download_start" "$download_end" 
     continue
   }
