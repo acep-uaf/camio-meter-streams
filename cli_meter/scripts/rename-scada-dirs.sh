@@ -12,8 +12,7 @@
 #                     YYYY-MM (e.g., 202301 -> 2023-01).
 #                     
 # Log Output:         All operations are logged to a log file specified at 
-#                     cli_meter/logs/rename-scada-dirs.log. The script also tails 
-#                     the log in real-time during execution.
+#                     rename-scada-dirs.log in the same directory as the script.
 #
 # Usage:              ./rename-scada-dirs.sh <directory_path>
 #
@@ -30,18 +29,18 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# Log file
 start_time=$(date +"%Y-%m-%d %H:%M:%S")
-LOG_FILE="../logs/rename-scada-dirs.log"
+LOG_FILE="rename-scada-dirs.log"
 
-# Tail the log file in the background
-tail -f "$LOG_FILE" &
-TAIL_PID=$! # Store the PID of the tail process
+# Log function to echo to console and log file using tee
+log() {
+    echo "$1" | tee -a "$LOG_FILE"
+}
 
 # Get the directory path from the argument
 DIR_PATH="$1"
-echo "Script started at: $start_time" >> "$LOG_FILE"
-echo "Renaming directories in: $DIR_PATH" >> "$LOG_FILE"
+log "Script started at: $start_time"
+log "Renaming directories in: $DIR_PATH"
 
 # Loop through all directories in the provided path
 for dir in "$DIR_PATH"/*/; do
@@ -60,14 +59,11 @@ for dir in "$DIR_PATH"/*/; do
         # Format it as YYYY-MM
         new_name="${year}-${month}"
 
-        # Rename the directory
-        echo "Renaming $base_name to $new_name" >> "$LOG_FILE"
+        log "Renaming $base_name to $new_name"
         mv "$dir" "$DIR_PATH/$new_name"
     else
-        echo "Skipping $base_name (not in YYYYMM format)" >> "$LOG_FILE"
+        log "Skipping $base_name (not in YYYYMM format)"
     fi
 done
 
-echo "" >> "$LOG_FILE"
-# Kill the tail process after the script finishes
-kill $TAIL_PID
+log "Script completed."
