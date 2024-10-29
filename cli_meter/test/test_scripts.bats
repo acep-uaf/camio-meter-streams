@@ -13,7 +13,7 @@ teardown() {
 }
 
 @test "create_message.sh execution test" {
-    run ./create_message.sh "$METER_ID" "$EVENT_ID" "$ZIP_FILENAME" "$MD5SUM_VALUE" "$DATA_TYPE" "$TMP_DIR"
+    run ./create_message.sh "$METER_ID" "$EVENT_ID" "$ZIP_FILENAME" "$MD5SUM_VALUE" "$DATA_TYPE" "$TMP_DIR" "$EVENT_TIMESTAMP"
     assert_success
     assert [ -f "$TMP_DIR/$ZIP_FILENAME.message" ]
 }
@@ -26,7 +26,7 @@ teardown() {
 }
 
 @test "create_message.sh test too many arguments" {
-    run ./create_message.sh "$METER_ID" "$EVENT_ID" "$ZIP_FILENAME" "$MD5SUM_VALUE" "$DATA_TYPE" "$TMP_DIR" "extra_argument"
+    run ./create_message.sh "$METER_ID" "$EVENT_ID" "$ZIP_FILENAME" "$MD5SUM_VALUE" "$DATA_TYPE" "$TMP_DIR" "$EVENT_TIMESTAMP" "extra_argument"
     assert_failure $(($STREAMS_INVALID_ARGS % 256))
     assert_output --partial "Usage: create_message.sh <meter_id> <event_id> <zip_filename> <md5sum_value> <data_type> <output_dir>"
 }
