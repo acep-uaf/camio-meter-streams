@@ -20,6 +20,7 @@ _common_setup() {
     DATA_TYPE="events"
     SYMLINK_NAME="$LOCATION-$METER_TYPE-$METER_ID-YYYYMM-$EVENT_ID"
     ZIP_FILENAME="${SYMLINK_NAME}.zip"
+    EVENT_TIMESTAMP="2021-01-01T00:00:00Z"
 }
 
 _common_teardown() {
