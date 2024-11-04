@@ -73,12 +73,11 @@ for date_dir in "$BASE_DIR"/*; do
 
                         # Extract event_id from the .message file
                         event_id=$(jq -r '.event_id' "$message_file")
-                        echo "event_id: $event_id"
 
-                        # Find metadata.yml in the extracted contents
-                        metadata_file="$temp_dir/${event_id}_metadata.yml"
-                        if [ ! -f "$metadata_file" ]; then
-                            echo "Metadata file not found in $zip_file, skipping"
+                        # Search for *_metadata.yml file in the unzipped directory
+                        metadata_file=$(find "$temp_dir" -name "*_metadata.yml" | head -n 1)
+                        if [ -z "$metadata_file" ]; then
+                            echo "No metadata file found in $zip_file, skipping"
                             rm -rf "$temp_dir"
                             continue
                         fi
