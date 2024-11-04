@@ -93,9 +93,6 @@ for date_dir in "$BASE_DIR"/*; do
                         # Add event_timestamp to the message file
                         add_event_timestamp_to_message_file "$message_file" "$event_timestamp"
                         
-                        # Rezip the contents back into the original .zip file
-                        (cd "$temp_dir" && zip -r -q "$zip_file" .)
-                        
                         # Clean up temporary directory
                         rm -rf "$temp_dir"
                     fi
