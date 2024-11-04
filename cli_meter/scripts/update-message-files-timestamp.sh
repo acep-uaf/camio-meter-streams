@@ -1,12 +1,12 @@
 #!/bin/bash
 # ==============================================================================
-# Script Name:        update-message-files-with-timestamp.sh
+# Script Name:        update-message-files-timestamp.sh
 #
 # Description:        This script processes .message files to add an
 #                     "event_timestamp" field if missing. It will unzip,
 #                     extract the timestamp from metadata.yml, and repackage.
 #
-# Usage:              ./update-message-files-with-timestamp.sh <BASE_DIR>
+# Usage:              ./update-message-files-timestamp.sh <BASE_DIR>
 #
 # Arguments:          BASE_DIR - The base directory to process
 #
@@ -94,7 +94,7 @@ for date_dir in "$BASE_DIR"/*; do
                         add_event_timestamp_to_message_file "$message_file" "$event_timestamp"
                         
                         # Rezip the contents back into the original .zip file
-                        (cd "$temp_dir" && zip -r -q "$zip_file" .) && echo "Repackaged back to original file: $zip_file"
+                        (cd "$temp_dir" && zip -r -q "$zip_file" .)
                         
                         # Clean up temporary directory
                         rm -rf "$temp_dir"
