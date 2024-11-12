@@ -23,6 +23,7 @@ fi
 BASE_DIR="$1"
 updated_count=0
 skipped_count=0
+skipped_error_count=0
 
 # Function to extract event_timestamp or first MeterEventDate from metadata.yml
 extract_event_timestamp() {
@@ -87,6 +88,7 @@ for date_dir in "$BASE_DIR"/*; do
                         if [ -z "$metadata_file" ]; then
                             echo "No metadata file found in $zip_file, skipping"
                             rm -rf "$temp_dir"
+                            skipped_error_count=$((skipped_error_count + 1))
                             continue
                         fi
                         
@@ -95,6 +97,7 @@ for date_dir in "$BASE_DIR"/*; do
                         if [ -z "$event_timestamp" ]; then
                             echo "No event_timestamp found in $metadata_file, skipping"
                             rm -rf "$temp_dir"
+                            skipped_error_count=$((skipped_error_count + 1))
                             continue
                         fi
                         
@@ -115,6 +118,7 @@ echo -e "\nFinished processing message files in: $BASE_DIR\n"
 echo "Summary of Processed Message Files:"
 echo "Files updated with 'event_timestamp': $updated_count"
 echo "Files already complete (skipped): $skipped_count"
+echo "Files skipped due to error: $skipped_error_count"
 
 # If no files were processed
 if [ "$updated_count" -eq 0 ] && [ "$skipped_count" -eq 0 ]; then
