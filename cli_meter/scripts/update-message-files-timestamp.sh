@@ -24,10 +24,18 @@ BASE_DIR="$1"
 updated_count=0
 skipped_count=0
 
-# Function to extract event_timestamp from metadata.yml
+# Function to extract event_timestamp or first MeterEventDate from metadata.yml
 extract_event_timestamp() {
     local metadata_file="$1"
-    grep "event_timestamp:" "$metadata_file" | awk '{print $2}' | tr -d '"'
+    # Try to find event_timestamp first
+    local event_timestamp=$(grep "event_timestamp:" "$metadata_file" | awk '{print $2}' | tr -d '"')
+    
+    # If event_timestamp is not found, use the first MeterEventDate
+    if [ -z "$event_timestamp" ]; then
+        event_timestamp=$(grep "MeterEventDate:" "$metadata_file" | head -n 1 | awk '{print $2}' | tr -d '"')
+    fi
+    
+    echo "$event_timestamp"
 }
 
 # Function to add event_timestamp to the message file if missing
