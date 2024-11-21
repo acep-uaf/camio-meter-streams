@@ -9,7 +9,7 @@ This repository contains a set of Bash scripts that make up a data pipeline, des
     - Compressing data
 
 2. **`archive_pipeline.sh`**: Handles the final step:
-    - Archiving and transferring event data to the Data Acquisition System (DAS)
+    - Archiving and transferring event data to the dedicated server.
 
 
 ## Prerequisites
@@ -37,7 +37,7 @@ Ensure you have the following before running the pipeline:
 ## Configuration
 
 ### General Configuration Steps
-1. Navigate to the `config` directory and copy the example configuration file to a new file:
+1. Navigate to the `config` directory and copy the example configuration files to a new file:
 
     ```bash
     cd config
@@ -45,7 +45,7 @@ Ensure you have the following before running the pipeline:
     cp archive_config.yml.example archive_config.yml
     ```
 
-2. **Update** the configuration files with the necessary details:
+2. **Update** the configuration files with the target details:
     - **`config.yml`**: Add the FTP server credentials and meter configuration data.
     - **`archive_config.yml`**: Add the source and destination directories and other relevant details.
 
@@ -57,9 +57,9 @@ Ensure you have the following before running the pipeline:
     ```
 
 ## Execution
-To run the data pipeline and then transfer data to the Data Acquisition System (DAS):
+To run the data pipeline and then transfer data to the target server:
 
-1. **Run the Data Pipeline First**
+1. **Run the Data Pipeline**
 
     Execute the `data_pipeline` script from the `cli_meter` directory. The script requires a configuration file specified via the `-c/--config` flag. If this is your first time running the pipeline, the initial download may take a few hours. To pause the download safely, see: [How to Stop the Pipeline](#how-to-stop-the-pipeline)
 
@@ -83,7 +83,7 @@ To run the data pipeline and then transfer data to the Data Acquisition System (
 
 3. **Run the Cleanup Process (Conditional)**
 
-    If the `archive_pipeline` script completes successfully and the `enable_cleanup` flag is set to true in the archive configuration file, the `cleanup.sh` script will be executed automatically. This script removes outdated event files from `level0` based on the retention period specified in the configuration file.
+    If the `archive_pipeline` script completes successfully and the `enable_cleanup` flag is set to true in the archive configuration file, the `cleanup.sh` script will be executed automatically. This script removes outdated event files based on the retention period specified in the configuration file.
 
     If the `enable_cleanup` flag is not enabled, you can run the cleanup manually by passing in the archive configuration file.
 
@@ -107,9 +107,9 @@ When you need to stop the pipeline:
 - **Avoid Using `Ctrl+Z`**: 
   - **Do not** use `Ctrl+Z` to suspend the process, as it may cause the pipeline to end without properly closing the FTP connection.
 
-## Testing (IN PROGRESS)
+## Testing
 
-This repository includes automated tests for the scripts using [Bats (Bash Automated Testing System)](https://github.com/bats-core/bats-core) along with helper libraries: `bats-assert`, `bats-mock`, and `bats-support`. The tests are located in the `test` directory.
+This repository includes automated tests for the scripts using [Bats (Bash Automated Testing System)](https://bats-core.readthedocs.io/en/stable/) along with helper libraries: `bats-assert`, `bats-mock`, and `bats-support`. The tests are located in the `test` directory and are automatically run on all pull requests using **Github Actions** to ensure code quality and functionality.
 
 ### Prerequisites
 
@@ -144,3 +144,48 @@ Ensure you have cloned the repository with its required submodules, they should 
     ```bash
     bats test
     ```
+
+### Adding Tests
+When making changes to the pipeline, it is essential to add or update tests to cover the new or modified functionality. Follow these steps to add tests:
+
+1. **Locate the appropriate test file:**
+
+    Navigate to the `test` directory and identify the test file that corresponds to the functionality you're modifying. If no such file exists, create a new test file using the `.bats` extension (e.g., `my_script_test.bats`).
+2. **Write your tests:**
+    
+    Use `bats-assert`, `bats-mock`, and `bats-support` helper libraries to write comprehensive tests. Refer to the [bats-core documentation](https://bats-core.readthedocs.io/en/stable/writing-tests.html). 
+
+    If your tests require shared variables or helper functions, define them in `test/test-helper/commons.bash` to ensure consistency and reusability across multiple test files. For example:
+
+    ```bash
+    # commons.bash
+    MY_VARIABLE="common value"
+    function my_helper_function {
+        echo "This is a helper function"
+    }
+    ```
+
+    Example test structure:
+    ```bash
+    @test "description of the test case" {  
+        # Arrange  
+        # Set up any necessary environment or input data.  
+
+        # Act  
+        result=$(command-to-test)  
+
+        # Assert  
+        assert_success  
+        assert_output "expected output"  
+    }  
+    ```
+3. **Run your tests locally:**
+    
+    Ensure your new tests pass locally by running `bats test`.
+
+4. **Commit and push your changes:**
+    
+    Include your test updates in the same pull request as the code changes.
+
+### Continuous Testing with GitHub Actions
+All tests in the repository are automatically executed through GitHub Actions on every pull request. This ensures that all contributions meet quality and functionality standards before merging. Ensure your pull request passes all tests to avoid delays in the review process.
