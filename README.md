@@ -13,6 +13,7 @@ Each of the following scripts are executed seperately and have their own config 
     - Organizes directory structure and creates metadata
     - Adds checksums
     - Compresses raw data into `.zip`
+    - Generates `.message` file to be ingest by [data-streams-das-mqtt-pub](https://github.com/acep-uaf/data-streams-das-mqtt-pub)
 
 1. **`sync-scada-data.sh`**
 
