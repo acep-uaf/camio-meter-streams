@@ -90,7 +90,7 @@ To run the data pipeline and then transfer data to the target server:
     ```
 1. **Sync SCADA Data**
     ```sh
-    ./sync-scada-data.sh -c config/scada-sync.yml
+    ./sync-scada-data.sh -c config/scada_config.yml
     ```
 
 1. **Archive Pipeline**
