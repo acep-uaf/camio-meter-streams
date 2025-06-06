@@ -1,30 +1,40 @@
-# SEL-735 Meter Event Data Pipeline
+# SEL-735 Meter and SCADA Data Pipeline
 
-This repository contains a set of Bash scripts that make up a data pipeline, designed to automate the process of interacting with an SEL-735 meter. The pipeline is divided into two main executable scripts:
+This repository contains a set of Bash scripts designed to automate the retrieval and organization of event data from SEL-735 meters, the synchronization of SCADA data between directories, and the archival of data to a dedicated remote server.
 
-1. **`data_pipeline.sh`**: Handles the first four steps:
-    - Connecting to the meter via FTP
-    - Downloading new files
-    - Organizing and creating metadata
-    - Compressing data
+## Pipeline Overview
+Each of the following scripts are executed seperately and have their own config file.
 
-2. **`archive_pipeline.sh`**: Handles the final step:
-    - Archiving and transferring event data to the dedicated server.
+1. **`data_pipeline.sh`**
+    
+    Handles fetching and organizing raw event data from SEL-735 meters via FTP:
+    - Connects to the meter
+    - Downloads new event data
+    - Organizes directory structure and creates metadata
+    - Adds checksums
+    - Compresses raw data into `.zip`
+    - Generates `.message` file to be ingest by [data-streams-das-mqtt-pub](https://github.com/acep-uaf/data-streams-das-mqtt-pub)
 
+1. **`sync-scada-data.sh`**
 
-## Prerequisites
-Ensure you have the following before running the pipeline:
-- Unix-like environment (Linux, macOS, or a Unix-like Windows terminal)
-- FTP credentials for the meter
-- Meter Configuration
-- Must have installed:
-    - `lftp`
-    - `yq`
-    - `zip`
-    - `rsync`
-    - `jq`
+    Synchronizes SCADA data from a source directory to a destination directory:
+    - Supports syncing data over a configurable number of past months
+    - **TO DO**: Exclude current days data to avoid syncing partially written files.
+
+1. **`archive_pipeline.sh`**
+
+    Transfers downloaded and processed meter data to a dedicated server:
+    - Uses `rsync` to transfer data to remote server
+    - Automatically triggers a cleanup script if enabled via config
 
 ## Installation
+
+1. Ensure you have the following before running the pipeline:
+    - Unix-like environment (Linux, macOS, or a Unix-like Windows terminal)
+    - FTP credentials for the meter
+    - Meter Configuration
+    - Must have installed: `lftp`, `yq`, `zip`, `rsync`, `jq`
+
 1. Clone the repository:
 
     ```bash
@@ -32,69 +42,75 @@ Ensure you have the following before running the pipeline:
     cd camio-meter-streams/cli_meter
     ```
 
-    **Note**: You can check your SSH connection with `ssh -T git@github.com`
-
 ## Configuration
 
-### General Configuration Steps
-1. Navigate to the `config` directory and copy the example configuration files to a new file:
+Each script uses its own YAML configuration file located in the `config/` directory.
+
+1. **Navigate to the config directory and copy the example configuration files:**
 
     ```bash
     cd config
     cp config.yml.example config.yml
     cp archive_config.yml.example archive_config.yml
+    cp scada_config.yml.example scada_config.yml
     ```
 
-2. **Update** the configuration files with the target details:
-    - **`config.yml`**: Add the FTP server credentials and meter configuration data.
-    - **`archive_config.yml`**: Add the source and destination directories and other relevant details.
+1. **Update each configuration file**
+	- `config.yml` — used by `data_pipeline.sh`
+	- `archive_config.yml` — used by `archive_pipeline.sh`
+	- `scada_config.yml` — used by `sync-scada-data.sh`
 
-3. Secure the configuration files so that only the owner can read and write:
+1. **Secure the configuration files**
 
     ```bash
-    chmod 600 config.yml
-    chmod 600 archive_config.yml
+    chmod 600 config.yml archive_config.yml scada_config.yml
     ```
+## Usage
 
-## Execution
+This pipeline can be used in two ways:
+1.	**Manually**, by executing the scripts directly from the command line
+1.	**Automatically**, by running it as a scheduled systemd service managed through Chef
+
+### Automated Execution via systemd and Chef
+
+In production environments, each pipeline script is run automatically using a dedicated `systemd` **service** and **timer** pair, configured through custom default attributes defined in the Chef cookbook.
+
+Each configuration file has a corresponding Chef data bag that defines its values. All configuration data is centrally managed through Chef data bags and vaults. To make changes, update the appropriate Chef-managed data bags and cookbooks.
+
+**Cookbooks**:
+- [acep-camio-streams](https://github.com/acep-devops/acep-camio-streams/tree/main) - installs and configures the server.
+- [acep-devops-chef](https://github.com/acep-devops/acep-devops-chef/tree/main)
+
+### Manual Execution
 To run the data pipeline and then transfer data to the target server:
 
-1. **Run the Data Pipeline**
-
-    Execute the `data_pipeline` script from the `cli_meter` directory. The script requires a configuration file specified via the `-c/--config` flag. If this is your first time running the pipeline, the initial download may take a few hours. To pause the download safely, see: [How to Stop the Pipeline](#how-to-stop-the-pipeline)
-
-    ### Command
-
-    ```bash
+1. **Data Pipeline (Event Data)**
+    ```sh
     ./data_pipeline.sh -c config/config.yml
     ```
+1. **Sync SCADA Data**
+    ```sh
+    ./sync-scada-data.sh -c config/scada-sync.yml
+    ```
 
-2. **Run the Archive Pipeline**
-
-    After the `data_pipeline` script completes, execute the `archive_pipeline` script from the `cli_meter` directory. The script requires a configuration file specified via the `-c/--config` flag.
-
-    ### Command
-
-    ```bash
+1. **Archive Pipeline**
+    ```sh
     ./archive_pipeline.sh -c config/archive_config.yml
     ```
-    #### Notes
-    The **rsync** uses the `--exclude` flag to exclude the `working` directory to ensure only complete files are transfered. 
+    **Note:** `rsync` uses the `--exclude` flag to exclude the `working/` directory to ensure only complete files are transfered. 
 
-3. **Run the Cleanup Process (Conditional)**
+1. **Run the Cleanup Process (Conditional)**
+    The cleanup script removes outdated event files based on the retention period specified in the configuration file.
 
-    If the `archive_pipeline` script completes successfully and the `enable_cleanup` flag is set to true in the archive configuration file, the `cleanup.sh` script will be executed automatically. This script removes outdated event files based on the retention period specified in the configuration file.
-
-    If the `enable_cleanup` flag is not enabled, you can run the cleanup manually by passing in the archive configuration file.
-
-    ### Command
+    If `enable_cleanup` is set to `true` in `archive_config.yml`, `cleanup.sh` runs automatically after `archive_pipeline.sh`. 
+    
+    Otherwise, you can run it manually: 
 
     ```bash
     ./cleanup.sh -c config/archive_config.yml
     ```
     
-    #### Notes
-    Ensure that the `archive_config.yml` file is properly configured with the retention periods for each directory in the cleanup process.
+    **Note:** Ensure `archive_config.yml` specifies retention periods for each directory.
 
 ## How to Stop the Pipeline
 
