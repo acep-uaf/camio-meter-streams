@@ -78,7 +78,7 @@ In production environments, each pipeline script is run automatically using a de
 Each configuration file has a corresponding Chef data bag that defines its values. All configuration data is centrally managed through Chef data bags and vaults. To make changes, update the appropriate Chef-managed data bags and cookbooks.
 
 **Cookbooks**:
-- [acep-camio-streams](https://github.com/acep-devops/acep-camio-streams/tree/main)
+- [acep-camio-streams](https://github.com/acep-devops/acep-camio-streams/tree/main) - installs and configures the server.
 - [acep-devops-chef](https://github.com/acep-devops/acep-devops-chef/tree/main)
 
 ### Manual Execution
